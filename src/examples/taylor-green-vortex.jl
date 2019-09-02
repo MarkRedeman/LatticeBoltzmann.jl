@@ -6,6 +6,7 @@ using Plots
 struct TaylorGreenVortexExample end
 
 include("../quadratures/quadrature.jl")
+include("../quadratures/D2Q5.jl")
 include("../quadratures/D2Q9.jl")
 include("../stream.jl")
 include("../collision.jl")
