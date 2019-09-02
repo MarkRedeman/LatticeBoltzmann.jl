@@ -3,7 +3,7 @@ struct SRT <: CollisionModel
     τ
 end
 
-function collide(cm::SRT, quadrature, f_in, τ)
+function collide(collision_model::SRT, quadrature, f_in)
     τ = collision_model.τ
 
     feq = equilibrium(quadrature, f_in);

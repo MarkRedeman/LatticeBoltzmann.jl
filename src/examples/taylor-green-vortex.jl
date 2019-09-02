@@ -10,15 +10,6 @@ include("../quadratures/D2Q9.jl")
 include("../stream.jl")
 include("../collision.jl")
 
-# SRT
-function collide(quadrature, f_in, τ)
-    feq = equilibrium(quadrature, f_in);
-
-    f_out = (1 - 1 / τ) * f_in + (1 / τ) * feq;
-
-    return f_out
-end
-
 density(x, y) = 1.0
 velocity(x, y) = [
     cos(x) * sin(y),
@@ -128,7 +119,7 @@ function siumlate(::TaylorGreenVortexExample;)
 
         # collide
         # collide(lattice, collision_model)
-        f_out = collide(quadrature, f_in, τ)
+        f_out = collide(SRT(τ), quadrature, f_in)
     end
 
     f_in
