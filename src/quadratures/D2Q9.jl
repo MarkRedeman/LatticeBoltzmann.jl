@@ -11,10 +11,12 @@ struct D2Q9 <: Quadrature end
 
 # D2Q9
 const original_order = [1, 7, 9, 3, 5, 8, 2, 4, 6]
-const weights   = [4/9, 1/36, 1/9, 1/36, 1/9, 1/36, 1/9, 1/36, 1/9]'
+const weights   = [
+    4/9, 1/36, 1/9, 1/36, 1/9, 1/36, 1/9, 1/36, 1/9
+]'
 const abscissae = [
-    0  -1  -1  -1   0   1  1  1  0
-    0   1   0  -1  -1  -1  0  1  1
+    0   -1    -1   -1     0    1     1    1     0
+    0    1     0   -1    -1   -1     0    1     1
 ]
 
 
@@ -24,8 +26,22 @@ struct D2Q9 <: Quadrature end
 
 density(::D2Q9, f) = sum(f, dims=3)
 function momentum(::D2Q9, f)
-    jx = sum(f[:,:,[6, 7, 8]], dims=3) .- sum(f[:,:,[2, 3, 4]], dims=3);
-    jy = sum(f[:,:,[2, 8, 9]], dims=3) .- sum(f[:,:,[4, 5, 6]], dims=3);
+    # jx = sum([
+    #     f[x, y, f_idx] * abscissae[1, f_idx] for x = 1 : size(f, 1), y = 1 : size(f, 2), f_idx = size(f, 3)
+    # ], dims = 3)
+    # jy = sum([
+    #     f[x, y, f_idx] * abscissae[2, f_idx] for x = 1 : size(f, 1), y = 1 : size(f, 2), f_idx = size(f, 3)
+    # ], dims = 3)
+
+    jx = sum([
+        f[x, y, f_idx] * abscissae[1, f_idx] for x = 1 : size(f, 1), y = 1 : size(f, 2), f_idx = 1 : size(f, 3)
+    ], dims = 3)
+    jy = sum([
+        f[x, y, f_idx] * abscissae[2, f_idx] for x = 1 : size(f, 1), y = 1 : size(f, 2), f_idx = 1 : size(f, 3)
+    ], dims = 3)
+
+    # jx = sum(f[:,:,[6, 7, 8]], dims=3) .- sum(f[:,:,[2, 3, 4]], dims=3);
+    # jy = sum(f[:,:,[2, 8, 9]], dims=3) .- sum(f[:,:,[4, 5, 6]], dims=3);
 
     jx, jy
 end
@@ -41,14 +57,29 @@ function equilibrium(quadrature::D2Q9, f_in)
     u = jx ./ f_ρ
     v = jy ./ f_ρ
 
-    feq = equilibrium(f_ρ, u, v);
+    feq = equilibrium(quadrature, f_ρ, u, v, 1.0);
 
-    @show sum(f_in), sum(feq), sum(jx + jy), sum(jx.^2 .+ jy.^2)
     return feq
     # @show u.^2 .+ v.^2
     # @show u
 
     # Compute equilibrium distribution
+end
+
+function equilibrium(q::D2Q9, ρ, u, v, T)
+    f = zeros(size(ρ,1), size(ρ,2), 9);
+
+    u_squared = u.^2 + v.^2
+    for idx = 1:9
+        cs = abscissae[1, idx] .* u .+ abscissae[2, idx] .* v
+        # cs = dot(abscissae[:, idx], u)
+
+
+        # f[:, :, idx] = ρ .* weights[idx] .* (1.0 .+ 3.0 * cs .+ 4.5 * (cs .* cs) .- 1.5 * u_squared)
+        f[:, :, idx] = _equilibrium(ρ, weights[idx], cs, u_squared)
+    end
+
+    return f
 end
 
 function equilibrium!(::D2Q9, f, ρ, velocity, T)
@@ -57,16 +88,31 @@ function equilibrium!(::D2Q9, f, ρ, velocity, T)
 
     u_squared = u.^2 .+ v.^2
 
+    # @show "From quadrature", u, v
+    @show f
+
     for idx = 1:9
         cs = abscissae[1, idx] .* u .+ abscissae[2, idx] .* v
 
 
-        f[idx] = ρ .* weights[idx] .* (1.0 .+ 3.0 * cs .+ 4.5 * (cs .* cs) .- 1.5 * u_squared)
+
+        f[idx] = _equilibrium(ρ, weights[idx], cs, u_squared)
+        @show idx, f[idx], u, v, cs, weights[idx]
+        # ρ .* weights[idx] .* (1.0 .+ 3.0 * cs .+ 4.5 * (cs .* cs) .- 1.5 * u_squared)
     end
+
+    jx = sum([f[f_idx] * abscissae[1, f_idx] for f_idx = size(f, 3)], dims = 3)
+    jy = sum([f[f_idx] * abscissae[2, f_idx] for f_idx = size(f, 3)], dims = 3)
+    @show f
+    @show jx, jy, u, v
 
     return f
 end
 
+
+function _equilibrium(ρ, weight, cs, u_squared)
+    return ρ .* weight .* (1.0 .+ 3.0 * cs .+ 4.5 * (cs .* cs) .- 1.5 * u_squared)
+end
 
 function equilibrium(q::D2Q9, ρ, velocity, T)
     f = fill(0.0, 9)
@@ -74,41 +120,6 @@ function equilibrium(q::D2Q9, ρ, velocity, T)
     return f
 end
 
-
-function equilibrium(rho, u, u_squared, idx::Int)
-    @info "HUH"
-    cs = dot(abscissae[:, idx], u)
-
-    return rho * weights[idx] .* (1.0 + 3.0 * cs + 4.5 * (cs .* cs) - 1.5 * u_squared)
-end
-
-function equilibrium(ρ,u,v)
-    f = zeros(size(ρ,1), size(ρ,2), 9);
-
-    # subexp1 = 1 .- 1.5*(u.^2+v.^2);
-
-    # f[:, :, 1] = (1/9) .*  ρ .* (subexp1 + 3 .* u .+ 9 ./ 2 .* u.^2);
-    # f[:, :, 2] = (1/9) .*  ρ .* (subexp1 + 3 .* v .+ 9 ./ 2 .* v.^2);
-    # f[:, :, 3] = (1/9) .*  ρ .* (subexp1 - 3 .* u .+ 9 ./ 2 .* u.^2);
-    # f[:, :, 4] = (1/9) .*  ρ .* (subexp1 - 3 .* v .+ 9 ./ 2 .* v.^2);
-
-    # f[:, :, 5] = (1/36) .* ρ .* (subexp1 + 3 .* ( u .+ v) .+ 9 ./ 2 .* ( u .+ v).^2);
-    # f[:, :, 6] = (1/36) .* ρ .* (subexp1 + 3 .* (-u .+ v) .+ 9 ./ 2 .* (-u .+ v).^2);
-    # f[:, :, 7] = (1/36) .* ρ .* (subexp1 + 3 .* (-u .- v) .+ 9 ./ 2 .* (-u .- v).^2);
-    # f[:, :, 8] = (1/36) .* ρ .* (subexp1 + 3 .* ( u .- v) .+ 9 ./ 2 .* ( u .- v).^2);
-
-    # f[:, :, 9] = (4/9) .* ρ .* (subexp1);
-
-    u_squared = u.^2 + v.^2
-    for idx = 1:9
-        cs = abscissae[1, idx] .* u .+ abscissae[2, idx] .* v
-
-
-        f[:, :, idx] = ρ .* weights[idx] .* (1.0 .+ 3.0 * cs .+ 4.5 * (cs .* cs) .- 1.5 * u_squared)
-    end
-
-    return f
-end
 
 
 # function density_and_velocity{D}(f::Distribution, abscissae::Array{Int64, D}, order::Array{Int64, 1})::Tuple{Float64, Array{Float64, 1}}

@@ -38,22 +38,29 @@ function process!(quadrature, f_in, t, stats)
         v = jy ./ f_ρ
 
         s = (1200, 1200)
-        velocity_field = contour(u[:, :, 1].^2 .+ v[:, :, 1].^2, fill=true, cbar=true, clims=(0, 0.2^2), size=s)
+        velocity_field = contour(u[:, :, 1].^2 .+ v[:, :, 1].^2, fill=true, cbar=true, size=s, title="Momentum")
         N = size(u, 1)
-        X = [i for i in range(3, size(u, 1), step = 1), j in range(3, size(u, 2), step = 1)]
-        Y = [j for i in range(3, size(u, 1), step = 1), j in range(3, size(u, 2), step = 1)]
+        X = [i for i in range(1, size(u, 1), step = 1), j in range(1, size(u, 2), step = 1)]
+        Y = [j for i in range(1, size(u, 1), step = 1), j in range(1, size(u, 2), step = 1)]
+        # @show "process: ", u, v,
+        @show "Conserved? ", sum(f_ρ), sum(jx + jy), sum(jx.^2 .+ jy.^2)
+
         quiver!(
             velocity_field,
             X, Y,
             # quiver=(u[:, :, 1], v[:, :, 1])
             quiver=(x, y) -> (u[x] / sqrt(u[x]^2 + v[x]^2), v[x] / sqrt(u[x]^2 + v[x]^2)),
+            color="white",
+            arrow=arrow(0.1, 0.1)
         )
 
         # @show u.^2 .+ v.^2
         # @show u
         plot(
-            contour(f_ρ[:, :, 1], fill=true, clims=(0, 2.05), cbar=true, size=s),
+            contour(f_ρ[:, :, 1], fill=true, clims=(0, 1.05), cbar=true, size=s),
             velocity_field,
+            contour(u[:, :, 1].^2, fill=true, cbar=true, size=s, title="u"),
+            contour(v[:, :, 1].^2, fill=true, cbar=true, size=s, title="v"),
             # size=(2 * 900, 600)
         )
         gui()
@@ -68,8 +75,8 @@ function initialize!(quadrature, f_out)
     ]
 
     velocity_field = [
-        0.02 * velocity(x, y) for x in range(0, 2pi, length = N), y in range(0, 2pi, length = N)
-        # [0.01 0.0] for x in range(0, 2pi, length = N), y in range(0, 2pi, length = N)
+        0.2 * velocity(x, y) for x in range(0, 2pi, length = N), y in range(0, 2pi, length = N)
+        # [0.2 0.2] for x in range(0, 2pi, length = N), y in range(0, 2pi, length = N)
         # 0.05 * rand(2) for x in range(0, 2pi, length = N), y in range(0, 2pi, length = N)
     ]
 
@@ -83,12 +90,16 @@ function initialize!(quadrature, f_out)
             1.0 # Fow now we use a constant temperature
         )
     end
+
+    jx, jy = momentum(quadrature, f_out)
+    @show jx
+    @show jy
 end
 
 function siumlate(::TaylorGreenVortexExample;)
-    τ = 0.8;
+    τ = 1.0;
 
-    N = 2^5 + 1
+    N = 2^4 + 1
     grid_size = (N, N)
     q = 9
 
@@ -106,10 +117,12 @@ function siumlate(::TaylorGreenVortexExample;)
 
     quadrature = D2Q9()
     initialize!(quadrature, f_out)
+    f_in = f_out
+    process!(quadrature, f_in, 0, stats)
 
-    @inbounds for t = 1 : 1N
+    # return f_in
+    @inbounds for t = 1 : 10N
         process!(quadrature, f_in, t, stats)
-        continue
 
         f_in = stream(quadrature, f_out)
 
