@@ -36,57 +36,19 @@ function density(tgv::TaylorGreenVortexExample, x::Int, y::Int, timestep::Int = 
     u_max = tgv.u_max
     kx = tgv.k_x
     ky = tgv.k_y
+
     P = -0.25 * tgv.rho_0 * u_max * u_max * (
         (ky / kx) * cos(2.0 * kx * X) + (kx / ky)*cos(2.0 * ky * Y)
     ) * decay(tgv, x, y, timestep)^2;
+
     return 1.0 + 3.0 * P
-    return 1.0
-    u = velocity(t, x, y)
-
-    # kx = 2.0 * pi / NX;
-    # ky = 2.0 * pi / NY;
-    # td = 1.0 / (nu * (kx^2 + ky^2));
-
-    # double X = x+0.5;
-    # double Y = y+0.5;
-    # double ux = -u_max*sqrt(ky/kx)*cos(kx*X)*sin(ky*Y)*exp(-1.0*t/td);
-    # double uy =  u_max*sqrt(kx/ky)*sin(kx*X)*cos(ky*Y)*exp(-1.0*t/td);
-    rho0 = tgv.rho_0
-    u_max = tgv.u_max
-    kx = tgv.k_x
-    ky = tgv.k_y
-    # X = ...
-    # Y = ...
 end
 function velocity(tgv::TaylorGreenVortexExample, x::Int, y::Int, timestep::Int = 0)
     X = x + 0.5
     Y = y + 0.5
-
-    # return 0.004 .* [
-    #     cos(x) * sin(y),
-    #     sin(x) * cos(y)
-    # ]
     u_max = tgv.u_max
     kx = tgv.k_x
     ky = tgv.k_y
-    # X = ...
-    # Y = ...
-
-    return decay(tgv, x, y, timestep) .* [
-      -u_max * sqrt(ky / kx) * cos(kx * X) * sin(ky * Y),
-      u_max * sqrt(kx / ky) * sin(kx * X) * cos(ky * Y)
-    ]
-end
-function velocity(tgv::TaylorGreenVortexExample, x, y, timestep::Int = 0)
-    return 0.004 .* [
-        cos(x) * sin(y),
-        sin(x) * cos(y)
-    ]
-    u_max = tgv.u_Max
-    kx = tgv.k_x
-    ky = tgv.k_y
-    # X = ...
-    # Y = ...
 
     return decay(tgv, x, y, timestep) .* [
       -u_max * sqrt(ky / kx) * cos(kx * X) * sin(ky * Y),
@@ -100,14 +62,6 @@ function decay(tgv::TaylorGreenVortexExample, x, y, timestep::Int)
 end
 
 function initialize!(quadrature, tgv, N)
-    # TODO: check the parallel code
-    
-    # Re = NX*u_max/nu;         # Reynolds number; not used in the simulation itself
-
-
-    # N = size(f_out, 1)
-    # initial fields
-
     density_field = fill(0.0, N, N)
     velocity_field = fill(0.0, N, N, dimension(quadrature))
     for x in 1:N, y in 1:N
@@ -115,14 +69,10 @@ function initialize!(quadrature, tgv, N)
         velocity_field[x, y, :] = velocity(tgv, x, y)
     end
 
-    u = velocity_field[:, :, 1]
-    v = velocity_field[:, :, 2]
-
     return equilibrium(
         quadrature,
         density_field,
-        u,
-        v,
+        velocity_field,
         1.0
     );
     # Add offequilibrium ?
@@ -144,11 +94,6 @@ function siumlate(tgv::TaylorGreenVortexExample;)
     N = tgv.NX
     τ = quadrature.speed_of_sound_squared * tgv.ν + 0.5
     # τ = 0.5;
-
-    # Idea: introduce an Initial Value Problem
-    # problem = InitialValueProblem
-    # solution = solve(problem, LBM(Lattice, CollisionModel))
-    # LBM(Lattice, CollisionModel) can be a solution method
 
     # initialize
     f_out = initialize!(quadrature, tgv, N)
@@ -214,3 +159,8 @@ end
 # the interface could hide it by returning
 # return @view f_internal[x, y, z, :]
 
+
+    # Idea: introduce an Initial Value Problem
+    # problem = InitialValueProblem
+    # solution = solve(problem, LBM(Lattice, CollisionModel))
+    # LBM(Lattice, CollisionModel) can be a solution method

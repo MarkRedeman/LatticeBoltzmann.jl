@@ -49,53 +49,25 @@ function temperature(q::Quadrature, f, ρ, u)
     return internal_energy(q, f, ρ, u) * (2 / dimension(q))
 end
 
-function equilibrium(quadrature::Quadrature, f_in)
+function equilibrium(q::Quadrature, f_in)
     # Density
-    f_ρ = density(quadrature, f_in)
+    f_ρ = density(q, f_in)
 
     # Momentum
-    j = momentum(quadrature, f_in)
+    j = momentum(q, f_in)
 
-    # Velocity componetns
-    u = j[:, :, 1] ./ f_ρ
-    v = j[:, :, 2] ./ f_ρ
-
-    feq = equilibrium(
-        quadrature,
-        f_ρ,
-        u,
-        v,
-        1.0
-        # temperature(quadrature, f_in, f_ρ, j ./ f_ρ)
-    );
-
-    # Compute equilibrium distribution
-    return feq
+    T = 1.0 #* temperature(quadrature, f_in, f_ρ, j ./ f_ρ)
+    return equilibrium(q, f_ρ, j ./ f_ρ, T);
 end
 
-function equilibrium(q::Quadrature, ρ, u, v, T)
+function equilibrium(q::Quadrature, ρ, u, T)
     f = zeros(size(ρ,1), size(ρ,2), length(q.weights));
 
-    u_squared = u.^2 + v.^2
+    u_squared = u[:, :, 1].^2 + u[:, :, 2].^2
     for idx = 1:length(q.weights)
-        cs = q.abscissae[1, idx] .* u .+ q.abscissae[2, idx] .* v
-       
+        cs = q.abscissae[1, idx] .* u[:, :, 1] .+ q.abscissae[2, idx] .* u[:, :, 2]
+
         f[:, :, idx] = _equilibrium(q, ρ, q.weights[idx], cs, u_squared, T, q.abscissae[1, idx]^2 + q.abscissae[2, idx]^2)
-    end
-
-    return f
-end
-
-function equilibrium!(q::Quadrature, f, ρ, velocity, T)
-    u = velocity[1]
-    v = velocity[2]
-
-    u_squared = u.^2 .+ v.^2
-
-    for idx = 1:length(q.weights)
-        cs = q.abscissae[1, idx] .* u .+ q.abscissae[2, idx] .* v
-
-        f[idx] = _equilibrium(q, ρ, q.weights[idx], cs, u_squared, T, q.abscissae[1, idx]^2 + q.abscissae[2, idx]^2)
     end
 
     return f
@@ -106,8 +78,8 @@ function _equilibrium(q, ρ, weight, u_dot_xi, u_squared, T, xi_squared)
     # Truncated upto order 2
     sss = q.speed_of_sound_squared
     # return ρ .* weight .* (1.0 .+ sss * u_dot_xi .+ 4.5 * (u_dot_xi .* u_dot_xi) .- 1.5 * u_squared)
-    a = (T .- 1) .* (xi_squared * sss - dimension(q)) / 2
-    # a = 0.0
+    # a = (T .- 1) .* (xi_squared * sss - dimension(q)) / 2
+    a = 0.0
 
     return ρ .* weight .* (
         1.0 .+
