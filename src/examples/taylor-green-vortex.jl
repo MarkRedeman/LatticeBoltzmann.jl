@@ -1,138 +1,210 @@
 module Example
 module TaylorGreenVortex
 
+using StatsPlots
+using DataFrames
+using lbm
 using Plots
 
-struct TaylorGreenVortexExample end
+struct TaylorGreenVortexExample <: lbm.InitialValueProblem
+    rho_0
+    u_max
+    ν
+    NX
+    NY
+    k_x
+    k_y
 
-include("../quadratures/quadrature.jl")
-include("../quadratures/D2Q5.jl")
-include("../quadratures/D2Q9.jl")
-include("../stream.jl")
-include("../collision.jl")
-
-density(x, y) = 1.0
-velocity(x, y) = [
-    cos(x) * sin(y),
-    sin(x) * cos(y)
-]
-function process!(quadrature, f_in, t, stats)
-    if (mod(t, 1) == 0)
-        # Density
-        f_ρ = density(quadrature, f_in)
-
-        # Momentum
-        jx, jy = momentum(quadrature, f_in)
-
-
-        # Velocity componetns
-        u = jx ./ f_ρ
-        v = jy ./ f_ρ
-
-        s = (1200, 1200)
-        velocity_field = contour(u[:, :, 1].^2 .+ v[:, :, 1].^2, fill=true, cbar=true, size=s, title="Momentum")
-        N = size(u, 1)
-        X = [i for i in range(1, size(u, 1), step = 1), j in range(1, size(u, 2), step = 1)]
-        Y = [j for i in range(1, size(u, 1), step = 1), j in range(1, size(u, 2), step = 1)]
-        # @show "process: ", u, v,
-        @show "Conserved? ", sum(f_ρ), sum(jx + jy), sum(jx.^2 .+ jy.^2)
-
-        quiver!(
-            velocity_field,
-            X, Y,
-            # quiver=(u[:, :, 1], v[:, :, 1])
-            quiver=(x, y) -> (u[x] / sqrt(u[x]^2 + v[x]^2), v[x] / sqrt(u[x]^2 + v[x]^2)),
-            color="white",
-            arrow=arrow(0.1, 0.1)
+    function TaylorGreenVortexExample(ν = 1.0 / 6.0 , scale = 2, NX = 32 * scale, NY = NX)
+        u_max = 0.04 / scale
+        Re = NX * u_max / ν
+        @show Re
+        return new(
+            1.0,
+            u_max,
+            ν,
+            NX,
+            NY,
+            2pi / NX,
+            2pi / NY,
         )
-
-        # @show u.^2 .+ v.^2
-        # @show u
-        plot(
-            contour(f_ρ[:, :, 1], fill=true, clims=(0, 1.05), cbar=true, size=s),
-            velocity_field,
-            contour(u[:, :, 1].^2, fill=true, cbar=true, size=s, title="u"),
-            contour(v[:, :, 1].^2, fill=true, cbar=true, size=s, title="v"),
-            # size=(2 * 900, 600)
-        )
-        gui()
     end
 end
+function density(tgv::TaylorGreenVortexExample, x::Int, y::Int, timestep::Int = 0)
+    X = x + 0.5
+    Y = y + 0.5
+    u_max = tgv.u_max
+    kx = tgv.k_x
+    ky = tgv.k_y
+    P = -0.25 * tgv.rho_0 * u_max * u_max * (
+        (ky / kx) * cos(2.0 * kx * X) + (kx / ky)*cos(2.0 * ky * Y)
+    ) * decay(tgv, x, y, timestep)^2;
+    return 1.0 + 3.0 * P
+    return 1.0
+    u = velocity(t, x, y)
 
-function initialize!(quadrature, f_out)
-    N = size(f_out, 1)
+    # kx = 2.0 * pi / NX;
+    # ky = 2.0 * pi / NY;
+    # td = 1.0 / (nu * (kx^2 + ky^2));
+
+    # double X = x+0.5;
+    # double Y = y+0.5;
+    # double ux = -u_max*sqrt(ky/kx)*cos(kx*X)*sin(ky*Y)*exp(-1.0*t/td);
+    # double uy =  u_max*sqrt(kx/ky)*sin(kx*X)*cos(ky*Y)*exp(-1.0*t/td);
+    rho0 = tgv.rho_0
+    u_max = tgv.u_max
+    kx = tgv.k_x
+    ky = tgv.k_y
+    # X = ...
+    # Y = ...
+end
+function velocity(tgv::TaylorGreenVortexExample, x::Int, y::Int, timestep::Int = 0)
+    X = x + 0.5
+    Y = y + 0.5
+
+    # return 0.004 .* [
+    #     cos(x) * sin(y),
+    #     sin(x) * cos(y)
+    # ]
+    u_max = tgv.u_max
+    kx = tgv.k_x
+    ky = tgv.k_y
+    # X = ...
+    # Y = ...
+
+    return decay(tgv, x, y, timestep) .* [
+      -u_max * sqrt(ky / kx) * cos(kx * X) * sin(ky * Y),
+      u_max * sqrt(kx / ky) * sin(kx * X) * cos(ky * Y)
+    ]
+end
+function velocity(tgv::TaylorGreenVortexExample, x, y, timestep::Int = 0)
+    return 0.004 .* [
+        cos(x) * sin(y),
+        sin(x) * cos(y)
+    ]
+    u_max = tgv.u_Max
+    kx = tgv.k_x
+    ky = tgv.k_y
+    # X = ...
+    # Y = ...
+
+    return decay(tgv, x, y, timestep) .* [
+      -u_max * sqrt(ky / kx) * cos(kx * X) * sin(ky * Y),
+      u_max * sqrt(kx / ky) * sin(kx * X) * cos(ky * Y)
+    ]
+end
+function decay(tgv::TaylorGreenVortexExample, x, y, timestep::Int)
+    td = 1.0 / (tgv.ν * (tgv.k_x^2 + tgv.k_y^2));
+
+    exp(-1.0 * timestep / td)
+end
+
+function initialize!(quadrature, tgv, N)
+    # TODO: check the parallel code
+    
+    # Re = NX*u_max/nu;         # Reynolds number; not used in the simulation itself
+
+
+    # N = size(f_out, 1)
     # initial fields
-    density_field = [
-        density(x, y) for x in range(0, 2pi, length = N), y in range(0, 2pi, length = N)
-    ]
 
-    velocity_field = [
-        0.2 * velocity(x, y) for x in range(0, 2pi, length = N), y in range(0, 2pi, length = N)
-        # [0.2 0.2] for x in range(0, 2pi, length = N), y in range(0, 2pi, length = N)
-        # 0.05 * rand(2) for x in range(0, 2pi, length = N), y in range(0, 2pi, length = N)
-    ]
-
-    # set initial conditions
-    for x_idx = 1 : size(f_out, 1), y_idx = 1 : size(f_out, 2)
-        # f_in[x_idx, y_idx, :] = equilibrium(D2Q9(), ρ, u, T)
-        f_out[x_idx, y_idx, :] = equilibrium(
-            quadrature,
-            density_field[x_idx, y_idx],
-            velocity_field[x_idx, y_idx],
-            1.0 # Fow now we use a constant temperature
-        )
+    density_field = fill(0.0, N, N)
+    velocity_field = fill(0.0, N, N, dimension(quadrature))
+    for x in 1:N, y in 1:N
+        density_field[x, y] = density(tgv, x, y)
+        velocity_field[x, y, :] = velocity(tgv, x, y)
     end
 
-    jx, jy = momentum(quadrature, f_out)
-    @show jx
-    @show jy
+    u = velocity_field[:, :, 1]
+    v = velocity_field[:, :, 2]
+
+    return equilibrium(
+        quadrature,
+        density_field,
+        u,
+        v,
+        1.0
+    );
+    # Add offequilibrium ?
 end
 
-function siumlate(::TaylorGreenVortexExample;)
-    τ = 1.0;
+function siumlate(tgv::TaylorGreenVortexExample;)
+    quadratures = [
+        D2Q4(),
+        D2Q5(),
+        D2Q9(),
+        # D2Q17(),
+    ]
 
-    N = 2^4 + 1
-    grid_size = (N, N)
-    q = 9
+    quadrature = last(quadratures)
 
-    # initialize
-    f_out = fill(0.0, grid_size..., 9)
-    f_in = copy(f_out)
+
+    # NOTE we should base τ on ν and the speed of sound for the given qquadrature
+    @show tgv
+    N = tgv.NX
+    τ = quadrature.speed_of_sound_squared * tgv.ν + 0.5
+    # τ = 0.5;
 
     # Idea: introduce an Initial Value Problem
     # problem = InitialValueProblem
     # solution = solve(problem, LBM(Lattice, CollisionModel))
     # LBM(Lattice, CollisionModel) can be a solution method
 
+    # initialize
+    f_out = initialize!(quadrature, tgv, N)
+    f_in = copy(f_out)
 
-    stats = []
-
-    quadrature = D2Q9()
-    initialize!(quadrature, f_out)
-    f_in = f_out
+    stats = DataFrame(
+        [Float64[], Float64[], Float64[], Float64[], Float64[]],
+        [:density, :momentum, :total_energy, :kinetic_energy, :internal_energy]
+    )
     process!(quadrature, f_in, 0, stats)
 
     # return f_in
-    @inbounds for t = 1 : 10N
+    @inbounds for t = 0 : 2N
+        if mod(t, 10) == 0
+            @show t, t / 2N
+        end
         process!(quadrature, f_in, t, stats)
 
         f_in = stream(quadrature, f_out)
 
-        # collide
-        # collide(lattice, collision_model)
         f_out = collide(SRT(τ), quadrature, f_in)
     end
 
-    f_in
+    @show stats
+
+
+    plot(
+        plot(stats.density),
+        plot(stats.momentum),
+        plot(stats.total_energy),
+        plot(stats.kinetic_energy),
+        plot(stats.internal_energy)
+    )
+
+    gui()
+
+    f_in, stats
 end
 
-example = TaylorGreenVortexExample()
+# N = 2^5
+example = TaylorGreenVortexExample(
+    1.0 / 6.0,
+    1
+)
 
 @time result = siumlate(example)
 
-end
-end
+using Test
 
+quadratures = [
+    D2Q4(),
+    D2Q5(),
+    D2Q9()
+]
+end
+end
 
 # Some thoughs: hide the storage of the distributions f inside of an interface
 # so that we can do:
@@ -141,3 +213,4 @@ end
 #
 # the interface could hide it by returning
 # return @view f_internal[x, y, z, :]
+

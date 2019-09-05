@@ -11,7 +11,7 @@
 struct D2Q9 <: Quadrature
     abscissae
     weights
-    speed_of_sound
+    speed_of_sound_squared
 
     D2Q9() = new(
         [
@@ -21,6 +21,8 @@ struct D2Q9 <: Quadrature
         [
             4/9, 1/36, 1/9, 1/36, 1/9, 1/36, 1/9, 1/36, 1/9
         ],
-        1 / √3
+        3.0
     )
 end
+
+order(q::D2Q9) = 5

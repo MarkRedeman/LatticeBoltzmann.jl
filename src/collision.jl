@@ -10,7 +10,30 @@ function collide(collision_model::SRT, quadrature, f_in)
 
     f_out = (1 - 1 / τ) * f_in + (1 / τ) * feq;
 
+
+    # Since this is the place where we will have computed all
+    # hermite coefficients, call process! here? (or at least a callback)
+    # cb(f_out, moments)
+
     return f_out
+end
+
+struct SRT_Force <: CollisionModel
+    τ
+    F
+end
+
+struct TRT <: CollisionModel
+    τ_symmetric
+    τ_asymmetric
+end
+
+function collide(collision_model::TRT, quadrature, f_in)
+    τ_s = collision_model.τ_symmetric
+    τ_a = collision_model.τ_asymmetric
+
+    # TODO
+    return f_in
 end
 
 # """

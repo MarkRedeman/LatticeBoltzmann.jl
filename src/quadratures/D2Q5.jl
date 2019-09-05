@@ -6,7 +6,7 @@
 struct D2Q5 <: Quadrature
     abscissae
     weights
-    speed_of_sound
+    speed_of_sound_squared
 
     D2Q5() = new(
         [
@@ -16,6 +16,6 @@ struct D2Q5 <: Quadrature
         [
             4/6, 1/12, 1/12, 1/12, 1/12
         ],
-        1 / √2
+        2.0
     )
 end
