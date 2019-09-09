@@ -3,7 +3,8 @@ module lbm
 include("quadratures/quadrature.jl")
 include("stream.jl")
 include("collision.jl")
-include("process.jl")
+# include("process.jl")
+# include("problems/problems.jl")
 
 export Quadrature, Lattice, D2Q4, D2Q5, D2Q9, D2Q17
     initialize,
@@ -24,7 +25,7 @@ export CollisionModel,
     TRT,
     collide
 
-export process!
+# export process!
 
 # abstract type Model
 

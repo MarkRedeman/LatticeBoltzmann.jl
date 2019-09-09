@@ -52,7 +52,7 @@ function velocity(tgv::TaylorGreenVortexExample, x::Int, y::Int, timestep::Int =
 
     return decay(tgv, x, y, timestep) .* [
       -u_max * sqrt(ky / kx) * cos(kx * X) * sin(ky * Y),
-      u_max * sqrt(kx / ky) * sin(kx * X) * cos(ky * Y)
+       u_max * sqrt(kx / ky) * sin(kx * X) * cos(ky * Y)
     ]
 end
 function decay(tgv::TaylorGreenVortexExample, x, y, timestep::Int)
@@ -63,13 +63,13 @@ end
 
 function initialize!(quadrature, tgv, N)
     density_field = fill(0.0, N, N)
-    velocity_field = fill(0.0, N, N, dimension(quadrature))
+    velocity_field = fill(0.0, N, N, lbm.dimension(quadrature))
     for x in 1:N, y in 1:N
         density_field[x, y] = density(tgv, x, y)
         velocity_field[x, y, :] = velocity(tgv, x, y)
     end
 
-    return equilibrium(
+    return lbm.equilibrium(
         quadrature,
         density_field,
         velocity_field,
@@ -103,7 +103,6 @@ function siumlate(tgv::TaylorGreenVortexExample;)
         [Float64[], Float64[], Float64[], Float64[], Float64[]],
         [:density, :momentum, :total_energy, :kinetic_energy, :internal_energy]
     )
-    process!(quadrature, f_in, 0, stats)
 
     # return f_in
     @inbounds for t = 0 : 2N
@@ -112,20 +111,21 @@ function siumlate(tgv::TaylorGreenVortexExample;)
         end
         process!(quadrature, f_in, t, stats)
 
-        f_in = stream(quadrature, f_out)
-
         f_out = collide(SRT(τ), quadrature, f_in)
+
+        f_in = stream(quadrature, f_out)
     end
 
     @show stats
 
 
     plot(
-        plot(stats.density),
-        plot(stats.momentum),
+        # plot(stats.density),
+        # plot(stats.momentum),
         plot(stats.total_energy),
         plot(stats.kinetic_energy),
-        plot(stats.internal_energy)
+        plot(stats.internal_energy),
+        size=(1000, 600)
     )
 
     gui()
@@ -136,7 +136,7 @@ end
 # N = 2^5
 example = TaylorGreenVortexExample(
     1.0 / 6.0,
-    1
+    1,
 )
 
 @time result = siumlate(example)

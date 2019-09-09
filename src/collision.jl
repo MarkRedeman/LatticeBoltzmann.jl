@@ -3,10 +3,20 @@ struct SRT <: CollisionModel
     τ
 end
 
-function collide(collision_model::SRT, quadrature, f_in)
+function collide(collision_model::SRT, q, f_in)
     τ = collision_model.τ
 
-    feq = equilibrium(quadrature, f_in);
+    # Density
+    f_ρ = density(q, f_in)
+
+    # Momentum
+    j = momentum(q, f_in)
+
+    # Temperature
+    T = 1.0
+    # T = temperature(q, f_in, f_ρ, j ./ f_ρ)
+
+    feq = equilibrium(q, f_ρ, j ./ f_ρ, T);
 
     f_out = (1 - 1 / τ) * f_in + (1 / τ) * feq;
 

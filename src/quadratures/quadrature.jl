@@ -49,17 +49,6 @@ function temperature(q::Quadrature, f, ρ, u)
     return internal_energy(q, f, ρ, u) * (2 / dimension(q))
 end
 
-function equilibrium(q::Quadrature, f_in)
-    # Density
-    f_ρ = density(q, f_in)
-
-    # Momentum
-    j = momentum(q, f_in)
-
-    T = 1.0 #* temperature(quadrature, f_in, f_ρ, j ./ f_ρ)
-    return equilibrium(q, f_ρ, j ./ f_ρ, T);
-end
-
 function equilibrium(q::Quadrature, ρ, u, T)
     f = zeros(size(ρ,1), size(ρ,2), length(q.weights));
 
@@ -72,7 +61,6 @@ function equilibrium(q::Quadrature, ρ, u, T)
 
     return f
 end
-
 
 function _equilibrium(q, ρ, weight, u_dot_xi, u_squared, T, xi_squared)
     # Truncated upto order 2
@@ -88,12 +76,6 @@ function _equilibrium(q, ρ, weight, u_dot_xi, u_squared, T, xi_squared)
         a .+
         - (sss / 2) * u_squared
     )
-end
-
-function equilibrium(q::Quadrature, ρ, velocity, T)
-    f = fill(0.0, length(q.weights))
-    equilibrium!(q, f, ρ, velocity, T)
-    return f
 end
 
 function hermite_equilibrium(q::Quadrature, f)
