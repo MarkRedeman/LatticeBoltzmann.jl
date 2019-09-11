@@ -2,6 +2,7 @@
 abstract type Quadrature end
 abstract type Lattice end
 
+include("hermite.jl")
 include("D2Q4.jl")
 include("D2Q5.jl")
 include("D2Q9.jl")
@@ -46,7 +47,7 @@ function dimension(q::Quadrature)
 end
 
 function temperature(q::Quadrature, f, ρ, u)
-    return internal_energy(q, f, ρ, u) * (2 / dimension(q))
+    return internal_energy(q, f, ρ, u) * (2 / dimension(q)) 
 end
 
 function equilibrium(q::Quadrature, ρ, u, T)
@@ -62,19 +63,38 @@ function equilibrium(q::Quadrature, ρ, u, T)
     return f
 end
 
-function _equilibrium(q, ρ, weight, u_dot_xi, u_squared, T, xi_squared)
+function _equilibrium(q::Quadrature, ρ, weight, u_dot_xi, u_squared, T, xi_squared)
     # Truncated upto order 2
-    sss = q.speed_of_sound_squared
-    # return ρ .* weight .* (1.0 .+ sss * u_dot_xi .+ 4.5 * (u_dot_xi .* u_dot_xi) .- 1.5 * u_squared)
-    # a = (T .- 1) .* (xi_squared * sss - dimension(q)) / 2
-    a = 0.0
+    cs = q.speed_of_sound_squared
+    # return ρ .* weight .* (1.0 .+ cs * u_dot_xi .+ 4.5 * (u_dot_xi .* u_dot_xi) .- 1.5 * u_squared)
+    a = (T .- 1) .* (xi_squared * cs - dimension(q)) / 2
+    # a = 0.0
 
     return ρ .* weight .* (
         1.0 .+
-        sss * u_dot_xi .+
-        (sss^2 / 2) * (u_dot_xi .* u_dot_xi) .+
+        cs * u_dot_xi .+
+        (cs^2 / 2) * (u_dot_xi .* u_dot_xi) .+
         a .+
-        - (sss / 2) * u_squared
+        - (cs / 2) * u_squared
+    )
+end
+
+function _equilibrium(q::D2Q17, ρ, weight, u_dot_xi, u_squared, T, xi_squared)
+    # Truncated upto order 2
+    cs = q.speed_of_sound_squared
+    a = 0.0
+    # a = (T .- 1) .* (xi_squared * cs - dimension(q)) / 2
+    a_H_0 = 1.0
+    a_H_1 = cs * u_dot_xi
+    a_H_2 = cs^2 * (u_dot_xi .* u_dot_xi) .+ a .+ - cs * u_squared
+    a_H_3 = cs * u_dot_xi .* (
+        cs^2 * (u_dot_xi .* u_dot_xi) -  3 * cs * u_squared
+    )
+    return ρ .* weight .* (
+        a_H_0 .+
+        a_H_1 .+
+        (1 / 2) * a_H_2 .+
+        (1 / 6) * a_H_3
     )
 end
 

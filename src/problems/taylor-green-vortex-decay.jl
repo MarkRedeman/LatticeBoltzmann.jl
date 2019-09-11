@@ -2,7 +2,8 @@ export TaylorGreenVortexDecay,
     density,
     velocity,
     temperature,
-    decay
+    decay,
+    force
 
 struct TaylorGreenVortexDecay <: lbm.InitialValueProblem
     scale
@@ -64,3 +65,6 @@ end
 function temperature(tgv::TaylorGreenVortexDecay, x::Int, y::Int, timestep::Int = 0)
     1.0
 end
+
+force(t::TaylorGreenVortexDecay, x, y) = 0
+force(t, x, y) = (t.a^2 + t.b^2) * (t.length^2 / t.Re) * velocity(t, x, y)
