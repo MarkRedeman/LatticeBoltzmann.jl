@@ -34,11 +34,12 @@ struct D2Q17 <: Quadrature
     speed_of_sound_squared
 
     function D2Q17()
-        w_0 = (575 + 193 * sqrt(193)) / 8100
-        w_1 = (355 - 91 * sqrt(193)) / 18000
-        w_2 = (655 + 17 * sqrt(193)) / 27000
-        w_3 = (685 - 49 * sqrt(193)) / 54000
-        w_4 = (1445 - 101 * sqrt(193)) / 162000
+        sq = sqrt(193)
+        w_0 = (575  + 193sq) / 8100
+        w_1 = (3355 - 91sq)  / 18000
+        w_2 = (655  + 17sq)  / 27000
+        w_3 = (685  - 49sq)  / 54000
+        w_4 = (1445 - 101sq) / 162000
 
         return new(
             [   #A #B          #C          #D          #D
@@ -54,3 +55,5 @@ struct D2Q17 <: Quadrature
 end
 
 order(q::D2Q17) = 7
+
+Base.show(io::IO, q::D2Q17)= show(io, "D2Q17")

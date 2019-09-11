@@ -17,7 +17,7 @@ struct TaylorGreenVortexExample <: lbm.InitialValueProblem
     k_y
 
     function TaylorGreenVortexExample(ν = 1.0 / 6.0 , scale = 2, NX = 16 * scale, NY = NX)
-        u_max = 0.02 / scale
+        u_max = 0.01 / scale
         Re = NX * u_max / ν
         @show Re
         return new(
@@ -139,7 +139,7 @@ function process!(tgv, quadrature, f_in, t, stats)
             u_error,
         ])
 
-    return
+    # return
         # if (mod(t, 50) == 0)
         #     plot(
         #         plot(stats.density),
@@ -258,12 +258,14 @@ function siumlate(tgv::TaylorGreenVortexExample;)
         end
 
         if (mod(t, 1) == 0)
-            # process!(tgv, quadrature, f_in, t, stats)
+            process!(tgv, quadrature, f_in, t, stats)
         end
 
         f_out = collide(SRT(τ), quadrature, f_in)
 
         f_in = stream(quadrature, f_out)
+        process!(tgv, quadrature, f_in, t + 1, stats)
+        return f_in, stats
     end
     process!(tgv, quadrature, f_in, n_steps + 1, stats)
 
@@ -311,10 +313,11 @@ end
 stats = DataFrame([Float64[], Int[], Any[]], [:nu, :scale, :stats])
 
 νs = (0.0:6.0) ./ 6.0
-for ν in νs
-for scale = [1, 2, 4, 8]
-    # N = 2^5
-# scale = 4
+# for ν in νs
+# for scale = [1, 2, 4, 8]
+N = 2^5
+scale = 2
+ν = 1.0 / 6.0
     example = TaylorGreenVortexExample(
         ν,
         scale,

@@ -4,8 +4,6 @@ struct SRT <: CollisionModel
 end
 
 function collide(collision_model::SRT, q, f_in)
-    τ = collision_model.τ
-
     # Density
     ρ = density(q, f_in)
 
@@ -18,6 +16,7 @@ function collide(collision_model::SRT, q, f_in)
 
     feq = equilibrium(q, ρ, j ./ ρ, T);
 
+    τ = collision_model.τ
     f_out = (1 - 1 / τ) * f_in + (1 / τ) * feq;
 
 

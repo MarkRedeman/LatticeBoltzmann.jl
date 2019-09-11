@@ -26,3 +26,5 @@ struct D2Q9 <: Quadrature
 end
 
 order(q::D2Q9) = 5
+
+Base.show(io::IO, q::D2Q9)= show(io, "D2Q9")

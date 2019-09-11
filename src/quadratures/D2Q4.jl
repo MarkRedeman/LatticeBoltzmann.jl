@@ -6,7 +6,7 @@
 struct D2Q4 <: Quadrature
     abscissae
     weights
-    speed_of_sound
+    speed_of_sound_squared
 
     D2Q4() = new(
         [
@@ -16,6 +16,9 @@ struct D2Q4 <: Quadrature
         [
             1/4, 1/4, 1/4, 1/4
         ],
-        1 / √2
+        2.0
     )
 end
+
+order(q::D2Q4) = 3
+Base.show(io::IO, q::D2Q4)= show(io, "D2Q4")

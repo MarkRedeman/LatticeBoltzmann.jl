@@ -3,6 +3,7 @@
 
 # const original_order = [1, 2 ,3, 4]
 
+# From: E3,1,5
 struct D2Q5 <: Quadrature
     abscissae
     weights
@@ -16,6 +17,9 @@ struct D2Q5 <: Quadrature
         [
             4/6, 1/12, 1/12, 1/12, 1/12
         ],
-        2.0
+        6.0
     )
 end
+
+order(q::D2Q5) = 3
+Base.show(io::IO, q::D2Q5)= show(io, "D2Q5")
