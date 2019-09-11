@@ -7,16 +7,16 @@ function collide(collision_model::SRT, q, f_in)
     τ = collision_model.τ
 
     # Density
-    f_ρ = density(q, f_in)
+    ρ = density(q, f_in)
 
     # Momentum
     j = momentum(q, f_in)
 
     # Temperature
     T = 1.0
-    # T = temperature(q, f_in, f_ρ, j ./ f_ρ)
+    # T = temperature(q, f_in, ρ, j ./ ρ)
 
-    feq = equilibrium(q, f_ρ, j ./ f_ρ, T);
+    feq = equilibrium(q, ρ, j ./ ρ, T);
 
     f_out = (1 - 1 / τ) * f_in + (1 / τ) * feq;
 

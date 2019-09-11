@@ -1,1 +1,98 @@
 #+TITLE: Lattice Boltzmann Method
+
+
+https://jutho.github.io/TensorOperations.jl/stable/
+https://juliaarrays.github.io/StaticArrays.jl/stable/
+http://abelsiqueira.github.io/blog/package-development-on-julia-10/
+https://github.com/daviddelaat/Orthopolys.jl/blob/master/src/Orthopolys.jl
+https://docs.julialang.org/en/v1/manual/workflow-tips/
+https://www.comsol.nl/multiphysics/fluid-flow-conservation-of-momentum-mass-and-energy
+
+** Parameter scaling
+http://s467657437.online.de/wp-content/uploads/2019/08/Krueger_Edmonton_scaling.pdf
+
+** Palabos
+
+http://wiki.palabos.org/numerics:matlab_samples
+http://wiki.palabos.org/numerics:codes
+
+http://www.palabos.org/documentation/userguide/implemented-models.html#large-eddy-simulations
+
+** Exmples
+
+https://github.com/lbm-principles-practice/code/blob/master/chapter13/matlab/vortexdecay.m
+https://github.com/lbm-principles-practice/code/blob/master/chapter13/matlab/equilibrium.m
+https://github.com/grasingerm/lbxflow/blob/master/inc/boundary.jl
+
+** Parallel
+
+http://www.claudiobellei.com/2018/09/30/julia-mpi/
+
+
+** New code
+
+#+BEGIN_SRC  julia
+module lbm
+
+abstract type Quadrature end
+abstract type Lattice end
+abstract type CollisionModel end
+struct SingleRelaxationTime <: CollisionModel
+    τ::Real
+end
+struct TwoRelaxationTime <: CollisionModel
+    τ_symmetric::Real
+    τ_asymmetric::Real
+end
+struct MultipleRelaxationTime{N} where N <: CollisionModel
+    τ::SArray{N}
+end
+
+# Regularized?
+
+struct Simulation
+
+end
+# encode dimension and amount of quadrature nodes
+
+density(x) = x
+momentum(x) = x
+
+function stream!(simulation)
+end
+
+function collide!(simulation)
+end
+function collide(f_in, f_out)
+    end
+
+function solve(problem)
+end
+
+end # module
+
+#+END_SRC
+
+
+#+BEGIN_SRC julia
+struct DistributionFunction{Q <: Quadrature}
+    values::Vector{Real}
+end
+
+struct Lattice{Q <: Quadrature}
+    grid
+    boundary_conditions
+end
+
+struct LBM
+    lattice::Lattice
+    collision_model::CollisionModel
+end
+
+#+END_SRC
+
+* Testing
+https://github.com/IainNZ/Pukeko.jl
+
+* Visualization (paraview?)
+https://github.com/jipolanco/WriteVTK.jl
