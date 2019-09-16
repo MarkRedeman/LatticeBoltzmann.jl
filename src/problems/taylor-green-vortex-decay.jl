@@ -66,5 +66,43 @@ function temperature(tgv::TaylorGreenVortexDecay, x::Int, y::Int, timestep::Int 
     1.0
 end
 
-force(t::TaylorGreenVortexDecay, x, y) = 0
-force(t, x, y) = (t.a^2 + t.b^2) * (t.length^2 / t.Re) * velocity(t, x, y)
+function force(tgv::TaylorGreenVortexDecay, x::Int, y::Int, time::Int = 0)
+    @show "HOIHOI"
+    return (1.0 / (tgv.ν * (tgv.k_x^2 + tgv.k_y^2))) * [0.01, 0.4] # velocity(tgv, x, y, 0)
+    # return (t.a^2 + t.b^2) * (t.length^2 / t.Re) * velocity(tgv, x, y, 0)
+# (1.0 / (tgv.ν * (tgv.k_x^2 + tgv.k_y^2))) * t.length / (t.Re / t.speed)
+
+#     Decay: - (t.a^2 + t.b^2) * (t.speed * t.length) / (t.Re)
+#     - 1.0 / (tgv.ν * (tgv.k_x^2 + tgv.k_y^2));
+
+    # Re = NX * u_max / ν
+    # Re = t.speed * t.length / ν
+    # td = - (t.a^2 + t.b^2) * ν
+    #     -u_max * sqrt(ky / kx) * cos(kx * X) * sin(ky * Y),
+    #     u_max * sqrt(kx / ky) * sin(kx * X) * cos(ky * Y)
+
+    # td = - 1.0 / (tgv.ν * (tgv.k_x^2 + tgv.k_y^2));
+    # td = - (t.a^2 + t.b^2) * (t.speed * t.length) / (t.Re)
+    # * timestep
+
+    # t.A = u_max * sqrt(ky / kx)
+    # t.B = -u_max * sqrt(ky / kx)
+    # t.a * t.length * x = kx * X
+    # t.b * t.length * y = ky * Y
+        # -u_max * sqrt(ky / kx) * cos(kx * X) * sin(ky * Y),
+        # u_max * sqrt(kx / ky) * sin(kx * X) * cos(ky * Y)
+#         t.A * cos(t.a * t.length * x)sin(t.b * t.length * y),
+#         t.B * sin(t.a * t.length * x)cos(t.b * t.length * y)
+    return (t.a^2 + t.b^2) * (t.length^2 / t.Re) * velocity(tgv, x, y, 0)
+end
+# force(t, x, y) = (t.a^2 + t.b^2) * (t.length^2 / t.Re) * velocity(t, x, y)
+
+# function velocity(t::TaylorGreenVortex, x, y, time)
+#     return decay(t, time * t.length / t.speed) * (1 / t.speed) * [
+#         t.A * cos(t.a * t.length * x)sin(t.b * t.length * y),
+#         t.B * sin(t.a * t.length * x)cos(t.b * t.length * y)
+#     ]
+# end
+# decay(t::TaylorGreenVortex, time) = exp(- (t.a^2 + t.b^2) * (t.speed * t.length) / (t.Re) * time)
+# decay(t::StaticVortex, time) = 1
+# decay(t::DecayingVortex, time) = exp(- (t.a^2 + t.b^2) * (t.speed * t.length) / (t.Re) * time)

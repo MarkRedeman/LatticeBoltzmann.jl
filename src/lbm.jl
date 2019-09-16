@@ -16,6 +16,7 @@ export Quadrature, Lattice, D2Q4, D2Q5, D2Q9, D2Q17
     temperature,
     dimension,
     equilibrium,
+    equilibrium!,
     hermite_equilibrium,
     hermite_first_nonequilibrium
 export hermite
@@ -23,8 +24,11 @@ export hermite
 export stream
 export CollisionModel,
     SRT,
+    SRT_Force,
     TRT,
-    collide
+    collide,
+    collide_2,
+    collide_3
 
 # export process!
 

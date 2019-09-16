@@ -5,10 +5,10 @@ using Test
 using lbm
 
 quadratures = [
-    D2Q4(),
-    D2Q5(),
+    # D2Q4(),
+    # D2Q5(),
     D2Q9(),
-    D2Q17(),
+    # D2Q17(),
 ]
 @testset "LBM.jl" begin
 

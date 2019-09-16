@@ -9,21 +9,20 @@
 # const original_order = [1, 7, 9, 3, 5, 8, 2, 4, 6]
 
 struct D2Q9 <: Quadrature
-    abscissae
-    weights
-    speed_of_sound_squared
-
-    D2Q9() = new(
-        [
-            0   -1    -1   -1     0    1     1    1     0
-            0    1     0   -1    -1   -1     0    1     1
-        ],
-        [
-            4/9, 1/36, 1/9, 1/36, 1/9, 1/36, 1/9, 1/36, 1/9
-        ],
-        3.0
-    )
+    abscissae::Array{Int64, 2}
+    weights::Array{Float64, 1}
+    speed_of_sound_squared::Float64
 end
+D2Q9() = D2Q9(
+    [
+        0   -1    -1   -1     0    1     1    1     0
+        0    1     0   -1    -1   -1     0    1     1
+    ],
+    [
+        4/9, 1/36, 1/9, 1/36, 1/9, 1/36, 1/9, 1/36, 1/9
+    ],
+    3.0
+)
 
 order(q::D2Q9) = 5
 
