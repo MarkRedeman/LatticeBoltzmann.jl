@@ -50,4 +50,57 @@ end
 
     include("quadrature.jl")
 
+
+
+logspace(start, stop, length) = exp10.(range(start, stop = stop, length = length))
+@testset "moments of the equilibrium distribution of the $q lattice" for q in quadratures
+    N = 1
+    density_field = fill(1.0, N, N)
+    velocity_field = fill(0.0, N, N, lbm.dimension(q))
+    temperature_field = fill(1.0, N, N)
+
+    f = lbm.equilibrium(
+        q,
+        density_field,
+        velocity_field,
+        temperature_field
+    );
+
+    @test lbm.density(q, f) ≈ density_field
+    @test isapprox(lbm.momentum(q, f), velocity_field, atol=1e-16)
+    # @show lbm.temperature(q, f)
+    # @test lbm.temperature(q, f) ≈ temperature_field
+
+    equilibrium(ρ, u) = begin
+        v = fill(0.0, 1, 1, lbm.dimension(q))
+        for d in 1:lbm.dimension(q)
+            v[1, 1, d] = u[d]
+        end
+
+        lbm.equilibrium(q, fill(ρ, 1, 1), v, 1.0)
+    end
+    density(ρ, u) = lbm.density(q, equilibrium(ρ, u))
+    momentum(ρ, u) = lbm.momentum(q, equilibrium(ρ, u))
+
+    pressure(ρ, u) = LBM.pressure(equilibrium(ρ, u))
+
+    @test density(1.0, [0.0, 0.0]) ≈ fill(1.0, 1, 1)
+    @test isapprox(momentum(1.0, [0.0, 0.0]), fill(0.0, 1, 1, lbm.dimension(q)), atol=1e-16)
+
+    # Todo: analytically check the numerical error bounds
+
+    for u ∈ logspace(2, -9, 12)
+        for v ∈ [[0, 0], [u, 0.0], [0.0, u], [u, u]]
+            @test isapprox(density(1.0, v)[1, 1], 1.0, rtol=1e-10, atol=1e-8 )
+            for d in 1:lbm.dimension(q)
+                @test isapprox(
+                    momentum(1.0, v)[1, 1, d],
+                    v[d],
+                    atol=1e-12,
+                    rtol=1e-6
+                )
+            end
+        end
+    end
+end
 end
