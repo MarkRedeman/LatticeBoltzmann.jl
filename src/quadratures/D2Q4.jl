@@ -4,21 +4,21 @@
 # const original_order = [1, 2 ,3, 4]
 
 struct D2Q4 <: Quadrature
-    abscissae
-    weights
-    speed_of_sound_squared
-
-    D2Q4() = new(
-        [
-            1  -1   0   0
-            0   0   1  -1
-        ],
-        [
-            1/4, 1/4, 1/4, 1/4
-        ],
-        2.0
-    )
+    abscissae::Array{Int64, 2}
+    weights::Array{Float64, 1}
+    speed_of_sound_squared::Float64
 end
+
+D2Q4() = D2Q4(
+    [
+        1  -1   0   0
+        0   0   1  -1
+    ],
+    [
+        1/4, 1/4, 1/4, 1/4
+    ],
+    2.0
+)
 
 order(q::D2Q4) = 3
 Base.show(io::IO, q::D2Q4)= show(io, "D2Q4")
