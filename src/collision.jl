@@ -5,6 +5,11 @@ struct SRT <: CollisionModel
     τ::Float64
 end
 
+struct SRT_Force <: CollisionModel
+    τ::Float64
+    force::Array{Float64, 3}
+end
+
 function collide(collision_model::SRT, q, f_in)::Array{Float64, 3}
     τ = collision_model.τ
 
@@ -18,7 +23,45 @@ function collide(collision_model::SRT, q, f_in)::Array{Float64, 3}
     T = 1.0
     # T = temperature(q, f_in, ρ, j ./ ρ)
 
-    feq = equilibrium(q, ρ, j ./ ρ, T);
+    return srt_collision(
+        q,
+        f_in,
+        τ,
+        ρ,
+        j ./ ρ,
+        T
+    )
+end
+
+function collide(collision_model::SRT_Force, q, f_in)::Array{Float64, 3}
+    τ = collision_model.τ
+
+    # Density
+    ρ = density(q, f_in)
+
+    # Momentum
+    j = momentum(q, f_in)
+
+    # Temperature
+    T = 1.0
+    # T = temperature(q, f_in, ρ, j ./ ρ)
+
+    return srt_collision(
+        q,
+        f_in,
+        τ,
+        ρ,
+        j ./ ρ .+ τ * collision_model.force,
+        T
+    )
+end
+
+function srt_collision(q, f_in, τ, ρ, u, T)
+    feq = equilibrium(q, ρ, u, T);
+
+    return (1 - 1 / τ) * f_in + (1 / τ) * feq;
+end
+
 
     f_out = (1 - 1 / τ) * f_in + (1 / τ) * feq;
 

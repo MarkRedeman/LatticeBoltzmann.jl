@@ -24,6 +24,7 @@ export hermite
 export stream
 export CollisionModel,
     SRT,
+    SRT_Force,
     TRT,
     collide
 
