@@ -1,16 +1,18 @@
+using TimerOutputs
+
 abstract type CollisionModel end
 struct SRT <: CollisionModel
-    τ
+    τ::Float64
 end
 
-function collide(collision_model::SRT, q, f_in)
+function collide(collision_model::SRT, q, f_in)::Array{Float64, 3}
     τ = collision_model.τ
 
     # Density
     ρ = density(q, f_in)
 
     # Momentum
-    j = momentum(q, f_in)
+    j = momentum(q, f_in) 
 
     # Temperature
     T = 1.0
