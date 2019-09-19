@@ -40,31 +40,6 @@ function equilibrium!(
     end
 end
 
-function equilibrium!(
-    q::Quadrature,
-    ρ::Array{Float64, 2},
-    u::Array{Float64, 3},
-    T::Float64,
-    f
-)
-    for x = 1 : size(ρ, 1), y = 1 : size(ρ, 2)
-        u_squared = u[x, y, 1].^2 + u[x, y, 2].^2
-        for idx = 1:length(q.weights)
-            cs = q.abscissae[1, idx] .* u[x, y, 1] .+ q.abscissae[2, idx] .* u[x, y, 2]
-
-            f[x, y, idx] = _equilibrium(
-                q,
-                ρ[x, y],
-                q.weights[idx],
-                cs,
-                u_squared,
-                T,
-                q.abscissae[1, idx]^2 + q.abscissae[2, idx]^2
-            )
-        end
-    end
-end
-
 function equilibrium(
     q::Quadrature,
     ρ::Float64,
