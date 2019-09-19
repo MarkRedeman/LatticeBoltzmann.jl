@@ -36,139 +36,60 @@ struct TaylorGreenVortexExample <: lbm.InitialValueProblem
 end
 
 function initialize!(quadrature::Quadrature, tgv::TaylorGreenVortexExample)
-    τ = quadrature.speed_of_sound_squared * tgv.ν + 0.5
+    force_field = Array{Float64}(undef, tgv.NX, tgv.NY, dimension(quadrature))
+    f = Array{Float64}(undef, tgv.NX, tgv.NY, length(quadrature.weights))
 
-    N = tgv.NX
-    D = dimension(quadrature)
-    density_field = fill(0.0, tgv.NX, tgv.NY)
-    velocity_field = fill(0.0, tgv.NX, tgv.NY, D)
-    temperature_field = fill(0.0, tgv.NX, tgv.NY)
-    force_field = fill(0.0, tgv.NX, tgv.NY, D)
+    # NOTE: we have periodic boundaries
+    x_range = range(0, 2pi, length=tgv.NX + 1)
+    y_range = range(0, 2pi, length=tgv.NY + 1)
+    for x_idx in 1:tgv.NX, y_idx in 1:tgv.NY
+        x = x_range[x_idx]
+        y = y_range[y_idx]
 
-    for x in 1:tgv.NX, y in 1:tgv.NY
-        density_field[x, y] = density(quadrature, tgv, x, y)
-        temperature_field[x, y] = pressure(quadrature, tgv, x, y) / density(quadrature, tgv, x, y)
-        velocity_field[x, y, :] = velocity(tgv, x, y)
-        force_field[x, y, :] = force(tgv, x, y)
+        f[x_idx, y_idx, :] = equilibrium(
+            quadrature,
+            density(quadrature, tgv, x, y),
+            velocity(tgv, x, y),
+            pressure(quadrature, tgv, x, y) / density(quadrature, tgv, x, y)
+        )
+        force_field[x_idx, y_idx, :] = force(tgv, x, y)
     end
 
+    τ = quadrature.speed_of_sound_squared * tgv.ν + 0.5
     collision_operator = SRT_Force(τ, force_field)
     collision_operator = SRT(τ)
 
-    return equilibrium(
-        quadrature,
-        density_field,
-        velocity_field,
-        temperature_field
-    ), collision_operator;
-    # Add offequilibrium ?
+    return f, collision_operator
 end
 
-function density(q::Quadrature, tgv::TaylorGreenVortexExample, x::Int, y::Int, timestep::Int = 0)
-    X = x
-    Y = y
-    u_max = tgv.u_max
-    kx = tgv.k_x
-    ky = tgv.k_y
-
-    P = -0.25 * tgv.rho_0 * u_max * u_max * (
-        (ky / kx) * cos(2.0 * kx * X) + (kx / ky)*cos(2.0 * ky * Y)
-    ) * decay(tgv, x, y, timestep)^2;
-    # @show P
-
-    return 1.0 + q.speed_of_sound_squared * P
-    return 1.0 + 0.0 * 3.0 * P
+function density(q::Quadrature, tgv::TaylorGreenVortexExample, x::Float64, y::Float64, timestep::Float64 = 0.0)
+    return pressure(q, tgv, x, y, timestep)
+    
+    # If not athermal
+    return 1.0
 end
-function pressure(q::Quadrature, tgv::TaylorGreenVortexExample, x::Int, y::Int, timestep::Int = 0)
-    X = x
-    Y = y
-    u_max = tgv.u_max
-    kx = tgv.k_x
-    ky = tgv.k_y
 
-    P = -0.25 * tgv.rho_0 * u_max * u_max * (
-        (ky / kx) * cos(2.0 * kx * X) + (kx / ky)*cos(2.0 * ky * Y)
+function pressure(q::Quadrature, tgv::TaylorGreenVortexExample, x::Float64, y::Float64, timestep::Float64 = 0.0)
+    P = -0.25 * tgv.rho_0 * tgv.u_max^2 * (
+        (tgv.k_y / tgv.k_x) * cos(2.0 * x) +
+        (tgv.k_x / tgv.k_y) * cos(2.0 * y)
     ) * decay(tgv, x, y, timestep)^2;
 
     return 1.0 + q.speed_of_sound_squared * P
 end
-function velocity(tgv::TaylorGreenVortexExample, x::Int, y::Int, timestep::Int = 0)
-    X = x
-    Y = y
+
+function velocity(tgv::TaylorGreenVortexExample, x::Float64, y::Float64, timestep::Float64 = 0.0)
     u_max = tgv.u_max
-    kx = tgv.k_x
-    ky = tgv.k_y
 
     return decay(tgv, x, y, timestep) .* [
-      -u_max * sqrt(ky / kx) * cos(kx * X) * sin(ky * Y),
-       u_max * sqrt(kx / ky) * sin(kx * X) * cos(ky * Y)
+      -u_max * sqrt(tgv.k_y / tgv.k_x) * cos(x) * sin(y),
+       u_max * sqrt(tgv.k_x / tgv.k_y) * sin(x) * cos(y)
     ]
 end
-function decay(tgv::TaylorGreenVortexExample, x, y, timestep::Int)
-    return exp(-1.0 * timestep * (tgv.ν * (tgv.k_x^2 + tgv.k_y^2)))
-    td = 1.0 / (tgv.ν * (tgv.k_x^2 + tgv.k_y^2));
-
-    exp(-1.0 * timestep / td)
+function decay(tgv::TaylorGreenVortexExample, x::Float64, y::Float64, timestep::Float64)
+    return exp(-1.0 * timestep)
 end
 
-function force(tgv::TaylorGreenVortexExample, x::Int, y::Int, time::Int = 0)
-    X = x + 0.5
-    Y = y + 0.5
-    u_max = tgv.u_max
-    kx = tgv.k_x
-    ky = tgv.k_y
+function force(tgv::TaylorGreenVortexExample, x::Float64, y::Float64, time::Float64 = 0.0)
     return (1 / tgv.ν) * (tgv.k_x^2 + tgv.k_y^2) * velocity(tgv, x, y, time)
-    return (1 / tgv.ν) * (tgv.k_x^2 + tgv.k_y^2) * velocity(tgv, 2x, 2y, time)
-    # return (1.0 / (tgv.ν * (tgv.k_x^2 + tgv.k_y^2))) * u_max * sqrt(ky / kx) * [
-    #     cos(tgv.k_x * x * 1.0)
-    #     sin(tgv.k_y * y * 1.0)
-    # ]
-
-
-
-    #     # 0.001, 0.004] # velocity(tgv, x, y, 0)
-    # return (1.0 / (tgv.ν * (tgv.k_x^2 + tgv.k_y^2))) * [0.01, 0.01] # velocity(tgv, x, y, 0)
-    # return (1.0 / (tgv.ν * (tgv.k_x^2 + tgv.k_y^2))) * velocity(tgv, x, y, 0)
 end
-
-
-# function force(tgv::TaylorGreenVortexDecay, x::Int, y::Int, time::Int = 0)
-#     @show "HOIHOI"
-#     return (1.0 / (tgv.ν * (tgv.k_x^2 + tgv.k_y^2))) * [0.01, 0.4] # velocity(tgv, x, y, 0)
-#     # return (t.a^2 + t.b^2) * (t.length^2 / t.Re) * velocity(tgv, x, y, 0)
-# # (1.0 / (tgv.ν * (tgv.k_x^2 + tgv.k_y^2))) * t.length / (t.Re / t.speed)
-
-# #     Decay: - (t.a^2 + t.b^2) * (t.speed * t.length) / (t.Re)
-# #     - 1.0 / (tgv.ν * (tgv.k_x^2 + tgv.k_y^2));
-
-#     # Re = NX * u_max / ν
-#     # Re = t.speed * t.length / ν
-#     # td = - (t.a^2 + t.b^2) * ν
-#     #     -u_max * sqrt(ky / kx) * cos(kx * X) * sin(ky * Y),
-#     #     u_max * sqrt(kx / ky) * sin(kx * X) * cos(ky * Y)
-
-#     # td = - 1.0 / (tgv.ν * (tgv.k_x^2 + tgv.k_y^2));
-#     # td = - (t.a^2 + t.b^2) * (t.speed * t.length) / (t.Re)
-#     # * timestep
-
-#     # t.A = u_max * sqrt(ky / kx)
-#     # t.B = -u_max * sqrt(ky / kx)
-#     # t.a * t.length * x = kx * X
-#     # t.b * t.length * y = ky * Y
-#         # -u_max * sqrt(ky / kx) * cos(kx * X) * sin(ky * Y),
-#         # u_max * sqrt(kx / ky) * sin(kx * X) * cos(ky * Y)
-# #         t.A * cos(t.a * t.length * x)sin(t.b * t.length * y),
-# #         t.B * sin(t.a * t.length * x)cos(t.b * t.length * y)
-#     return (t.a^2 + t.b^2) * (t.length^2 / t.Re) * velocity(tgv, x, y, 0)
-# end
-# force(t, x, y) = (t.a^2 + t.b^2) * (t.length^2 / t.Re) * velocity(t, x, y)
-
-# function velocity(t::TaylorGreenVortex, x, y, time)
-#     return decay(t, time * t.length / t.speed) * (1 / t.speed) * [
-#         t.A * cos(t.a * t.length * x)sin(t.b * t.length * y),
-#         t.B * sin(t.a * t.length * x)cos(t.b * t.length * y)
-#     ]
-# end
-# decay(t::TaylorGreenVortex, time) = exp(- (t.a^2 + t.b^2) * (t.speed * t.length) / (t.Re) * time)
-# decay(t::StaticVortex, time) = 1
-# decay(t::DecayingVortex, time) = exp(- (t.a^2 + t.b^2) * (t.speed * t.length) / (t.Re) * time)

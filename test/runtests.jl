@@ -10,6 +10,9 @@ quadratures = [
     D2Q9(),
     D2Q17(),
 ]
+
+include("problems/taylor-green-vortex.jl")
+
 @testset "LBM.jl" begin
 
 @testset "Multinomial hermite coefficients" begin

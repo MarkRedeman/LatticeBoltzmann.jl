@@ -24,10 +24,21 @@ function process!(tgv, quadrature, f_in, t, stats; visualize = false)
     pressure_field = fill(0.0, N, N)
     velocity_field = fill(0.0, N, N, lbm.dimension(quadrature))
 
-    @inbounds for x in 1:N, y in 1:N
-        density_field[x, y] = lbm.density(quadrature, tgv, x, y, t)
-        velocity_field[x, y, :] = lbm.velocity(tgv, x, y, t)
-        pressure_field[x, y] = lbm.pressure(quadrature, tgv, x, y, t)
+    # @inbounds for x in 1:N, y in 1:N
+    #     density_field[x, y] = lbm.density(quadrature, tgv, x, y, t)
+    #     velocity_field[x, y, :] = lbm.velocity(tgv, x, y, t)
+    #     pressure_field[x, y] = lbm.pressure(quadrature, tgv, x, y, t)
+    # end
+
+    x_range = range(0, 2pi, length=tgv.NX + 1)
+    y_range = range(0, 2pi, length=tgv.NY + 1)
+    @inbounds for x_idx in 1:tgv.NX, y_idx in 1:tgv.NY
+        x = x_range[x_idx]
+        y = y_range[y_idx]
+
+        density_field[x_idx, y_idx] = lbm.density(quadrature, tgv, x, y, t)
+        pressure_field[x_idx, y_idx] = lbm.pressure(quadrature, tgv, x, y, t)
+        velocity_field[x_idx, y_idx, :] = lbm.velocity(tgv, x, y, t)
     end
 
     rho_error_squared = sqrt(
@@ -120,7 +131,9 @@ function siumlate(tgv::TaylorGreenVortexExample, quadrature::Quadrature = D2Q9()
     # return f_in
     n_steps = 100 * tgv.scale * tgv.scale
     # n_steps = 10 * tgv.scale * tgv.scale
-    @inbounds for t = 0 : n_steps
+
+    @show tgv.ν * (tgv.k_x^2 + tgv.k_y^2)
+    @inbounds for t = 0:n_steps
         if mod(t, round(Int, n_steps / 10)) == 0
             @show t, t / n_steps
         end
@@ -130,7 +143,7 @@ function siumlate(tgv::TaylorGreenVortexExample, quadrature::Quadrature = D2Q9()
                 tgv,
                 quadrature,
                 f_in,
-                t,
+                t * tgv.ν * (tgv.k_x^2 + tgv.k_y^2),
                 stats,
                 visualize = (mod(t, round(Int, n_steps / 100)) == 0)
                 # visualize = true
@@ -143,7 +156,7 @@ function siumlate(tgv::TaylorGreenVortexExample, quadrature::Quadrature = D2Q9()
 
         # check_stability(f_in) || return :unstable, f_in, stats
     end
-    process!(tgv, quadrature, f_in, n_steps + 1, stats, visualize = true)
+    process!(tgv, quadrature, f_in, n_steps * tgv.ν * (tgv.k_x^2 + tgv.k_y^2), stats, visualize = true)
 
     @show stats
 
