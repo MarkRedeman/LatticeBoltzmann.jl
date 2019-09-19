@@ -115,33 +115,52 @@ function equilibrium!(
     end
 end
 
+# Truncated upto order 2
 function _equilibrium(q::Quadrature, ρ, weight, u_dot_xi, u_squared, T, xi_squared)
-    # Truncated upto order 2
     cs = q.speed_of_sound_squared
-    # return ρ .* weight .* (1.0 .+ cs * u_dot_xi .+ 4.5 * (u_dot_xi .* u_dot_xi) .- 1.5 * u_squared)
-    # a = (T .- 1) .* (xi_squared * cs - dimension(q)) / 2
-    a = (cs * T .- 1) .* (xi_squared * cs - dimension(q)) / 2
-    a = 0.0
+    # a = 0.0
+    a_H_0 = 1.0
+    a_H_1 = cs * u_dot_xi
 
+    H_2_temperature = (cs * T .- 1) .* (xi_squared * cs - dimension(q))
+    # H_2_temperature = 0.0
+    a_H_2 = cs^2 * (u_dot_xi .* u_dot_xi) .+ H_2_temperature .+ - cs * u_squared
     return ρ .* weight .* (
-        1.0 .+
-        cs * u_dot_xi .+
-        (cs^2 / 2) * (u_dot_xi .* u_dot_xi) .+
-        a .+
-        - (cs / 2) * u_squared
+        a_H_0 .+
+        a_H_1 .+
+        (1 / 2) * a_H_2
     )
+end
+
+function _equilibrium(q::D2Q4, ρ, weight, u_dot_xi, u_squared, T, xi_squared)
+    cs = q.speed_of_sound_squared
+    a_H_0 = 1.0
+    a_H_1 = cs * u_dot_xi
+
+    return ρ .* weight .* (a_H_0 .+ a_H_1)
+end
+
+function _equilibrium(q::D2Q5, ρ, weight, u_dot_xi, u_squared, T, xi_squared)
+    cs = q.speed_of_sound_squared
+    a_H_0 = 1.0
+    a_H_1 = cs * u_dot_xi
+
+    return ρ .* weight .* (a_H_0 .+ a_H_1)
 end
 
 function _equilibrium(q::D2Q17, ρ, weight, u_dot_xi, u_squared, T, xi_squared)
     # Truncated upto order 2
     cs = q.speed_of_sound_squared
-    H_2_temperature = (cs * T .- 1) .* (xi_squared * cs - dimension(q)) / 2
-    # a = 0.0
+    D = dimension(q)
+    H_2_temperature = (cs * T .- 1) .* (cs * xi_squared - D)
+    H_3_temperature = 3 * (cs * T .- 1) * (-2 - D + cs * xi_squared)
+    # H_2_temperature = 0.0
+
     a_H_0 = 1.0
     a_H_1 = cs * u_dot_xi
     a_H_2 = cs^2 * (u_dot_xi .* u_dot_xi) .+ H_2_temperature .+ - cs * u_squared
     a_H_3 = cs * u_dot_xi .* (
-        cs^2 * (u_dot_xi .* u_dot_xi) -  3 * cs * u_squared
+        cs^2 * (u_dot_xi .* u_dot_xi) -  3 * cs * u_squared .+ H_3_temperature
     )
     return ρ .* weight .* (
         a_H_0 .+
@@ -150,6 +169,7 @@ function _equilibrium(q::D2Q17, ρ, weight, u_dot_xi, u_squared, T, xi_squared)
         (1 / 6) * a_H_3
     )
 end
+
 
 function hermite_equilibrium(q::Quadrature, f)
     ρ = density(q, f)

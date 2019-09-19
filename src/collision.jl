@@ -20,8 +20,8 @@ function collide(collision_model::SRT, q, f_in)::Array{Float64, 3}
     j = momentum(q, f_in) 
 
     # Temperature
-    T = 1.0
-    # T = temperature(q, f_in, ρ, j ./ ρ)
+    # T = 1.0
+    T = temperature(q, f_in, ρ, j ./ ρ)
 
     return srt_collision(
         q,
@@ -43,8 +43,8 @@ function collide(collision_model::SRT_Force, q, f_in)::Array{Float64, 3}
     j = momentum(q, f_in)
 
     # Temperature
-    T = 1.0
-    # T = temperature(q, f_in, ρ, j ./ ρ)
+    # T = 1.0
+    T = temperature(q, f_in, ρ, j ./ ρ)
 
     return srt_collision(
         q,

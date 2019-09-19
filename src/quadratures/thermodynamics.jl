@@ -44,6 +44,10 @@ function pressure(q::Quadrature, f::Array{Float64, 3}, ρ::Array{Float64, 2}, u:
 
     return p
 end
+
+# The D2Q4 and D2Q5 lattices are unable to include temperature
+pressure(q::D2Q4, f::Array{Float64}, ρ::Float64, u::Array{Float64, 1}) = 1.0
+pressure(q::D2Q5, f::Array{Float64}, ρ::Float64, u::Array{Float64, 1}) = 1.0
 function pressure(q::Quadrature, f::Array{Float64}, ρ::Float64, u::Array{Float64, 1})::Float64
     E = 0.0
     @inbounds for idx = 1:length(f)

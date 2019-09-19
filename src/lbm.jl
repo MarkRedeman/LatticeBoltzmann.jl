@@ -10,6 +10,7 @@ export Quadrature, Lattice, D2Q4, D2Q5, D2Q9, D2Q17
     initialize,
     density,
     momentum,
+    pressure,
     total_energy,
     kinetic_energy,
     internal_energy,
