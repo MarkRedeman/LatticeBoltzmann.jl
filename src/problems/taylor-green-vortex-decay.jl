@@ -5,7 +5,8 @@ export TaylorGreenVortexDecay,
     pressure,
     temperature,
     decay,
-    force
+    force,
+    initialize
 
 struct TaylorGreenVortexExample <: lbm.InitialValueProblem
     scale
@@ -33,6 +34,36 @@ struct TaylorGreenVortexExample <: lbm.InitialValueProblem
         )
     end
 end
+
+function initialize!(quadrature::Quadrature, tgv::TaylorGreenVortexExample)
+    τ = quadrature.speed_of_sound_squared * tgv.ν + 0.5
+
+    N = tgv.NX
+    D = dimension(quadrature)
+    density_field = fill(0.0, tgv.NX, tgv.NY)
+    velocity_field = fill(0.0, tgv.NX, tgv.NY, D)
+    temperature_field = fill(0.0, tgv.NX, tgv.NY)
+    force_field = fill(0.0, tgv.NX, tgv.NY, D)
+
+    for x in 1:tgv.NX, y in 1:tgv.NY
+        density_field[x, y] = density(quadrature, tgv, x, y)
+        temperature_field[x, y] = pressure(quadrature, tgv, x, y) / density(quadrature, tgv, x, y)
+        velocity_field[x, y, :] = velocity(tgv, x, y)
+        force_field[x, y, :] = force(tgv, x, y)
+    end
+
+    collision_operator = SRT_Force(τ, force_field)
+    collision_operator = SRT(τ)
+
+    return equilibrium(
+        quadrature,
+        density_field,
+        velocity_field,
+        temperature_field
+    ), collision_operator;
+    # Add offequilibrium ?
+end
+
 function density(q::Quadrature, tgv::TaylorGreenVortexExample, x::Int, y::Int, timestep::Int = 0)
     X = x
     Y = y

@@ -18,8 +18,6 @@ function process!(tgv, quadrature, f_in, t, stats; visualize = false)
     E_k = lbm.kinetic_energy(quadrature, f_in, ρ, j ./ ρ)
     ϵ = 1.0 #lbm.internal_energy(quadrature, f_in, ρ, j ./ ρ)
 
-    # E_k = sum((j[:, :, 1].^2 + j[:, :, 1].^2) ./ ρ)
-
 
     N = size(f_in, 1)
     density_field = fill(0.0, N, N)
@@ -33,37 +31,21 @@ function process!(tgv, quadrature, f_in, t, stats; visualize = false)
     end
 
     rho_error_squared = sqrt(
-        sum(
-            (ρ - density_field).^2 ./
-            (density_field).^2
-        )
+        sum((ρ - density_field).^2 ./ (density_field).^2)
     )
     ux_error_squared = sqrt(
-        sum(
-            (ρ .* j[:, :, 1] - velocity_field[:, :, 1]).^2 ./ velocity_field[:, :, 1].^2
-        )
+        sum((ρ .* j[:, :, 1] - velocity_field[:, :, 1]).^2 ./ velocity_field[:, :, 1].^2)
     )
     uy_error_squared = sqrt(
-        sum(
-            (ρ .* j[:, :, 2] - velocity_field[:, :, 2]).^2 ./ velocity_field[:, :, 2].^2
-        )
+        sum((ρ .* j[:, :, 2] - velocity_field[:, :, 2]).^2 ./ velocity_field[:, :, 2].^2)
     )
     u_error = sqrt(
         sum(
-            ((ρ .* j[:, :, 2] - velocity_field[:, :, 2]).^2 .+
+            ((ρ .* j[:, :, 1] - velocity_field[:, :, 1]).^2 .+
              (ρ .* j[:, :, 2] - velocity_field[:, :, 2]).^2) #./
             # (velocity_field[:, :, 1].^2 .+ velocity_field[:, :, 2].^2)
         )
     )
-
-
-    # sumrhoe2 += (rho - rhoa) * (rho - rhoa);
-    # sumuxe2 += (ux - uxa) * (ux - uxa);
-    # sumuye2 += (uy - uya) * (uy - uya);
-
-    # sumrhoa2 += (rhoa - rho0) * (rhoa - rho0);
-    # sumuxa2 += uxa * uxa;
-    # sumuya2 += uya * uya;
 
     # Compare with analytical results?
     push!(stats, [
@@ -85,27 +67,7 @@ function process!(tgv, quadrature, f_in, t, stats; visualize = false)
         u_error,
     ])
 
-    # if (mod(t, 50) == 0)
-    #     plot(
-    #         plot(stats.density),
-    #         plot(stats.momentum),
-    #         # plot(stats.total_energy),
-    #         plot(stats.kinetic_energy),
-    #         plot(stats.density_a),
-    #         plot(stats.momentum_a),
-    #         # plot(stats.total_energy),
-    #         plot(stats.kinetic_energy_a),
-    #         # plot(stats.internal_energy),
-    #         legend=nothing
-    #     )
-
-    #     gui()
-    # end
-
     if visualize == true
-        u = j[:, :, 1] ./ ρ
-        v = j[:, :, 2] ./ ρ
-
         s = (1000, 500)
 
         domain = (1 : size(j, 1)) ./ size(j, 1)
@@ -113,7 +75,6 @@ function process!(tgv, quadrature, f_in, t, stats; visualize = false)
         plot!(velocity_profile_x, domain, velocity_field[:, 4, 1], size=s)
         velocity_profile_y = plot(j[:, 4, 2], domain, size=s)
         plot!(velocity_profile_y, velocity_field[:, 4, 2], domain, size=s)
-
 
         kinetic_energy_profile = plot(stats.kinetic_energy, legend=false, title="Kinetic energy", size=s)
 
@@ -124,12 +85,8 @@ function process!(tgv, quadrature, f_in, t, stats; visualize = false)
             streamline(j),
             streamline(velocity_field),
             streamline(velocity_field .- ρ .* j),
-            # velocity_field,
             plot(stats.u_error, legend=false, title="U_e"),
             kinetic_energy_profile,
-            # plot(stats.total_energy, legend=false, title="total energy", size=s),
-            # contour(u[:, :, 1].^2, fill=true, cbar=true, size=s, title="u"),
-            # contour(v[:, :, 1].^2, fill=true, cbar=true, size=s, title="v"),
             velocity_profile_x,
             velocity_profile_y,
             size=(1000, 600)
@@ -138,42 +95,13 @@ function process!(tgv, quadrature, f_in, t, stats; visualize = false)
     end
 end
 
-function initialize!(quadrature, tgv, τ)
-    N = tgv.NX
-    density_field = fill(0.0, tgv.NX, tgv.NY)
-    velocity_field = fill(0.0, tgv.NX, tgv.NY, lbm.dimension(quadrature))
-    temperature_field = fill(0.0, tgv.NX, tgv.NY)
-    force_field = fill(0.0, tgv.NX, tgv.NY, lbm.dimension(quadrature))
-    for x in 1:tgv.NX, y in 1:tgv.NY
-        density_field[x, y] = lbm.density(quadrature, tgv, x, y)
-        temperature_field[x, y] = lbm.pressure(quadrature, tgv, x, y) / lbm.density(quadrature, tgv, x, y)
-        velocity_field[x, y, :] = lbm.velocity(tgv, x, y)
-        # force_field[x, y, :] = (0.001) * force(tgv, x, y)
-        force_field[x, y, :] = force(tgv, x, y)
-    end
-
-    collision_operator = lbm.SRT_Force(τ, force_field)
-    collision_operator = lbm.SRT(τ)
-
-    return lbm.equilibrium(
-        quadrature,
-        density_field,
-        velocity_field,
-        temperature_field
-    ), collision_operator;
-    # Add offequilibrium ?
-end
-
 function siumlate(tgv::TaylorGreenVortexExample, quadrature::Quadrature = D2Q9();)
     # NOTE we should base τ on ν and the speed of sound for the given qquadrature
-    @show tgv
-    τ = quadrature.speed_of_sound_squared * tgv.ν + 0.5
-    # τ = 1.0
-    @show τ
-    # τ = 0.5;
 
     # initialize
-    f_out, collision_operator = initialize!(quadrature, tgv, τ)
+    f_out, collision_operator = lbm.initialize!(quadrature, tgv)
+    @show tgv
+    @show collision_operator
     f_in = copy(f_out)
 
     stats = DataFrame(
@@ -213,7 +141,7 @@ function siumlate(tgv::TaylorGreenVortexExample, quadrature::Quadrature = D2Q9()
 
         f_in = stream(quadrature, f_out)
 
-        # check_stability(f_in) || return :unstable, f_in
+        # check_stability(f_in) || return :unstable, f_in, stats
     end
     process!(tgv, quadrature, f_in, n_steps + 1, stats, visualize = true)
 
@@ -278,14 +206,6 @@ results = let
         legend=:bottomleft,
         legendfontsize=5
     )
-    # plot!(
-    #     map(
-    #         i -> 16 * i,
-    #         scales
-    #     ),
-    #     map(i -> 1E-1 * 4.0^(-i), 1:length(scales)),
-    #     label="4^(-x)"
-    # )
     gui()
 
     nu_idx = 0
