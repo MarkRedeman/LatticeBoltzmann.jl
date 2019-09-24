@@ -29,6 +29,57 @@ export CollisionModel,
     TRT,
     collide
 
+export simulate
+
+using DataFrames
+function process_stats()
+    return DataFrame(
+        [
+            Float64[], Float64[], Float64[], Float64[], Float64[],
+            Float64[], Float64[], Float64[], Float64[], Float64[],
+            Float64[], Float64[], Float64[], Float64[]
+        ],
+        [
+            :density, :momentum, :total_energy, :kinetic_energy, :internal_energy,
+            :density_a, :momentum_a, :total_energy_a, :kinetic_energy_a, :internal_energy_a,
+            :density_e, :momentum_e, :kinetic_energy_e, :u_error
+        ]
+    )
+end
+
+function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
+                  n_steps = 100 * problem.scale * problem.scale)
+    # initialize
+    f_out, collision_operator = lbm.initialize(quadrature, problem)
+    f_in = copy(f_out)
+    ν = viscosity(problem)
+    Δt = lbm.delta_t(problem)
+
+    stats = process_stats()
+    @inbounds for t = 0:n_steps
+        if mod(t, round(Int, n_steps / 10)) == 0
+            @show t, t / n_steps
+        end
+
+        if (mod(t, 1) == 0)
+            lbm.process!(problem, quadrature, f_in, t * Δt, stats, visualize = (mod(t, round(Int, n_steps / 100)) == 0))
+        end
+
+        f_out = collide(collision_operator, quadrature, f_in)
+
+        f_in = stream(quadrature, f_out)
+
+        # apply boundary conditions
+
+        # check_stability(f_in) || return :unstable, f_in, stats
+    end
+    lbm.process!(problem, quadrature, f_in, n_steps * Δt, stats, visualize = true)
+
+    @show stats
+
+    f_in, stats
+end
+
 # export process!
 
 # abstract type Model

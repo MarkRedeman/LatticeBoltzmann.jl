@@ -35,7 +35,7 @@ struct TaylorGreenVortexExample <: lbm.InitialValueProblem
     end
 end
 
-function initialize!(quadrature::Quadrature, tgv::TaylorGreenVortexExample)
+function initialize(quadrature::Quadrature, tgv::TaylorGreenVortexExample)
     force_field = Array{Float64}(undef, tgv.NX, tgv.NY, dimension(quadrature))
     f = Array{Float64}(undef, tgv.NX, tgv.NY, length(quadrature.weights))
 
@@ -92,4 +92,11 @@ end
 
 function force(tgv::TaylorGreenVortexExample, x::Float64, y::Float64, time::Float64 = 0.0)
     return (1 / tgv.ν) * (tgv.k_x^2 + tgv.k_y^2) * velocity(tgv, x, y, time)
+end
+
+function delta_t(problem::TaylorGreenVortexExample)
+    ν = viscosity(problem)
+    Δt = ν * (problem.k_x^2 + problem.k_y^2)
+
+    return Δt
 end
