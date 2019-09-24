@@ -19,10 +19,11 @@ function process!(tgv, quadrature, f_in, t, stats; visualize = false)
     ϵ = 1.0 #lbm.internal_energy(quadrature, f_in, ρ, j ./ ρ)
 
 
-    N = size(f_in, 1)
-    density_field = fill(0.0, N, N)
-    pressure_field = fill(0.0, N, N)
-    velocity_field = fill(0.0, N, N, lbm.dimension(quadrature))
+    Nx = size(f_in, 1)
+    Ny = size(f_in, 2)
+    density_field = fill(0.0, Nx, Ny)
+    pressure_field = fill(0.0, Nx, Ny)
+    velocity_field = fill(0.0, Nx, Ny, lbm.dimension(quadrature))
 
     # @inbounds for x in 1:N, y in 1:N
     #     density_field[x, y] = lbm.density(quadrature, tgv, x, y, t)
@@ -30,9 +31,9 @@ function process!(tgv, quadrature, f_in, t, stats; visualize = false)
     #     pressure_field[x, y] = lbm.pressure(quadrature, tgv, x, y, t)
     # end
 
-    x_range = range(0, 2pi, length=tgv.NX + 1)
-    y_range = range(0, 2pi, length=tgv.NY + 1)
-    @inbounds for x_idx in 1:tgv.NX, y_idx in 1:tgv.NY
+    x_range = range(0, 2pi, length=Nx + 1)
+    y_range = range(0, 2pi, length=Ny + 1)
+    @inbounds for x_idx in 1:Nx, y_idx in 1:Ny
         x = x_range[x_idx]
         y = y_range[y_idx]
 
