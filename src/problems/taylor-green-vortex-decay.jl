@@ -18,7 +18,7 @@ struct TaylorGreenVortexExample <: lbm.InitialValueProblem
     k_x
     k_y
 
-    function TaylorGreenVortexExample(ν = 1.0 / 6.0 , scale = 2, NX = 16 * scale, NY = NX)
+    function TaylorGreenVortexExample(ν = 1.0 / 6.0 , scale = 2, NX = 16 * scale, NY = NX, domain_size = (2pi, 2pi))
         u_max = 0.02 / scale
         Re = NX * u_max / ν
         @show Re
@@ -29,8 +29,8 @@ struct TaylorGreenVortexExample <: lbm.InitialValueProblem
             ν,
             NX,
             NY,
-            2pi / NX,
-            2pi / NY,
+            domain_size[1] / NX,
+            domain_size[2] / NY,
         )
     end
 end

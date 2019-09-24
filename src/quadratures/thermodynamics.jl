@@ -27,6 +27,17 @@ function momentum!(q::Quadrature, f::Array{Float64, 1}, j::Array{Float64, 1})
     return
 end
 
+function velocity!(q::Quadrature, f::Array{Float64, 1}, ρ::Float64, u::Array{Float64, 1})
+    @inbounds for d in 1 : dimension(q)
+        u[d] = 0.0
+        for idx = 1:length(f)
+            u[d] += f[idx] * q.abscissae[d, idx]
+        end
+        u[d] / ρ
+    end
+    return
+end
+
 function momentum2!(q::Quadrature, f::Array{Float64, 1}, j::Array{Float64, 1})
     @inbounds for d in 1 : dimension(q)
         j[d] = dot(f, view(q.abscissae, d, :))
@@ -85,4 +96,8 @@ end
 function temperature(q::Quadrature, f, ρ, u)
     return pressure(q, f, ρ[:, :, 1], u) ./ ρ
     # return internal_energy(q, f, ρ, u) * (2 / dimension(q))
+end
+
+function temperature(q::Quadrature, f::Vector{Float64}, ρ::Float64, u::Vector{Float64})
+    return pressure(q, f, ρ, u) ./ ρ
 end

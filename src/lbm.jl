@@ -54,6 +54,7 @@ function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
     f_in = copy(f_out)
     ν = viscosity(problem)
     Δt = lbm.delta_t(problem)
+    @show Δt
 
     stats = process_stats()
     @inbounds for t = 0:n_steps
@@ -62,11 +63,10 @@ function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
         end
 
         if (mod(t, 1) == 0)
-            lbm.process!(problem, quadrature, f_in, t * Δt, stats, visualize = (mod(t, round(Int, n_steps / 100)) == 0))
+            lbm.process!(problem, quadrature, f_in, t * Δt, stats, visualize = (mod(t, round(Int, n_steps / 10)) == 0))
         end
 
-        f_out = collide(collision_operator, quadrature, f_in)
-
+        collide!(collision_operator, quadrature, f_in, f_out, time = t * Δt)
         f_in = stream(quadrature, f_out)
 
         # apply boundary conditions

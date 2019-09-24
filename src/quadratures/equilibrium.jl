@@ -65,7 +65,6 @@ function equilibrium(
     return f
 end
 
-
 function equilibrium!(
     q::Quadrature,
     ρ::Float64,
@@ -73,7 +72,10 @@ function equilibrium!(
     T::Float64,
     f
 )
-    u_squared = sum(u.^2)
+    u_squared = 0.0
+    for d = 1 : dimension(q)
+        u_squared += u[d].^2
+    end
 
     for idx = 1:length(q.weights)
         cs = q.abscissae[1, idx] .* u[1] .+ q.abscissae[2, idx] .* u[2]
@@ -88,6 +90,7 @@ function equilibrium!(
             q.abscissae[1, idx]^2 + q.abscissae[2, idx]^2
         )
     end
+    return
 end
 
 # Truncated upto order 2
