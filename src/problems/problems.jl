@@ -7,8 +7,43 @@ function initialize(quadrature::Quadrature, lattice::Lattice, problem::InitialVa
 
 end
 
-function viscosity(problem)
+function viscosity(problem::InitialValueProblem)
     return problem.ν
+end
+
+function initial_equilibrium(quadrature, problem, x, y)
+    return equilibrium(
+        quadrature,
+        density(quadrature, problem, x, y),
+        velocity(problem, x, y),
+        pressure(quadrature, problem, x, y) / density(quadrature, problem, x, y)
+    )
+end
+
+function initialize(quadrature::Quadrature, problem::InitialValueProblem)
+    force_field = Array{Float64}(undef, problem.NX, problem.NY, dimension(quadrature))
+    f = Array{Float64}(undef, problem.NX, problem.NY, length(quadrature.weights))
+
+    # NOTE: we have periodic boundaries
+    x_range = range(0, problem.domain_size[1], length=problem.NX + 1)
+    y_range = range(0, problem.domain_size[2], length=problem.NY + 1)
+    for x_idx in 1:problem.NX, y_idx in 1:problem.NY
+        f[x_idx, y_idx, :] = initial_equilibrium(
+            quadrature,
+            problem,
+            x_range[x_idx],
+            y_range[y_idx]
+        )
+
+        # force_field[x_idx, y_idx, :] = force(problem, x, y)
+        # force_field[x_idx, y_idx] = t -> force(problem, x, y)
+    end
+
+    τ = quadrature.speed_of_sound_squared * viscosity(problem) + 0.5
+    collision_operator = SRT_Force(τ, force_field)
+    collision_operator = SRT(τ)
+
+    return f, collision_operator
 end
 
 function delta_t(problem)
@@ -18,8 +53,7 @@ function delta_t(problem)
     return Δt
 end
 
-function process!(tgv::InitialValueProblem, quadrature::Quadrature, f_in, time, stats; should_visualize = false)
-    q = quadrature
+function process!(problem::InitialValueProblem, q::Quadrature, f_in, time, stats; should_visualize = false)
     f = Array{Float64}(undef, size(f_in, 3))
     u = zeros(dimension(q))
     expected_u = zeros(dimension(q))
@@ -27,8 +61,8 @@ function process!(tgv::InitialValueProblem, quadrature::Quadrature, f_in, time, 
     Nx = size(f_in, 1)
     Ny = size(f_in, 2)
 
-    x_range = range(0, 2pi, length=Nx + 1)
-    y_range = range(0, 2pi, length=Ny + 1)
+    x_range = range(0, problem.domain_size[1], length=Nx + 1)
+    y_range = range(0, problem.domain_size[2], length=Ny + 1)
 
     total_density = 0.0
     total_momentum = 0.0
@@ -70,10 +104,10 @@ function process!(tgv::InitialValueProblem, quadrature::Quadrature, f_in, time, 
         y = y_range[y_idx]
 
         # Compute statistics
-        expected_ρ = lbm.density(quadrature, tgv, x, y, time)
-        expected_p = lbm.pressure(quadrature, tgv, x, y, time)
+        expected_ρ = lbm.density(q, problem, x, y, time)
+        expected_p = lbm.pressure(q, problem, x, y, time)
         expected_ϵ = (dimension(q) / 2) * expected_p / expected_ρ
-        expected_v = lbm.velocity(tgv, x, y, time)
+        expected_v = lbm.velocity(problem, x, y, time)
         expected_T = expected_p / expected_ρ
 
         expected_kinetic_energy = expected_ρ * (expected_v[1]^2 + expected_v[2]^2)
@@ -103,19 +137,19 @@ function process!(tgv::InitialValueProblem, quadrature::Quadrature, f_in, time, 
         expected_total_energy,
         expected_total_kinetic_energy,
         expected_total_internal_energy,
-        rho_error_squared,
-        ux_error_squared,
-        uy_error_squared,
+        # rho_error_squared,
+        # ux_error_squared,
+        # uy_error_squared,
         u_error,
     ])
 
     if should_visualize
-        visualize(tgv, quadrature, f_in, time, stats)
+        visualize(problem, q, f_in, time, stats)
     end
     return
 end
 
-function visualize(tgv::InitialValueProblem, quadrature::Quadrature, f_in, time, stats)
+function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, time, stats)
     # Density
     ρ = lbm.density(quadrature, f_in)
 
@@ -132,15 +166,15 @@ function visualize(tgv::InitialValueProblem, quadrature::Quadrature, f_in, time,
     pressure_field = fill(0.0, Nx, Ny)
     velocity_field = fill(0.0, Nx, Ny, lbm.dimension(quadrature))
 
-    x_range = range(0, 2pi, length=Nx + 1)
-    y_range = range(0, 2pi, length=Ny + 1)
+    x_range = range(0, problem.domain_size[1], length=Nx + 1)
+    y_range = range(0, problem.domain_size[2], length=Ny + 1)
     @inbounds for x_idx in 1:Nx, y_idx in 1:Ny
         x = x_range[x_idx]
         y = y_range[y_idx]
 
-        density_field[x_idx, y_idx] = lbm.density(quadrature, tgv, x, y, time)
-        pressure_field[x_idx, y_idx] = lbm.pressure(quadrature, tgv, x, y, time)
-        velocity_field[x_idx, y_idx, :] = lbm.velocity(tgv, x, y, time)
+        density_field[x_idx, y_idx] = lbm.density(quadrature, problem, x, y, time)
+        pressure_field[x_idx, y_idx] = lbm.pressure(quadrature, problem, x, y, time)
+        velocity_field[x_idx, y_idx, :] = lbm.velocity(problem, x, y, time)
     end
 
     s = (1000, 500)

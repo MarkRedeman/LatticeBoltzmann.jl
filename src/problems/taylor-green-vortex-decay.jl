@@ -17,6 +17,7 @@ struct TaylorGreenVortexExample <: lbm.InitialValueProblem
     NY::Int64
     k_x::Float64
     k_y::Float64
+    domain_size::Tuple{Float64, Float64}
 
     function TaylorGreenVortexExample(ν = 1.0 / 6.0 , scale = 2, NX = 16 * scale, NY = NX, domain_size = (2pi, 2pi))
         u_max = 0.02 / scale
@@ -31,39 +32,17 @@ struct TaylorGreenVortexExample <: lbm.InitialValueProblem
             NY,
             domain_size[1] / NX,
             domain_size[2] / NY,
+            domain_size
         )
     end
 end
 
-function initialize(quadrature::Quadrature, tgv::TaylorGreenVortexExample)
-    force_field = Array{Float64}(undef, tgv.NX, tgv.NY, dimension(quadrature))
-    f = Array{Float64}(undef, tgv.NX, tgv.NY, length(quadrature.weights))
-
-    # NOTE: we have periodic boundaries
-    x_range = range(0, 2pi, length=tgv.NX + 1)
-    y_range = range(0, 2pi, length=tgv.NY + 1)
-    for x_idx in 1:tgv.NX, y_idx in 1:tgv.NY
-        x = x_range[x_idx]
-        y = y_range[y_idx]
-
-        f[x_idx, y_idx, :] = equilibrium(
-            quadrature,
-            density(quadrature, tgv, x, y),
-            velocity(tgv, x, y),
-            pressure(quadrature, tgv, x, y) / density(quadrature, tgv, x, y)
-        )
-        force_field[x_idx, y_idx, :] = force(tgv, x, y)
-    end
-
-    τ = quadrature.speed_of_sound_squared * tgv.ν + 0.5
-    collision_operator = SRT_Force(τ, force_field)
-    collision_operator = SRT(τ)
-
-    return f, collision_operator
+function viscosity(problem::TaylorGreenVortexExample)
+    return problem.ν
 end
 
 function density(q::Quadrature, tgv::TaylorGreenVortexExample, x::Float64, y::Float64, timestep::Float64 = 0.0)
-    return pressure(q, tgv, x, y, timestep)
+    # return pressure(q, tgv, x, y, timestep)
     
     # If not athermal
     return 1.0
