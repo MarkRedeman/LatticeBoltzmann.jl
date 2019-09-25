@@ -9,14 +9,14 @@ export TaylorGreenVortexDecay,
     initialize
 
 struct TaylorGreenVortexExample <: lbm.InitialValueProblem
-    scale
-    rho_0
-    u_max
-    ν
-    NX
-    NY
-    k_x
-    k_y
+    scale::Int
+    rho_0::Float64
+    u_max::Float64
+    ν::Float64
+    NX::Int64
+    NY::Int64
+    k_x::Float64
+    k_y::Float64
 
     function TaylorGreenVortexExample(ν = 1.0 / 6.0 , scale = 2, NX = 16 * scale, NY = NX, domain_size = (2pi, 2pi))
         u_max = 0.02 / scale
@@ -81,7 +81,7 @@ end
 function velocity(tgv::TaylorGreenVortexExample, x::Float64, y::Float64, timestep::Float64 = 0.0)
     u_max = tgv.u_max
 
-    return decay(tgv, x, y, timestep) .* [
+    return decay(tgv, x, y, timestep) * [
       -u_max * sqrt(tgv.k_y / tgv.k_x) * cos(x) * sin(y),
        u_max * sqrt(tgv.k_x / tgv.k_y) * sin(x) * cos(y)
     ]
