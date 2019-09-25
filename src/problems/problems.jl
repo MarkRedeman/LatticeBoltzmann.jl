@@ -19,61 +19,77 @@ function delta_t(problem)
 end
 
 function process!(tgv::InitialValueProblem, quadrature::Quadrature, f_in, time, stats; should_visualize = false)
-    # Density
-    ρ = lbm.density(quadrature, f_in)
-
-    # Momentum
-    j = lbm.momentum(quadrature, f_in)
-    E = lbm.total_energy(quadrature, f_in)
-    E_k = lbm.kinetic_energy(quadrature, f_in, ρ, j ./ ρ)
-    ϵ = 1.0 #lbm.internal_energy(quadrature, f_in, ρ, j ./ ρ)
-
+    q = quadrature
+    f = Array{Float64}(undef, size(f_in, 3))
+    u = zeros(dimension(q))
+    expected_u = zeros(dimension(q))
 
     Nx = size(f_in, 1)
     Ny = size(f_in, 2)
-    density_field = fill(0.0, Nx, Ny)
-    pressure_field = fill(0.0, Nx, Ny)
-    velocity_field = fill(0.0, Nx, Ny, lbm.dimension(quadrature))
 
     x_range = range(0, 2pi, length=Nx + 1)
     y_range = range(0, 2pi, length=Ny + 1)
+
+    total_density = 0.0
+    total_momentum = 0.0
+    total_energy = 0.0
+    total_kinetic_energy = 0.0
+    total_internal_energy = 0.0
+
+    expected_total_density = 0.0
+    expected_total_momentum = 0.0
+    expected_total_energy = 0.0
+    expected_total_kinetic_energy = 0.0
+    expected_total_internal_energy = 0.0
+
+    rho_error_squared = 0.0
+    ux_error_squared = 0.0
+    uy_error_squared = 0.0
+    u_error = 0.0
+
     @inbounds for x_idx in 1:Nx, y_idx in 1:Ny
+        # Calculated
+        @inbounds for f_idx = 1 : size(f_in, 3)
+            f[f_idx] = f_in[x_idx, y_idx, f_idx]
+        end
+        ρ = density(q, f)
+        velocity!(q, f, ρ, u)
+        T = temperature(q, f, ρ, u)
+
+        total_density += ρ
+        total_momentum += (u[1] + u[2]) * ρ
+        kinetic_energy = (u[1]^2 + u[2]^2) * ρ
+        internal_energy = T
+
+        total_kinetic_energy += kinetic_energy
+        total_internal_energy += internal_energy
+        total_energy += kinetic_energy + internal_energy
+
+        # Analytical
         x = x_range[x_idx]
         y = y_range[y_idx]
 
-        density_field[x_idx, y_idx] = lbm.density(quadrature, tgv, x, y, time)
-        pressure_field[x_idx, y_idx] = lbm.pressure(quadrature, tgv, x, y, time)
-        velocity_field[x_idx, y_idx, :] = lbm.velocity(tgv, x, y, time)
+        # Compute statistics
+        expected_ρ = lbm.density(quadrature, tgv, x, y, time)
+        expected_p = lbm.pressure(quadrature, tgv, x, y, time)
+        expected_ϵ = (dimension(q) / 2) * expected_p / expected_ρ
+        expected_v = lbm.velocity(tgv, x, y, time)
+        expected_T = expected_p / expected_ρ
+
+        expected_kinetic_energy = expected_ρ * (expected_v[1]^2 + expected_v[2]^2)
+        expected_internal_energy = expected_T
+
+        expected_total_density += expected_ρ
+        expected_total_momentum += expected_ρ * (expected_v[1] + expected_v[2])
+        expected_total_kinetic_energy += expected_kinetic_energy
+        expected_total_internal_energy += expected_internal_energy
+        expected_total_energy += expected_kinetic_energy + expected_internal_energy
+
+        rho_error_squared += (ρ - expected_ρ)^2
+        ux_error_squared += (u[1] - expected_v[1])^2
+        uy_error_squared += (u[2] - expected_v[2])^2
+        u_error += (u[1] - expected_v[1])^2 + (u[2] - expected_v[2])^2
     end
-
-    rho_error_squared = sqrt(
-        sum((ρ - density_field).^2 ./ (density_field).^2)
-    )
-    ux_error_squared = sqrt(
-        sum((ρ .* j[:, :, 1] - velocity_field[:, :, 1]).^2 ./ velocity_field[:, :, 1].^2)
-    )
-    uy_error_squared = sqrt(
-        sum((ρ .* j[:, :, 2] - velocity_field[:, :, 2]).^2 ./ velocity_field[:, :, 2].^2)
-    )
-    u_error = sqrt(
-        sum(
-            ((ρ .* j[:, :, 1] - velocity_field[:, :, 1]).^2 .+
-             (ρ .* j[:, :, 2] - velocity_field[:, :, 2]).^2) #./
-            # (velocity_field[:, :, 1].^2 .+ velocity_field[:, :, 2].^2)
-        )
-    )
-
-    total_density = sum(ρ)
-    total_momentum = sum(j)
-    total_energy = sum(E)
-    total_kinetic_energy = sum(E_k)
-    total_internal_energy = sum(ϵ)
-
-    expected_total_density = sum(density_field)
-    expected_total_momentum = sum(velocity_field ./ density_field)
-    expected_total_energy = 1.0
-    expected_total_kinetic_energy = sum(density_field .* (velocity_field[:, :, 1].^2 + velocity_field[:, :, 2].^2))
-    expected_total_internal_energy = 1.0
 
     # Compare with analytical results?
     push!(stats, [
@@ -93,10 +109,10 @@ function process!(tgv::InitialValueProblem, quadrature::Quadrature, f_in, time, 
         u_error,
     ])
 
-
-    if should_visualize == true
+    if should_visualize
         visualize(tgv, quadrature, f_in, time, stats)
     end
+    return
 end
 
 function visualize(tgv::InitialValueProblem, quadrature::Quadrature, f_in, time, stats)
