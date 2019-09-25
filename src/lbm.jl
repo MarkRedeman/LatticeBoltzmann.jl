@@ -63,7 +63,15 @@ function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
         end
 
         if (mod(t, 1) == 0)
-            lbm.process!(problem, quadrature, f_in, t * Δt, stats, visualize = (mod(t, round(Int, n_steps / 10)) == 0))
+            lbm.process!(
+                problem,
+                quadrature,
+                f_in,
+                t * Δt,
+                stats,
+                # should_visualize = (mod(t, round(Int, n_steps / 10)) == 0)
+                should_visualize = false
+            )
         end
 
         collide!(collision_operator, quadrature, f_in, f_out, time = t * Δt)
@@ -73,7 +81,7 @@ function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
 
         # check_stability(f_in) || return :unstable, f_in, stats
     end
-    lbm.process!(problem, quadrature, f_in, n_steps * Δt, stats, visualize = true)
+    lbm.process!(problem, quadrature, f_in, n_steps * Δt, stats, should_visualize = true)
 
     @show stats
 
