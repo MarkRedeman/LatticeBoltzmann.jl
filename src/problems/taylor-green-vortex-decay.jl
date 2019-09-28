@@ -9,7 +9,6 @@ export TaylorGreenVortexDecay,
     initialize
 
 struct TaylorGreenVortexExample <: lbm.InitialValueProblem
-    scale::Int
     rho_0::Float64
     u_max::Float64
     ν::Float64
@@ -24,7 +23,6 @@ struct TaylorGreenVortexExample <: lbm.InitialValueProblem
         Re = NX * u_max / ν
         @show Re
         return new(
-            scale,
             1.0,
             u_max,
             ν,

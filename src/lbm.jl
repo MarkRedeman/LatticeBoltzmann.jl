@@ -58,7 +58,7 @@ function process_stats()
 end
 
 function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
-                  n_steps = 200 * problem.scale * problem.scale)
+                  n_steps = 200 * problem.NX * problem.NX / (16 * 16))
     # initialize
     f_out, collision_operator = lbm.initialize(quadrature, problem)
     f_in = copy(f_out)
@@ -79,7 +79,8 @@ function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
                 problem,
                 quadrature,
                 f_in,
-                t * 1.0, #* Δt,
+                # t * 1.0, #* Δt,
+                t * Δt,
                 stats,
                 should_visualize = (mod(t, round(Int, n_steps / 10)) == 0)
                 # should_visualize = true

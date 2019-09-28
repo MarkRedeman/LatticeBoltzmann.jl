@@ -20,7 +20,7 @@ results = let
 
     quadrature = last(quadratures)
     example = TaylorGreenVortexExample(1.0 / 6.0, 2)
-    example = DecayingShearFlow(1.0 / 6.0, 4)
+    example = DecayingShearFlow(1.0 / 6.0, 2)
 
     result = lbm.siumlate(example, quadrature)
     return result
