@@ -22,6 +22,7 @@ function equilibrium!(
     T::Array{Float64, 2},
     f
 )
+    @warn "SHOULD THIS BE USED?"
     for x = 1 : size(ρ, 1), y = 1 : size(ρ, 2)
         u_squared = u[x, y, 1].^2 + u[x, y, 2].^2
         for idx = 1:length(q.weights)

@@ -38,7 +38,7 @@ struct TaylorGreenVortexExample <: lbm.InitialValueProblem
 end
 
 function viscosity(problem::TaylorGreenVortexExample)
-    return problem.ν
+    return problem.ν * (problem.k_x^2 + problem.k_y^2)
 end
 
 function density(q::Quadrature, tgv::TaylorGreenVortexExample, x::Float64, y::Float64, timestep::Float64 = 0.0)
@@ -75,7 +75,7 @@ end
 
 function delta_t(problem::TaylorGreenVortexExample)
     ν = viscosity(problem)
-    Δt = ν * (problem.k_x^2 + problem.k_y^2)
+    Δt = ν #* (problem.k_x^2 + problem.k_y^2)
 
     return Δt
 end

@@ -1,6 +1,7 @@
 module Example
 module TaylorGreenVortex
 
+using BenchmarkTools
 using StatsPlots
 using DataFrames
 using lbm
@@ -11,29 +12,39 @@ results = let
     stats = DataFrame([Float64[], Int[], Any[]], [:nu, :scale, :stats])
 
     quadratures = [
-        # D2Q4(),
+        D2Q4(),
         # D2Q5(),
         D2Q9(),
         # D2Q17(),
     ]
 
     quadrature = last(quadratures)
+    example = TaylorGreenVortexExample(1.0 / 6.0, 2)
+    example = DecayingShearFlow(1.0 / 6.0, 4)
+
+    result = lbm.siumlate(example, quadrature)
+    return result
 
 
-    # νs = (0.0:0.5:6.0) ./ 6.0
-    # scales = [1, 2, 4, 8]
-    # for ν in νs
-    # for scale = scales
+    νs = (0.0:0.5:4.0) ./ 6.0
+    scales = [1, 2, 4, 6, 8, 10, 12]
+
+    νs = (0.0:0.5:4.0) ./ 6.0
+    scales = [1, 2]
+    for ν in νs
+    for scale = scales
     # scale = 1
     # ν = 1.0 / 6.0
     # ν = 0.0
-    scale = 2
-    ν = 1.0 / 6.0
+    # scale = 2
+    # ν = 1.0 / 6.0
     example = TaylorGreenVortexExample(ν, scale)
 
-    @time result = lbm.siumlate(example, quadrature);
+    result = lbm.siumlate(example, quadrature);
     push!(stats, [ν, scale, result[2]])
-    return stats
+    end
+    end
+    # return stats
 
     # end
     # end
@@ -63,8 +74,9 @@ results = let
     )
     gui()
 
-    nu_idx = 0
-    plot(nu_scale_error[nu_idx * length(scales) .+ (1:length(scales)), 2], nu_scale_error[nu_idx * length(scales) .+ (1:length(scales)), 3])
+    # nu_idx = 0
+    # plot(nu_scale_error[nu_idx * length(scales) .+ (1:length(scales)), 2], nu_scale_error[nu_idx * length(scales) .+ (1:length(scales)), 3])
+    return stats
 end
 
 # Some thoughs: hide the storage of the distributions f inside of an interface

@@ -11,13 +11,17 @@ function viscosity(problem::InitialValueProblem)
     return problem.ν
 end
 
-function initial_equilibrium(quadrature, problem, x, y)
+function initial_equilibrium(quadrature::Quadrature, problem::InitialValueProblem, x::Float64, y::Float64)
     return equilibrium(
         quadrature,
         density(quadrature, problem, x, y),
         velocity(problem, x, y),
         pressure(quadrature, problem, x, y) / density(quadrature, problem, x, y)
     )
+end
+
+function initial_condition(q::Quadrature, problem::InitialValueProblem, x::Float64, y::Float64)
+    initial_equilibrium(q, problem, x, y)
 end
 
 function initialize(quadrature::Quadrature, problem::InitialValueProblem)
@@ -39,7 +43,8 @@ function initialize(quadrature::Quadrature, problem::InitialValueProblem)
         # force_field[x_idx, y_idx] = t -> force(problem, x, y)
     end
 
-    τ = quadrature.speed_of_sound_squared * viscosity(problem) + 0.5
+    τ = quadrature.speed_of_sound_squared * problem.ν + 0.5
+    @show τ
     collision_operator = SRT_Force(τ, force_field)
     collision_operator = SRT(τ)
 
@@ -48,7 +53,10 @@ end
 
 function delta_t(problem)
     ν = viscosity(problem)
-    Δt = ν * (problem.k_x^2 + problem.k_y^2)
+    k_x = problem.domain_size[1] / problem.NX
+    k_y = problem.domain_size[2] / problem.NY
+
+    Δt = ν * (k_x^2 + k_y^2)
 
     return Δt
 end
@@ -180,20 +188,20 @@ function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, t
     s = (1000, 500)
 
     domain = (1 : size(j, 1)) ./ size(j, 1)
-    velocity_profile_x = plot(domain, j[:, 4, 1], size=s)
-    plot!(velocity_profile_x, domain, velocity_field[:, 4, 1], size=s)
-    velocity_profile_y = plot(j[:, 4, 2], domain, size=s)
-    plot!(velocity_profile_y, velocity_field[:, 4, 2], domain, size=s)
+    velocity_profile_x = plot(domain, j[:, 4, 1], size=s, label="solution")
+    plot!(velocity_profile_x, domain, velocity_field[:, 4, 1], size=s, label="exact")
+    velocity_profile_y = plot(j[:, 4, 2], domain, size=s, label="solution")
+    plot!(velocity_profile_y, velocity_field[:, 4, 2], domain, size=s, label="exact")
 
     kinetic_energy_profile = plot(stats.kinetic_energy, legend=false, title="Kinetic energy", size=s)
 
     plot(
-        contour(ρ[:, :, 1], fill=true, clims=(0, 1.05), cbar=true, size=s),
-        contour(lbm.pressure(quadrature, f_in, ρ[:, :, 1], j), title="pressure"),
-        contour(pressure_field, title="pressure analytical"),
-        streamline(j),
-        streamline(velocity_field),
-        streamline(velocity_field .- ρ .* j),
+        # contour(ρ[:, :, 1], fill=true, clims=(0, 1.05), cbar=true, size=s),
+        # contour(lbm.pressure(quadrature, f_in, ρ[:, :, 1], j), title="pressure"),
+        # contour(pressure_field, title="pressure analytical"),
+        plot!(streamline(j), title="Solution"),
+        plot!(streamline(velocity_field), title="exact"),
+        # streamline(velocity_field .- ρ .* j),
         plot(stats.u_error, legend=false, title="U_e"),
         kinetic_energy_profile,
         velocity_profile_x,
@@ -203,7 +211,7 @@ function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, t
     gui()
 end
 
-function streamline(j; step = round(Int, size(j, 1) / 5) )
+function streamline(j; amount_of_arrows = 10, step = round(Int, size(j, 1) / amount_of_arrows) )
     s = (1000, 500)
     velocity_field = contour(j[:, :, 1].^2 .+ j[:, :, 2].^2, cbar=true, fill=true, title="Momentum", size=s)
     N = size(j, 1)
@@ -214,7 +222,10 @@ function streamline(j; step = round(Int, size(j, 1) / 5) )
     quiver!(
         velocity_field,
         X, Y,
-        quiver=(x, y) -> (j[x, y, 1] / sqrt(j[x, y, 1]^2 + j[x, y, 2]^2), j[x, y, 2] / sqrt(j[x, y, 1]^2 + j[x, y, 2]^2)) ,
+        quiver=(x, y) -> (
+            0.5 * amount_of_arrows * j[x, y, 1] / sqrt(j[x, y, 1]^2 + j[x, y, 2]^2),
+            0.5 * amount_of_arrows * j[x, y, 2] / sqrt(j[x, y, 1]^2 + j[x, y, 2]^2)
+        ),
         color="white",
     )
 
@@ -222,5 +233,6 @@ function streamline(j; step = round(Int, size(j, 1) / 5) )
 end
 
 include("taylor-green-vortex-decay.jl")
+include("decaying-shear-flow.jl")
 
 # error(::Val{:density}, node, solution) = density(node) - density(solution)

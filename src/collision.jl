@@ -35,7 +35,6 @@ function collide!(collision_model::SRT, q::Quadrature, f_in, f_out; time = 0.0)
         # T = 1.0 / q.speed_of_sound_squared
 
         equilibrium!(q, ρ, u, T, feq);
-        # @timeit to "equilibrium" equilibrium!(q, ρ, u, T, feq, to);
 
 
         @inbounds for f_idx = 1 : size(f_in, 3)

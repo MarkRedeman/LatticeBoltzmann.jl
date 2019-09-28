@@ -1,4 +1,6 @@
 module lbm
+using BenchmarkTools
+using TimerOutputs
 
 include("quadratures/quadrature.jl")
 include("stream.jl")
@@ -27,7 +29,9 @@ export CollisionModel,
     SRT,
     SRT_Force,
     TRT,
-    collide
+    collide,
+    collide_2,
+    collide_3
 
 export simulate
 
@@ -37,26 +41,34 @@ function process_stats()
         [
             Float64[], Float64[], Float64[], Float64[], Float64[],
             Float64[], Float64[], Float64[], Float64[], Float64[],
-            Float64[], Float64[], Float64[], Float64[]
+            # Float64[],
+            # Float64[],
+            # Float64[],
+            Float64[]
         ],
         [
             :density, :momentum, :total_energy, :kinetic_energy, :internal_energy,
             :density_a, :momentum_a, :total_energy_a, :kinetic_energy_a, :internal_energy_a,
-            :density_e, :momentum_e, :kinetic_energy_e, :u_error
+            # :density_e,
+            # :momentum_e,
+            # :kinetic_energy_e,
+            :u_error
         ]
     )
 end
 
 function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
-                  n_steps = 100 * problem.scale * problem.scale)
+                  n_steps = 200 * problem.scale * problem.scale)
     # initialize
     f_out, collision_operator = lbm.initialize(quadrature, problem)
     f_in = copy(f_out)
     ν = viscosity(problem)
     Δt = lbm.delta_t(problem)
     @show Δt
+    @show problem
 
     stats = process_stats()
+    # lbm.process!(problem, quadrature, f_in, 0.0 * Δt, stats, should_visualize = true)
     @inbounds for t = 0:n_steps
         if mod(t, round(Int, n_steps / 10)) == 0
             @show t, t / n_steps
@@ -67,23 +79,28 @@ function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
                 problem,
                 quadrature,
                 f_in,
-                t * Δt,
+                t * 1.0, #* Δt,
                 stats,
-                # should_visualize = (mod(t, round(Int, n_steps / 10)) == 0)
-                should_visualize = false
+                should_visualize = (mod(t, round(Int, n_steps / 10)) == 0)
+                # should_visualize = true
             )
         end
 
         collide!(collision_operator, quadrature, f_in, f_out, time = t * Δt)
-        f_in = stream(quadrature, f_out)
+        # for f_idx = 1:size(f_in, 3)
+        #      # circshift!(f_in[:,:,f_idx], f_out[:,:,f_idx], quadrature.abscissae[:, f_idx]);
 
+        #     f_in[:,:,f_idx] = circshift(f_out[:,:,f_idx], quadrature.abscissae[:, f_idx]);
+        # end
+        stream!(quadrature, f_out, f_in)
+        # f_in = stream(quadrature, f_out)
         # apply boundary conditions
 
-        # check_stability(f_in) || return :unstable, f_in, stats
+        # check_stability(f_in) || return :unstable, f_in, stats       )
     end
-    lbm.process!(problem, quadrature, f_in, n_steps * Δt, stats, should_visualize = true)
+    # lbm.process!(problem, quadrature, f_in, n_steps * Δt, stats, should_visualize = true)
 
-    @show stats
+    # @show stats
 
     f_in, stats
 end
