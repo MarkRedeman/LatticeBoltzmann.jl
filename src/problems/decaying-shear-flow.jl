@@ -43,6 +43,7 @@ function velocity(problem::DecayingShearFlow, x::Float64, y::Float64, timestep::
     ]
 end
 function decay(problem::DecayingShearFlow, x::Float64, y::Float64, timestep::Float64)
+    return 1.0
     ν = problem.ν * (1 / problem.NX^2 + 0 / problem.NY^2)
     ν = problem.ν * (2pi)^2 * (1 / problem.NX^2 + 1 / problem.NY^2) * 0.5
     ν = viscosity(problem)
@@ -51,14 +52,34 @@ function decay(problem::DecayingShearFlow, x::Float64, y::Float64, timestep::Flo
     return exp(-1.0 * problem.k^2 * ν * timestep / Δt)
 end
 
+function force(problem::DecayingShearFlow, x_idx::Int64, y_idx::Int64, time::Float64 = 0.0)
+    x_range = range(0, problem.domain_size[1], length=problem.NX + 1)
+    y_range = range(0, problem.domain_size[2], length=problem.NY + 1)
+
+    x = x_range[x_idx]
+    y = y_range[y_idx]
+
+    return force(problem, x, y, time)
+end
 function force(problem::DecayingShearFlow, x::Float64, y::Float64, time::Float64 = 0.0)
     u_max = problem.u_max
     v_max = problem.u_max
 
-    return [
+    ν = problem.ν * (1 / problem.NX^2 + 0 / problem.NY^2)
+    ν = problem.ν * (2pi)^2 * (1 / problem.NX^2 + 1 / problem.NY^2) * 0.5
+    ν = viscosity(problem)
+    Δt = delta_t(problem)
+
+    decay = exp(-1.0 * problem.k^2 * ν * time / Δt)
+    decay = 1.0
+
+    # δt = delta_t(problem)
+    δt = 0.5 * (2pi)^2 * (1 / problem.NX^2 + 1 / problem.NY^2)
+
+    return δt * problem.ν  * [
         0.0
         u_max  * problem.k^2 * cos(problem.k * x - problem.k * v_max * time)
-    ]
+    ] * decay
     return 0.0 * velocity(problem, x, y, time)
 end
 
