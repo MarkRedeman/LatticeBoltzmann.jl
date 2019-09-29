@@ -5,14 +5,14 @@ struct SRT <: CollisionModel
     τ::Float64
 end
 
-struct SRT_Force <: CollisionModel
+struct SRT_Force{T} <: CollisionModel
     τ::Float64
-    force::Array{Float64, 3}
+    # force::Array{Float64, 3}
+    force::T#::Array{Any, 2}
 end
 
 using TimerOutputs
 function collide!(collision_model::SRT, q::Quadrature, f_in, f_out; time = 0.0)
-
     τ = collision_model.τ
 
     feq = Array{Float64}(undef, size(f_in, 3))
@@ -29,12 +29,45 @@ function collide!(collision_model::SRT, q::Quadrature, f_in, f_out; time = 0.0)
         # Momentum
         lbm.velocity!(q, f, ρ, u)
 
-
         # Temperature
         T = temperature(q, f, ρ, u)
         # T = 1.0 / q.speed_of_sound_squared
 
         equilibrium!(q, ρ, u, T, feq);
+
+
+        @inbounds for f_idx = 1 : size(f_in, 3)
+            f_out[x, y, f_idx] = (1 - 1 / τ) * f[f_idx] + (1 / τ) * feq[f_idx];
+        end
+    end
+    return
+end
+
+function collide!(collision_model::SRT_Force, q::Quadrature, f_in, f_out; time = 0.0)
+    τ = collision_model.τ
+
+    feq = Array{Float64}(undef, size(f_in, 3))
+    f = Array{Float64}(undef, size(f_in, 3))
+    u = zeros(dimension(q))
+    F = zeros(dimension(q))
+
+    @inbounds for x = 1 : size(f_in, 1), y = 1 : size(f_in, 2)
+        @inbounds for f_idx = 1 : size(f_in, 3)
+            f[f_idx] = f_in[x, y, f_idx]
+        end
+
+        ρ = density(q, f)
+
+        # Momentum
+        lbm.velocity!(q, f, ρ, u)
+
+        # Temperature
+        T = temperature(q, f, ρ, u)
+        # T = 1.0 / q.speed_of_sound_squared
+
+        F .= τ * collision_model.force(x, y, time)
+
+        equilibrium!(q, ρ, u + F, T, feq);
 
 
         @inbounds for f_idx = 1 : size(f_in, 3)

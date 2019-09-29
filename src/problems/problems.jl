@@ -25,7 +25,7 @@ function initial_condition(q::Quadrature, problem::InitialValueProblem, x::Float
 end
 
 function initialize(quadrature::Quadrature, problem::InitialValueProblem)
-    force_field = Array{Float64}(undef, problem.NX, problem.NY, dimension(quadrature))
+    # force_field = Array{Any}(undef, problem.NX, problem.NY)
     f = Array{Float64}(undef, problem.NX, problem.NY, length(quadrature.weights))
 
     # NOTE: we have periodic boundaries
@@ -40,13 +40,13 @@ function initialize(quadrature::Quadrature, problem::InitialValueProblem)
         )
 
         # force_field[x_idx, y_idx, :] = force(problem, x, y)
-        # force_field[x_idx, y_idx] = t -> force(problem, x, y)
     end
+    force_field = (x_idx, y_idx, t) -> force(problem, x_idx, y_idx, t)
 
     τ = quadrature.speed_of_sound_squared * problem.ν + 0.5
     @show τ
     collision_operator = SRT_Force(τ, force_field)
-    collision_operator = SRT(τ)
+    # collision_operator = SRT(τ)
 
     return f, collision_operator
 end

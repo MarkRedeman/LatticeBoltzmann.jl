@@ -64,11 +64,24 @@ function velocity(tgv::TaylorGreenVortexExample, x::Float64, y::Float64, timeste
     ]
 end
 function decay(tgv::TaylorGreenVortexExample, x::Float64, y::Float64, timestep::Float64)
+    return 1.0
     return exp(-1.0 * timestep)
 end
 
+function force(problem::TaylorGreenVortexExample, x_idx::Int64, y_idx::Int64, time::Float64 = 0.0)
+    x_range = range(0, problem.domain_size[1], length=problem.NX + 1)
+    y_range = range(0, problem.domain_size[2], length=problem.NY + 1)
+
+    x = x_range[x_idx]
+    y = y_range[y_idx]
+
+    return force(problem, x, y, time)
+end
 function force(tgv::TaylorGreenVortexExample, x::Float64, y::Float64, time::Float64 = 0.0)
-    return (1 / tgv.ν) * (tgv.k_x^2 + tgv.k_y^2) * velocity(tgv, x, y, time)
+    # return tgv.u_max * (1 / tgv.ν) * (tgv.k_x + tgv.k_y)^2 * velocity(tgv, x, y, 0.0)
+    return delta_t(tgv) * velocity(tgv, x, y, 0.0)
+
+    return tgv.ν * (tgv.k_x^2 + tgv.k_y^2)
 end
 
 function delta_t(problem::TaylorGreenVortexExample)
