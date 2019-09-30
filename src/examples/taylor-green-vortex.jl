@@ -12,25 +12,29 @@ results = let
     stats = DataFrame([Float64[], Int[], Any[]], [:nu, :scale, :stats])
 
     quadratures = [
-        D2Q4(),
+        # D2Q4(),
         # D2Q5(),
         D2Q9(),
-        # D2Q17(),
+        D2Q17(),
     ]
 
     quadrature = last(quadratures)
-    example = TaylorGreenVortexExample(1.0 / 6.0, 2)
-    # example = DecayingShearFlow(1.0 / 6.0, 4)
+    τ = 1.0 / 6.0
+    scale = 2
+    example = TaylorGreenVortexExample(τ, scale, static = true)
+    example = TaylorGreenVortexExample(τ, scale, static = false)
+    example = DecayingShearFlow(τ, scale, static = true)
+    example = DecayingShearFlow(τ, scale, static = false)
 
-    result = lbm.siumlate(example, quadrature)
-    return result
+    # result = lbm.siumlate(example, quadrature, base = 200)
+    # return result
 
 
-    νs = (0.0:0.5:4.0) ./ 6.0
+    νs = (0.0:0.5:10.0) ./ 6.0
     scales = [1, 2, 4, 6, 8, 10, 12]
 
     νs = (0.0:0.5:4.0) ./ 6.0
-    scales = [1, 2]
+    scales = [1, 2, 4]
     for ν in νs
     for scale = scales
     # scale = 1
@@ -38,7 +42,8 @@ results = let
     # ν = 0.0
     # scale = 2
     # ν = 1.0 / 6.0
-    example = TaylorGreenVortexExample(ν, scale)
+    example = TaylorGreenVortexExample(ν, scale, static = true)
+    example = DecayingShearFlow(ν, scale, static = true)
 
     result = lbm.siumlate(example, quadrature);
     push!(stats, [ν, scale, result[2]])
@@ -67,6 +72,9 @@ results = let
         )
     end
     plot!(x -> 10.0 * x^(-2), label="y(x) = 10x^(-2)", linestyle=:dash)
+    # plot!(x -> 10.0 * x^(-3), label="y(x) = 10x^(-3)", linestyle=:dash)
+    # plot!(x -> 10.0 * x^(-4), label="y(x) = 10x^(-4)", linestyle=:dash)
+    # plot!(x -> 10.0 * x^(-5), label="y(x) = 10x^(-5)", linestyle=:dash)
     plot!(
         scale=:log10,
         legend=:bottomleft,

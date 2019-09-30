@@ -3,6 +3,9 @@ using Plots
 export process!, initialize, InitialValueProblem, viscosity, delta_t
 
 abstract type InitialValueProblem end
+
+has_external_force(problem::InitialValueProblem) = false
+
 function initialize(quadrature::Quadrature, lattice::Lattice, problem::InitialValueProblem)
 
 end
@@ -45,8 +48,11 @@ function initialize(quadrature::Quadrature, problem::InitialValueProblem)
 
     τ = quadrature.speed_of_sound_squared * problem.ν + 0.5
     @show τ
-    collision_operator = SRT_Force(τ, force_field)
-    # collision_operator = SRT(τ)
+    if has_external_force(problem)
+        collision_operator = SRT_Force(τ, force_field)
+    else
+        collision_operator = SRT(τ)
+    end
 
     return f, collision_operator
 end
@@ -148,7 +154,7 @@ function process!(problem::InitialValueProblem, q::Quadrature, f_in, time, stats
         # rho_error_squared,
         # ux_error_squared,
         # uy_error_squared,
-        u_error,
+        u_error / expected_total_momentum,
     ])
 
     if should_visualize

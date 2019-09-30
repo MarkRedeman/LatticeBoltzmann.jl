@@ -8,16 +8,16 @@ struct DecayingShearFlow <: lbm.InitialValueProblem
     NY::Int64
     k::Float64
     domain_size::Tuple{Float64, Float64}
-
+    static::Bool
 end
 function DecayingShearFlow(
-    ν = 1.0 / 6.0 , scale = 2, NX = 16 * scale, NY = NX, domain_size = (2pi, 2pi)
+    ν = 1.0 / 6.0 , scale = 2, NX = 16 * scale, NY = NX, domain_size = (2pi, 2pi); static = true
 )
     u_max = 0.02 / scale
     @show u_max
     Re = NX * u_max / ν
     @show Re
-    return DecayingShearFlow(1.0, u_max, ν, NX, NY, 1.0, domain_size)
+    return DecayingShearFlow(1.0, u_max, ν, NX, NY, 1.0, domain_size, static)
 end
 
 function viscosity(problem::DecayingShearFlow)
@@ -43,7 +43,9 @@ function velocity(problem::DecayingShearFlow, x::Float64, y::Float64, timestep::
     ]
 end
 function decay(problem::DecayingShearFlow, x::Float64, y::Float64, timestep::Float64)
-    return 1.0
+    if (problem.static)
+        return 1.0
+    end
     ν = problem.ν * (1 / problem.NX^2 + 0 / problem.NY^2)
     ν = problem.ν * (2pi)^2 * (1 / problem.NX^2 + 1 / problem.NY^2) * 0.5
     ν = viscosity(problem)
@@ -62,6 +64,9 @@ function force(problem::DecayingShearFlow, x_idx::Int64, y_idx::Int64, time::Flo
     return force(problem, x, y, time)
 end
 function force(problem::DecayingShearFlow, x::Float64, y::Float64, time::Float64 = 0.0)
+    if ! problem.static
+        return [0.0 0.0]
+    end
     u_max = problem.u_max
     v_max = problem.u_max
 
@@ -84,6 +89,7 @@ function force(problem::DecayingShearFlow, x::Float64, y::Float64, time::Float64
 end
 
 function delta_t(problem::DecayingShearFlow)
+    # Note: is actually δx * u_max
     return Δt = (2pi)^1 * (1 / problem.NX + 1 / problem.NY) * 0.5
     return 1.0
     ν = viscosity(problem)
@@ -105,3 +111,5 @@ function lattice_viscosity(problem::InitialValueProblem)
     δ_x = problem.domain_size[1] / problem.NX
     δ_t / (δ_x^2 * Re)
 end
+
+has_external_force(problem::DecayingShearFlow) = problem.static

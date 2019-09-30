@@ -17,22 +17,23 @@ struct TaylorGreenVortexExample <: lbm.InitialValueProblem
     k_x::Float64
     k_y::Float64
     domain_size::Tuple{Float64, Float64}
-
-    function TaylorGreenVortexExample(ν = 1.0 / 6.0 , scale = 2, NX = 16 * scale, NY = NX, domain_size = (2pi, 2pi))
-        u_max = 0.02 / scale
-        Re = NX * u_max / ν
-        @show Re
-        return new(
-            1.0,
-            u_max,
-            ν,
-            NX,
-            NY,
-            domain_size[1] / NX,
-            domain_size[2] / NY,
-            domain_size
-        )
-    end
+    static::Bool
+end
+function TaylorGreenVortexExample(ν = 1.0 / 6.0 , scale = 2, NX = 16 * scale, NY = NX, domain_size = (2pi, 2pi); static = true)
+    u_max = 0.02 / scale
+    Re = NX * u_max / ν
+    @show Re
+    return TaylorGreenVortexExample(
+        1.0,
+        u_max,
+        ν,
+        NX,
+        NY,
+        domain_size[1] / NX,
+        domain_size[2] / NY,
+        domain_size,
+        static
+    )
 end
 
 function viscosity(problem::TaylorGreenVortexExample)
@@ -64,8 +65,7 @@ function velocity(tgv::TaylorGreenVortexExample, x::Float64, y::Float64, timeste
     ]
 end
 function decay(tgv::TaylorGreenVortexExample, x::Float64, y::Float64, timestep::Float64)
-    return 1.0
-    return exp(-1.0 * timestep)
+    return tgv.static ? 1.0 : exp(-1.0 * timestep)
 end
 
 function force(problem::TaylorGreenVortexExample, x_idx::Int64, y_idx::Int64, time::Float64 = 0.0)
@@ -79,7 +79,7 @@ function force(problem::TaylorGreenVortexExample, x_idx::Int64, y_idx::Int64, ti
 end
 function force(tgv::TaylorGreenVortexExample, x::Float64, y::Float64, time::Float64 = 0.0)
     # return tgv.u_max * (1 / tgv.ν) * (tgv.k_x + tgv.k_y)^2 * velocity(tgv, x, y, 0.0)
-    return delta_t(tgv) * velocity(tgv, x, y, 0.0)
+    return tgv.static ? delta_t(tgv) * velocity(tgv, x, y, 0.0) : [0.0 0.0]
 
     return tgv.ν * (tgv.k_x^2 + tgv.k_y^2)
 end
@@ -90,3 +90,5 @@ function delta_t(problem::TaylorGreenVortexExample)
 
     return Δt
 end
+
+has_external_force(problem::TaylorGreenVortexExample) = problem.static

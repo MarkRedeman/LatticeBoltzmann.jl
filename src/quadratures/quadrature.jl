@@ -1,6 +1,7 @@
 using LinearAlgebra
 
 abstract type Quadrature end
+# abstract type Quadrature{Thermal} end
 abstract type Lattice end
 
 DdQq(d, q) = "HOI"

@@ -58,7 +58,8 @@ function process_stats()
 end
 
 function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
-                  n_steps = 200 * problem.NX * problem.NX / (16 * 16))
+                  base = 200,
+                  n_steps = base * problem.NX * problem.NX / (16 * 16))
     # initialize
     f_out, collision_operator = lbm.initialize(quadrature, problem)
     f_in = copy(f_out)
@@ -88,11 +89,6 @@ function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
         end
 
         collide!(collision_operator, quadrature, f_in, f_out, time = t * Δt)
-        # for f_idx = 1:size(f_in, 3)
-        #      # circshift!(f_in[:,:,f_idx], f_out[:,:,f_idx], quadrature.abscissae[:, f_idx]);
-
-        #     f_in[:,:,f_idx] = circshift(f_out[:,:,f_idx], quadrature.abscissae[:, f_idx]);
-        # end
         stream!(quadrature, f_out, f_in)
         # f_in = stream(quadrature, f_out)
         # apply boundary conditions
