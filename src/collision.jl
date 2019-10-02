@@ -12,7 +12,7 @@ struct SRT_Force{T} <: CollisionModel
 end
 
 using TimerOutputs
-function collide!(collision_model::SRT, q::Quadrature, f_in, f_out; time = 0.0)
+function collide!(collision_model::SRT, q::Quadrature, f_in, f_out; time = 0.0, problem = nothing)
     τ = collision_model.τ
 
     feq = Array{Float64}(undef, size(f_in, 3))
@@ -20,6 +20,11 @@ function collide!(collision_model::SRT, q::Quadrature, f_in, f_out; time = 0.0)
     u = zeros(dimension(q))
    
     @inbounds for x = 1 : size(f_in, 1), y = 1 : size(f_in, 2)
+        if ! is_fluid(problem, x, y)
+            continue
+        end
+
+
         @inbounds for f_idx = 1 : size(f_in, 3)
             f[f_idx] = f_in[x, y, f_idx]
         end
@@ -43,7 +48,7 @@ function collide!(collision_model::SRT, q::Quadrature, f_in, f_out; time = 0.0)
     return
 end
 
-function collide!(collision_model::SRT_Force, q::Quadrature, f_in, f_out; time = 0.0)
+function collide!(collision_model::SRT_Force, q::Quadrature, f_in, f_out; time = 0.0, problem = nothing)
     τ = collision_model.τ
 
     feq = Array{Float64}(undef, size(f_in, 3))
@@ -52,6 +57,10 @@ function collide!(collision_model::SRT_Force, q::Quadrature, f_in, f_out; time =
     F = zeros(dimension(q))
 
     @inbounds for x = 1 : size(f_in, 1), y = 1 : size(f_in, 2)
+        if ! is_fluid(problem, x, y)
+            continue
+        end
+
         @inbounds for f_idx = 1 : size(f_in, 3)
             f[f_idx] = f_in[x, y, f_idx]
         end

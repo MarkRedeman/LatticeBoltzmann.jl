@@ -238,6 +238,10 @@ function streamline(j; amount_of_arrows = 10, step = round(Int, size(j, 1) / amo
     return velocity_field
 end
 
+function is_fluid(problem::InitialValueProblem, x, y)
+    return true
+end
+
 include("taylor-green-vortex-decay.jl")
 include("decaying-shear-flow.jl")
 

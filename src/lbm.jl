@@ -89,7 +89,7 @@ function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
             )
         end
 
-        collide!(collision_operator, quadrature, f_in, f_out, time = t * Δt)
+        collide!(collision_operator, quadrature, f_in, f_out, time = t * Δt, problem = problem)
         stream!(quadrature, f_out, f_in)
         # f_in = stream(quadrature, f_out)
         # apply boundary conditions
