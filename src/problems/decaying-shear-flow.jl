@@ -11,18 +11,19 @@ struct DecayingShearFlow <: lbm.InitialValueProblem
     static::Bool
 end
 function DecayingShearFlow(
-    ν = 1.0 / 6.0 , scale = 2, NX = 16 * scale, NY = NX, domain_size = (2pi, 2pi); static = true
+    ν_lb = 1.0 / 6.0 , scale = 2, NX = 16 * scale, NY = NX, domain_size = (2pi, 2pi); static = true
 )
     u_max = 0.02 / scale
+    # ν_lb = ν_lb * scale
     @show u_max
-    Re = NX * u_max / ν
+    Re = NX * u_max / ν_lb
     @show Re
-    return DecayingShearFlow(1.0, u_max, ν, NX, NY, 1.0, domain_size, static)
+    return DecayingShearFlow(1.0, u_max, ν_lb, NX, NY, 1.0, domain_size, static)
 end
 
+# Dimensionless
 function viscosity(problem::DecayingShearFlow)
-    return problem.ν * (2pi)^2 * (1 / problem.NX^2 + 1 / problem.NY^2) * 0.5
-    return problem.ν
+    return problem.ν * delta_x(problem)^2 / delta_t(problem)
 end
 
 function density(q::Quadrature, problem::DecayingShearFlow, x::Float64, y::Float64, timestep::Float64 = 0.0)
@@ -33,25 +34,22 @@ function pressure(q::Quadrature, problem::DecayingShearFlow, x::Float64, y::Floa
     return 1.0
 end
 
-function velocity(problem::DecayingShearFlow, x::Float64, y::Float64, timestep::Float64 = 0.0)
-    u_max = problem.u_max
-    v_max = problem.u_max
+function velocity(problem::DecayingShearFlow, x::Float64, y::Float64, time::Float64 = 0.0)
+    A = 1.0
+    B = 1.0
 
     return [
-       v_max
-       u_max * cos(problem.k * (x - v_max * timestep)) * decay(problem, x, y, timestep)
+        A
+        B * cos(problem.k * (x - A * time)) * decay(problem, x, y, time)
     ]
 end
-function decay(problem::DecayingShearFlow, x::Float64, y::Float64, timestep::Float64)
+function decay(problem::DecayingShearFlow, x::Float64, y::Float64, time::Float64)
     if (problem.static)
         return 1.0
     end
-    ν = problem.ν * (1 / problem.NX^2 + 0 / problem.NY^2)
-    ν = problem.ν * (2pi)^2 * (1 / problem.NX^2 + 1 / problem.NY^2) * 0.5
-    ν = viscosity(problem)
-    Δt = delta_t(problem)
 
-    return exp(-1.0 * problem.k^2 * ν * timestep / Δt)
+    ν = viscosity(problem)
+    return exp(-1.0 * problem.k^2 * ν * time )
 end
 
 function force(problem::DecayingShearFlow, x_idx::Int64, y_idx::Int64, time::Float64 = 0.0)
@@ -67,45 +65,26 @@ function force(problem::DecayingShearFlow, x::Float64, y::Float64, time::Float64
     if ! problem.static
         return [0.0 0.0]
     end
-    u_max = problem.u_max
-    v_max = problem.u_max
+    A = 1.0
+    B = 1.0
 
-    ν = problem.ν * (1 / problem.NX^2 + 0 / problem.NY^2)
-    ν = problem.ν * (2pi)^2 * (1 / problem.NX^2 + 1 / problem.NY^2) * 0.5
     ν = viscosity(problem)
-    Δt = delta_t(problem)
-
-    decay = exp(-1.0 * problem.k^2 * ν * time / Δt)
-    decay = 1.0
-
-    # δt = delta_t(problem)
-    δt = 0.5 * (2pi)^2 * (1 / problem.NX^2 + 1 / problem.NY^2)
-
-    return δt * problem.ν  * [
+    return [
         0.0
-        u_max  * problem.k^2 * cos(problem.k * x - problem.k * v_max * time)
-    ] * decay
-    return 0.0 * velocity(problem, x, y, time)
+        ν * problem.k^2 * B * cos(problem.k * x - problem.k * A * time)
+    ]
 end
 
 function delta_t(problem::DecayingShearFlow)
-    # Note: is actually δx * u_max
-    return Δt = (2pi)^1 * (1 / problem.NX + 1 / problem.NY) * 0.5
-    return 1.0
-    ν = viscosity(problem)
-    return 1.0
-    return ν
-    Δt = (2pi)^2 * (1 / problem.NX^2 + 1 / problem.NY^2)# * (problem.k_x^2 + problem.k_y^2)
-
-    return Δt
+    return delta_x(problem) * problem.u_max
 end
 
 function delta_x(problem::DecayingShearFlow)
-    return (2pi) * (1 / problem.NX + 1 / problem.NY)
-    return (2pi)^2 * (1 / problem.NX^2 + 0 / problem.NY^2)
+    return problem.domain_size[1] * (1 / problem.NX)
 end
 
 function lattice_viscosity(problem::InitialValueProblem)
+    return problem.ν
     Re = 1.0 / problem.ν
     δ_t = 1.0
     δ_x = problem.domain_size[1] / problem.NX
@@ -113,3 +92,8 @@ function lattice_viscosity(problem::InitialValueProblem)
 end
 
 has_external_force(problem::DecayingShearFlow) = problem.static
+
+lattice_density(q, problem::DecayingShearFlow, x, y, t = 0.0) = density(q, problem, x, y, t)
+lattice_velocity(q, problem::DecayingShearFlow, x, y, t = 0.0) = problem.u_max * velocity(problem, x, y, t)
+lattice_pressure(q, problem::DecayingShearFlow, x, y, t = 0.0) = pressure(q, problem, x, y, t)
+lattice_force(problem::DecayingShearFlow, x, y, t = 0.0) = problem.u_max * delta_t(problem) * force(problem, x, y, t)

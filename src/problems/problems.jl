@@ -1,6 +1,11 @@
 using Plots
 
-export process!, initialize, InitialValueProblem, viscosity, delta_t
+export process!, initialize, apply_boundary_conditions!,
+    InitialValueProblem, viscosity, delta_t,
+    lattice_velocity,
+    lattice_density,
+    lattice_pressure,
+    lattice_force
 
 abstract type InitialValueProblem end
 
@@ -17,14 +22,17 @@ end
 function initial_equilibrium(quadrature::Quadrature, problem::InitialValueProblem, x::Float64, y::Float64)
     return equilibrium(
         quadrature,
-        density(quadrature, problem, x, y),
-        velocity(problem, x, y),
-        pressure(quadrature, problem, x, y) / density(quadrature, problem, x, y)
+        lattice_density(quadrature, problem, x, y),
+        lattice_velocity(quadrature, problem, x, y),
+        lattice_pressure(quadrature, problem, x, y) / lattice_density(quadrature, problem, x, y)
     )
 end
 
 function initial_condition(q::Quadrature, problem::InitialValueProblem, x::Float64, y::Float64)
     initial_equilibrium(q, problem, x, y)
+end
+function lattice_viscosity(problem::InitialValueProblem)
+    return problem.ν
 end
 
 function initialize(quadrature::Quadrature, problem::InitialValueProblem)
@@ -44,9 +52,9 @@ function initialize(quadrature::Quadrature, problem::InitialValueProblem)
 
         # force_field[x_idx, y_idx, :] = force(problem, x, y)
     end
-    force_field = (x_idx, y_idx, t) -> force(problem, x_idx, y_idx, t)
+    force_field = (x_idx, y_idx, t) -> lattice_force(problem, x_idx, y_idx, t)
 
-    τ = quadrature.speed_of_sound_squared * problem.ν + 0.5
+    τ = quadrature.speed_of_sound_squared * lattice_viscosity(problem) + 0.5
     @show τ
     if has_external_force(problem)
         collision_operator = SRT_Force(τ, force_field)
@@ -118,13 +126,13 @@ function process!(problem::InitialValueProblem, q::Quadrature, f_in, time, stats
         y = y_range[y_idx]
 
         # Compute statistics
-        expected_ρ = lbm.density(q, problem, x, y, time)
-        expected_p = lbm.pressure(q, problem, x, y, time)
+        expected_ρ = lbm.lattice_density(q, problem, x, y, time)
+        expected_p = lbm.lattice_pressure(q, problem, x, y, time)
         expected_ϵ = (dimension(q) / 2) * expected_p / expected_ρ
-        expected_v = lbm.velocity(problem, x, y, time)
+        expected_v = lbm.lattice_velocity(q, problem, x, y, time)
         expected_T = expected_p / expected_ρ
 
-        expected_kinetic_energy = expected_ρ * (expected_v[1]^2 + expected_v[2]^2)
+        expected_kinetic_energy = (expected_v[1]^2 + expected_v[2]^2)
         expected_internal_energy = expected_T
 
         expected_total_density += expected_ρ
@@ -203,9 +211,9 @@ function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, t
         x = x_range[x_idx]
         y = y_range[y_idx]
 
-        density_field[x_idx, y_idx] = lbm.density(quadrature, problem, x, y, time)
-        pressure_field[x_idx, y_idx] = lbm.pressure(quadrature, problem, x, y, time)
-        velocity_field[x_idx, y_idx, :] = lbm.velocity(problem, x, y, time)
+        density_field[x_idx, y_idx] = lbm.lattice_density(quadrature, problem, x, y, time)
+        pressure_field[x_idx, y_idx] = lbm.lattice_pressure(quadrature, problem, x, y, time)
+        velocity_field[x_idx, y_idx, :] = lbm.lattice_velocity(quadrature, problem, x, y, time)
     end
 
     s = (1000, 500)
@@ -272,6 +280,11 @@ function force(problem::InitialValueProblem, x_idx::Int64, y_idx::Int64, time::F
 
     return force(problem, x, y, time)
 end
+
+lattice_density(q, problem, x, y, t = 0.0) = density(q, problem, x, y, t)
+lattice_velocity(q, problem, x, y, t = 0.0) = velocity(problem, x, y, t)
+lattice_pressure(q, problem, x, y, t = 0.0) = pressure(q, problem, x, y, t)
+lattice_force(problem, x, y, t = 0.0) = force(problem, x, y, t)
 
 include("taylor-green-vortex-decay.jl")
 include("decaying-shear-flow.jl")

@@ -64,7 +64,6 @@ function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
     # initialize
     f_out, collision_operator = lbm.initialize(quadrature, problem)
     f_in = copy(f_out)
-    ν = viscosity(problem)
     Δt = lbm.delta_t(problem)
     @show Δt
     @show problem
