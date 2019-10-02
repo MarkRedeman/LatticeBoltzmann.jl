@@ -44,8 +44,8 @@ function D2Q17()
 
     return D2Q17(
         [   #A #B          #C          #D          #D
-            0  1 -1  0  0  1  1 -1 -1  2  2 -2 -2  3 -3  0  0
-            0  0  0  1 -1  1 -1  1 -1  2 -2  2 -2  0  0  3 -3
+            0  1 -1  0  0  1 -1  1 -1  2 -2  2 -2  3 -3  0  0
+            0  0  0  1 -1  1 -1 -1  1  2 -2 -2  2  0  0  3 -3
             ],
         [
             w_0, w_1, w_1, w_1, w_1, w_2, w_2, w_2, w_2, w_3, w_3, w_3, w_3, w_4, w_4, w_4, w_4
@@ -55,5 +55,15 @@ function D2Q17()
 end
 
 order(q::D2Q17) = 7
+
+function opposite(q::D2Q17, idx::Int64)
+    if idx == 1
+        return 1
+    end
+    if (mod(idx, 2) == 0)
+        return idx + 1
+    end
+    return idx - 1
+end
 
 Base.show(io::IO, q::D2Q17)= show(io, "D2Q17")

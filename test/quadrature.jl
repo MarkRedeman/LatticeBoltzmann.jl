@@ -240,3 +240,11 @@ end
         @test all(f_out .≈ f_out_2)
     end
 end
+
+@testset "Opposite directions of $q" for q in quadratures
+    for idx = 1:length(q.weights)
+        opposite_idx = opposite(q, idx)
+
+        @test all(q.abscissae[:, idx] .+ q.abscissae[:, opposite_idx] .== 0)
+    end
+end

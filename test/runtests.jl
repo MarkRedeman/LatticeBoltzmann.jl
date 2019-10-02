@@ -99,7 +99,7 @@ logspace(start, stop, length) = exp10.(range(start, stop = stop, length = length
                 @test isapprox(
                     momentum(1.0, v)[1, 1, d],
                     v[d],
-                    atol=1e-12,
+                    atol=1e-11,
                     rtol=1e-6
                 )
             end

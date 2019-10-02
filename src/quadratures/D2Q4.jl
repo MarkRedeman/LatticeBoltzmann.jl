@@ -11,8 +11,8 @@ end
 
 D2Q4() = D2Q4(
     [
-        1  -1   0   0
-        0   0   1  -1
+        1   0  -1   0
+        0   1   0  -1
     ],
     [
         1/4, 1/4, 1/4, 1/4
@@ -21,4 +21,11 @@ D2Q4() = D2Q4(
 )
 
 order(q::D2Q4) = 3
+function opposite(q::D2Q4, idx::Int64)
+    if idx <= 2
+        return idx + 2
+    end
+    return idx - 2
+end
+
 Base.show(io::IO, q::D2Q4)= show(io, "D2Q4")

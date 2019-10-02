@@ -25,5 +25,14 @@ D2Q9() = D2Q9(
 )
 
 order(q::D2Q9) = 5
+function opposite(q::D2Q9, idx::Int64)
+    if idx == 1
+        return 1
+    end
+    if idx <= 5
+        return idx + 4
+    end
+    return idx - 4
+end
 
 Base.show(io::IO, q::D2Q9)= show(io, "D2Q9")
