@@ -5,7 +5,8 @@ export process!, initialize, apply_boundary_conditions!,
     lattice_velocity,
     lattice_density,
     lattice_pressure,
-    lattice_force
+    lattice_force,
+    lattice_viscosity
 
 abstract type InitialValueProblem end
 
@@ -13,10 +14,6 @@ has_external_force(problem::InitialValueProblem) = false
 
 function initialize(quadrature::Quadrature, lattice::Lattice, problem::InitialValueProblem)
 
-end
-
-function viscosity(problem::InitialValueProblem)
-    return problem.ν
 end
 
 function initial_equilibrium(quadrature::Quadrature, problem::InitialValueProblem, x::Float64, y::Float64)
@@ -30,9 +27,6 @@ end
 
 function initial_condition(q::Quadrature, problem::InitialValueProblem, x::Float64, y::Float64)
     initial_equilibrium(q, problem, x, y)
-end
-function lattice_viscosity(problem::InitialValueProblem)
-    return problem.ν
 end
 
 function initialize(quadrature::Quadrature, problem::InitialValueProblem)
@@ -112,6 +106,10 @@ function process!(problem::InitialValueProblem, q::Quadrature, f_in, time, stats
         velocity!(q, f, ρ, u)
         T = temperature(q, f, ρ, u)
 
+        ρ = dimensionless_density(problem, ρ)
+        u = dimensionless_velocity(problem, u)
+        T = dimensionless_temperature(problem, T)
+
         total_density += ρ
         total_momentum += (u[1] + u[2]) * ρ
         kinetic_energy = (u[1]^2 + u[2]^2) * ρ
@@ -126,10 +124,10 @@ function process!(problem::InitialValueProblem, q::Quadrature, f_in, time, stats
         y = y_range[y_idx]
 
         # Compute statistics
-        expected_ρ = lbm.lattice_density(q, problem, x, y, time)
-        expected_p = lbm.lattice_pressure(q, problem, x, y, time)
+        expected_ρ = lbm.density(q, problem, x, y, time)
+        expected_p = lbm.pressure(q, problem, x, y, time)
         expected_ϵ = (dimension(q) / 2) * expected_p / expected_ρ
-        expected_v = lbm.lattice_velocity(q, problem, x, y, time)
+        expected_v = lbm.velocity(problem, x, y, time)
         expected_T = expected_p / expected_ρ
 
         expected_kinetic_energy = (expected_v[1]^2 + expected_v[2]^2)
@@ -211,14 +209,17 @@ function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, t
         x = x_range[x_idx]
         y = y_range[y_idx]
 
-        density_field[x_idx, y_idx] = lbm.lattice_density(quadrature, problem, x, y, time)
-        pressure_field[x_idx, y_idx] = lbm.lattice_pressure(quadrature, problem, x, y, time)
-        velocity_field[x_idx, y_idx, :] = lbm.lattice_velocity(quadrature, problem, x, y, time)
+        density_field[x_idx, y_idx] = lbm.density(quadrature, problem, x, y, time)
+        pressure_field[x_idx, y_idx] = lbm.pressure(quadrature, problem, x, y, time)
+        velocity_field[x_idx, y_idx, :] = lbm.velocity(problem, x, y, time)
+
+        ρ[x_idx, y_idx] = dimensionless_density(problem, ρ[x_idx, y_idx])
+        j[x_idx, y_idx, :] = dimensionless_velocity(problem, j[x_idx, y_idx, :] ./ ρ[x_idx, y_idx])
     end
 
     s = (1000, 500)
 
-    domain = (1 : size(j, 1)) ./ size(j, 1)
+    domain = (1 : problem.NX) ./ problem.NX
     velocity_profile_x = plot(domain, j[:, 4, 1], size=s, label="solution")
     plot!(velocity_profile_x, domain, velocity_field[:, 4, 1], size=s, label="exact")
     velocity_profile_y = plot(j[:, 4, 2], domain, size=s, label="solution")
@@ -281,10 +282,42 @@ function force(problem::InitialValueProblem, x_idx::Int64, y_idx::Int64, time::F
     return force(problem, x, y, time)
 end
 
-lattice_density(q, problem, x, y, t = 0.0) = density(q, problem, x, y, t)
-lattice_velocity(q, problem, x, y, t = 0.0) = velocity(problem, x, y, t)
-lattice_pressure(q, problem, x, y, t = 0.0) = pressure(q, problem, x, y, t)
-lattice_force(problem, x, y, t = 0.0) = force(problem, x, y, t)
+function force(problem::InitialValueProblem, x_idx::Int64, y_idx::Int64, time::Int64 = 0.0)
+    x_range = range(0, problem.domain_size[1], length=problem.NX + 1)
+    y_range = range(0, problem.domain_size[2], length=problem.NY + 1)
+    Δt = lbm.delta_t(problem)
+
+    x = x_range[x_idx]
+    y = y_range[y_idx]
+
+    return force(problem, x, y, Δt * time)
+end
+
+# Dimensionless
+function viscosity(problem) #::InitialValueProblem)
+    return problem.ν * delta_x(problem)^2 / delta_t(problem)
+end
+
+function delta_t(problem::InitialValueProblem)
+    return delta_x(problem) * problem.u_max
+end
+
+function delta_x(problem::InitialValueProblem)
+    return problem.domain_size[1] * (1 / problem.NX)
+end
+
+lattice_viscosity(problem) = problem.ν #::InitialValueProblem)
+lattice_density(q, problem::InitialValueProblem, x, y, t = 0.0) = density(q, problem, x, y, t)
+lattice_velocity(q, problem::InitialValueProblem, x, y, t = 0.0) = problem.u_max * velocity(problem, x, y, t)
+lattice_pressure(q, problem::InitialValueProblem, x, y, t = 0.0) = pressure(q, problem, x, y, t)
+lattice_force(problem::InitialValueProblem, x, y, t = 0.0) = problem.u_max * delta_t(problem) * force(problem, x, y, t)
+
+dimensionless_viscosity(problem) = problem.ν * delta_x(problem)^2 / delta_t(problem)
+dimensionless_density(problem::InitialValueProblem, ρ) = ρ
+dimensionless_velocity(problem::InitialValueProblem, u) = u / problem.u_max
+dimensionless_pressure(problem::InitialValueProblem, p) = p
+dimensionless_temperature(problem::InitialValueProblem, T) = T
+dimensionless_force(problem::InitialValueProblem, F) = F / (problem.u_max * delta_t(problem))
 
 include("taylor-green-vortex-decay.jl")
 include("decaying-shear-flow.jl")
