@@ -1,6 +1,13 @@
 using Plots
 
 export process!, initialize, apply_boundary_conditions!,
+    density,
+    velocity,
+    pressure,
+    temperature,
+    decay,
+    force,
+    initialize
     InitialValueProblem, viscosity, delta_t,
     lattice_velocity,
     lattice_density,
@@ -149,10 +156,10 @@ function process!(problem::InitialValueProblem, q::Quadrature, f_in, time, stats
         u_error += (
             opp * (
                 (
-                    (u[1] - expected_v[1]) / problem.u_max
+                    (u[1] - expected_v[1])
                 )^2 +
                 (
-                    (u[2] - expected_v[2]) / problem.u_max
+                    (u[2] - expected_v[2])
                 )^2
             )
         )
