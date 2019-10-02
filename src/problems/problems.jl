@@ -136,7 +136,20 @@ function process!(problem::InitialValueProblem, q::Quadrature, f_in, time, stats
         rho_error_squared += (ρ - expected_ρ)^2
         ux_error_squared += (u[1] - expected_v[1])^2
         uy_error_squared += (u[2] - expected_v[2])^2
-        u_error += (u[1] - expected_v[1])^2 + (u[2] - expected_v[2])^2
+        # u_error += sqrt((u[1] - expected_v[1])^2 + (u[2] - expected_v[2])^2)
+        opp = Float64(y_range.step) * Float64(x_range.step)
+        # opp = 1.0
+        # opp = Float64(y_range.step)
+        u_error += (
+            opp * (
+                (
+                    (u[1] - expected_v[1]) / problem.u_max
+                )^2 +
+                (
+                    (u[2] - expected_v[2]) / problem.u_max
+                )^2
+            )
+        )
     end
 
     # Compare with analytical results?
@@ -154,7 +167,11 @@ function process!(problem::InitialValueProblem, q::Quadrature, f_in, time, stats
         # rho_error_squared,
         # ux_error_squared,
         # uy_error_squared,
-        u_error / expected_total_momentum,
+        # u_error / expected_total_momentum,
+        # sqrt(u_error) / expected_total_momentum,
+        sqrt(u_error) #/ expected_total_momentum
+        # sqrt(ux_error_squared),
+        # sqrt(uy_error_squared)
     ])
 
     if should_visualize
