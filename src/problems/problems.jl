@@ -242,6 +242,20 @@ function is_fluid(problem::InitialValueProblem, x, y)
     return true
 end
 
+function apply_boundary_conditions!(q::Quadrature, problem::InitialValueProblem, f_in, f_out; time = 0.0)
+    nothing
+end
+
+function force(problem::InitialValueProblem, x_idx::Int64, y_idx::Int64, time::Float64 = 0.0)
+    x_range = range(0, problem.domain_size[1], length=problem.NX + 1)
+    y_range = range(0, problem.domain_size[2], length=problem.NY + 1)
+
+    x = x_range[x_idx]
+    y = y_range[y_idx]
+
+    return force(problem, x, y, time)
+end
+
 include("taylor-green-vortex-decay.jl")
 include("decaying-shear-flow.jl")
 

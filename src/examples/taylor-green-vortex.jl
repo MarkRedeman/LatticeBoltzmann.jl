@@ -8,44 +8,52 @@ using lbm
 using Plots
 
 
-results = let
     stats = DataFrame([Float64[], Int[], Any[]], [:nu, :scale, :stats])
 
     quadratures = [
         # D2Q4(),
         # D2Q5(),
         D2Q9(),
-        D2Q17(),
+        # D2Q17(),
     ]
 
     quadrature = last(quadratures)
+    τ = 0.05 / 6.0
+    # τ = 10.0
+    τ = 10.0 / 6.0
     τ = 1.0 / 6.0
-    scale = 2
+    scale = 4
     example = TaylorGreenVortexExample(τ, scale, static = true)
     example = TaylorGreenVortexExample(τ, scale, static = false)
     example = DecayingShearFlow(τ, scale, static = true)
     example = DecayingShearFlow(τ, scale, static = false)
 
-    # result = lbm.siumlate(example, quadrature, base = 200)
+    result = lbm.siumlate(example, quadrature, base = 200)
+# @show result[2]
     # return result
 
 
-    νs = (0.0:0.5:10.0) ./ 6.0
-    scales = [1, 2, 4, 6, 8, 10, 12]
+    νs = (0.0:2.0:6.0) ./ 6.0
+    # νs = [1.0 / 6.0]
+    scales = [1, 2, 4, 6, 8, 10, 12]#, 8, 10, 12]
+    scales = [1, 2, 4, 8] #, 8, 16]#, 8, 10, 12]
 
-    νs = (0.0:0.5:4.0) ./ 6.0
-    scales = [1, 2, 4]
+    # νs = (0.0:0.5:4.0) ./ 6.0
+    # scales = [1, 2, 4]
+    # νs = [1.0 / 6.0]
     for ν in νs
-    for scale = scales
+    for scale in scales
+        continue
     # scale = 1
     # ν = 1.0 / 6.0
     # ν = 0.0
     # scale = 2
     # ν = 1.0 / 6.0
-    example = TaylorGreenVortexExample(ν, scale, static = true)
-    example = DecayingShearFlow(ν, scale, static = true)
+    # example = TaylorGreenVortexExample(ν, scale, static = false)
+    example = DecayingShearFlow(ν, scale, static = false)
 
-    result = lbm.siumlate(example, quadrature);
+    # result = lbm.siumlate(example, quadrature, base = 20);
+# @show result[2]
     push!(stats, [ν, scale, result[2]])
     end
     end
@@ -82,10 +90,11 @@ results = let
     )
     gui()
 
+    @show -log.(nu_scale_error[2:end, 3] ./ nu_scale_error[1:(end - 1), 3]) ./ log.(nu_scale_error[2:end, 2] ./ nu_scale_error[1:(end - 1), 2])
+
+
     # nu_idx = 0
     # plot(nu_scale_error[nu_idx * length(scales) .+ (1:length(scales)), 2], nu_scale_error[nu_idx * length(scales) .+ (1:length(scales)), 3])
-    return stats
-end
 
 # Some thoughs: hide the storage of the distributions f inside of an interface
 # so that we can do:

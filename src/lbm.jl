@@ -90,13 +90,16 @@ function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
         end
 
         collide!(collision_operator, quadrature, f_in, f_out, time = t * Δt, problem = problem)
+
+        # apply_boundary_conditions!(quadrature, problem, f_in, f_out, time = t * Δt)
+
         stream!(quadrature, f_out, f_in)
         # f_in = stream(quadrature, f_out)
         # apply boundary conditions
 
         # check_stability(f_in) || return :unstable, f_in, stats       )
     end
-    # lbm.process!(problem, quadrature, f_in, n_steps * Δt, stats, should_visualize = true)
+    lbm.process!(problem, quadrature, f_in, n_steps * Δt, stats, should_visualize = true)
 
     # @show stats
 
