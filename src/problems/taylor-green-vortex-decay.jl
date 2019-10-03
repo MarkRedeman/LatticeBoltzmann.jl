@@ -26,12 +26,13 @@ function density(q::Quadrature, tgv::TaylorGreenVortexExample, x::Float64, y::Fl
 end
 
 function pressure(q::Quadrature, tgv::TaylorGreenVortexExample, x::Float64, y::Float64, timestep::Float64 = 0.0)
-    P = -0.25 * tgv.rho_0 * tgv.u_max^2 * (
+    # return 1.0
+    P = -0.25 * tgv.rho_0 * (
         (tgv.k_y / tgv.k_x) * cos(2.0 * x) +
         (tgv.k_x / tgv.k_y) * cos(2.0 * y)
-    ) * decay(tgv, x, y, timestep)^2;
+    ) * decay(tgv, x, y, timestep)^2
 
-    return 1.0 + q.speed_of_sound_squared * P
+    return 1.0 + q.speed_of_sound_squared * tgv.u_max * P
 end
 
 function velocity(tgv::TaylorGreenVortexExample, x::Float64, y::Float64, timestep::Float64 = 0.0)
@@ -44,7 +45,7 @@ function velocity(tgv::TaylorGreenVortexExample, x::Float64, y::Float64, timeste
     ]
 end
 function decay(tgv::TaylorGreenVortexExample, x::Float64, y::Float64, timestep::Float64)
-    return tgv.static ? 1.0 :  exp(-2.0 * timestep * viscosity(tgv))
+    return tgv.static ? 1.0 : exp(-2.0 * timestep * viscosity(tgv))
 end
 
 function force(tgv::TaylorGreenVortexExample, x::Float64, y::Float64, time::Float64 = 0.0)

@@ -22,12 +22,18 @@ using Plots
     # τ = 10.0
     τ = 10.0 / 6.0
     τ = 1.0 / 6.0
-    scale = 4
-    example = TaylorGreenVortexExample(τ, scale, static = true)
-    example = TaylorGreenVortexExample(τ, scale, static = false)
-    example = DecayingShearFlow(τ, scale, static = true)
-    example = DecayingShearFlow(τ, scale, static = false)
+    scale = 2
 
+    example = TaylorGreenVortexExample(τ, scale, static = true)
+    result = lbm.siumlate(example, quadrature, base = 200)
+
+    example = TaylorGreenVortexExample(τ, scale, static = false)
+    result = lbm.siumlate(example, quadrature, base = 200)
+
+    example = DecayingShearFlow(τ, scale, static = true)
+    result = lbm.siumlate(example, quadrature, base = 200)
+
+    example = DecayingShearFlow(τ, scale, static = false)
     result = lbm.siumlate(example, quadrature, base = 200)
 # @show result[2]
     # return result
@@ -36,26 +42,21 @@ using Plots
     νs = (0.0:2.0:6.0) ./ 6.0
     # νs = [1.0 / 6.0]
     scales = [1, 2, 4, 6, 8, 10, 12]#, 8, 10, 12]
-    scales = [1, 2, 4, 8] #, 8, 16]#, 8, 10, 12]
+    scales = [1, 2, 4] #, 8, 16]#, 8, 10, 12]
 
     # νs = (0.0:0.5:4.0) ./ 6.0
     # scales = [1, 2, 4]
     # νs = [1.0 / 6.0]
-    for ν in νs
-    for scale in scales
+    for ν in νs, scale in scales
         continue
-    # scale = 1
-    # ν = 1.0 / 6.0
-    # ν = 0.0
-    # scale = 2
-    # ν = 1.0 / 6.0
-    # example = TaylorGreenVortexExample(ν, scale, static = false)
-    example = DecayingShearFlow(ν, scale, static = false)
+        
+        # example = TaylorGreenVortexExample(ν, scale, static = false)
+        example = DecayingShearFlow(ν, scale, static = true)
+        # example = TaylorGreenVortexExample(τ, scale, static = true)
 
-    # result = lbm.siumlate(example, quadrature, base = 20);
-# @show result[2]
-    push!(stats, [ν, scale, result[2]])
-    end
+        result = lbm.siumlate(example, quadrature, base = 20);
+        # @show result[2]
+        push!(stats, [ν, scale, result[2]])
     end
     # return stats
 

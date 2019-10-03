@@ -65,14 +65,17 @@ function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
     f_out, collision_operator = lbm.initialize(quadrature, problem)
     f_in = copy(f_out)
     Δt = lbm.delta_t(problem)
-    @show Δt
+    @show Δt, n_steps
+    # n_steps = round(Int, 2pi / Δt)
+    n_steps = round(Int, .5pi / Δt)
+    @show Δt, n_steps
     @show problem
 
     stats = process_stats()
     # lbm.process!(problem, quadrature, f_in, 0.0 * Δt, stats, should_visualize = true)
     @inbounds for t = 0:n_steps
         if mod(t, round(Int, n_steps / 10)) == 0
-            @show t, t / n_steps
+            @show t, t / n_steps, t * Δt
         end
 
         if (mod(t, 1) == 0)
@@ -83,7 +86,7 @@ function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
                 # t * 1.0, #* Δt,
                 t * Δt,
                 stats,
-                should_visualize = (mod(t, round(Int, n_steps / 10)) == 0)
+                should_visualize = (mod(t, round(Int, n_steps / 20)) == 0)
                 # should_visualize = true
             )
         end
@@ -100,7 +103,7 @@ function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
     end
     lbm.process!(problem, quadrature, f_in, n_steps * Δt, stats, should_visualize = true)
 
-    # @show stats
+    @show stats
 
     f_in, stats
 end
