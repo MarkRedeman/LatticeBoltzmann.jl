@@ -7,7 +7,7 @@ export process!, initialize, apply_boundary_conditions!,
     temperature,
     decay,
     force,
-    initialize
+    initialize,
     InitialValueProblem, viscosity, delta_t,
     lattice_velocity,
     lattice_density,
@@ -18,10 +18,6 @@ export process!, initialize, apply_boundary_conditions!,
 abstract type InitialValueProblem end
 
 has_external_force(problem::InitialValueProblem) = false
-
-function initialize(quadrature::Quadrature, lattice::Lattice, problem::InitialValueProblem)
-
-end
 
 function initial_equilibrium(quadrature::Quadrature, problem::InitialValueProblem, x::Float64, y::Float64)
     return equilibrium(
@@ -228,20 +224,30 @@ function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, t
 
     s = (1000, 500)
 
-    domain = (1 : problem.NX) ./ problem.NX
-    velocity_profile_x = plot(domain, j[:, 4, 1], size=s, label="solution")
-    plot!(velocity_profile_x, domain, velocity_field[:, 4, 1], size=s, label="exact")
-    velocity_profile_y = plot(j[:, 4, 2], domain, size=s, label="solution")
-    plot!(velocity_profile_y, velocity_field[:, 4, 2], domain, size=s, label="exact")
+    domain = (1 : (problem.NY)) ./ (problem.NY)
+    velocity_profile_x = plot(domain, j[4, :, 1], size=s, label="solution", title="u_x")
+    plot!(velocity_profile_x, domain, velocity_field[4, :, 1], size=s, label="exact")
+    velocity_profile_y = plot(j[4, :, 2], domain, size=s, label="solution", title="u_y")
+    plot!(velocity_profile_y, velocity_field[4, :, 2], domain, size=s, label="exact")
+
+    # velocity_profile_x = plot(domain, j[:, 4, 1], size=s, label="solution", title="u_x")
+    # plot!(velocity_profile_x, domain, velocity_field[:, 4, 1], size=s, label="exact")
+    # velocity_profile_y = plot(j[:, 4, 2], domain, size=s, label="solution", title="u_y")
+    # plot!(velocity_profile_y, velocity_field[:, 4, 2], domain, size=s, label="exact")
+
 
     kinetic_energy_profile = plot(stats.kinetic_energy, legend=false, title="Kinetic energy", size=s)
 
     plot(
-        contour(ρ[:, :, 1], fill=true, clims=(0, 1.05), cbar=true, size=s),
-        contour(p, title="pressure"),
-        contour(pressure_field, title="pressure analytical"),
-        plot!(streamline(j), title="Solution"),
+        contour(ρ[:, :, 1]', fill=true, clims=(0, 1.05), cbar=true, size=s),
+        # contour(p, title="pressure"),
+        # contour(pressure_field, title="pressure analytical"),
+        plot!(streamline(j), title="Computed"),
         plot!(streamline(velocity_field), title="exact"),
+        heatmap(j[:, :, 1]', fill=true),
+        heatmap(j[:, :, 2]', fill=true),
+        heatmap(velocity_field[:, :, 1]', fill=true),
+        heatmap(velocity_field[:, :, 2]', fill=true),
         # streamline(velocity_field .- ρ .* j),
         plot(stats.u_error, legend=false, title="U_e"),
         kinetic_energy_profile,
@@ -254,7 +260,7 @@ end
 
 function streamline(j; amount_of_arrows = 10, step = round(Int, size(j, 1) / amount_of_arrows) )
     s = (1000, 500)
-    velocity_field = contour(j[:, :, 1].^2 .+ j[:, :, 2].^2, cbar=true, fill=true, title="Momentum", size=s)
+    velocity_field = contour((j[:, :, 1].^2 .+ j[:, :, 2].^2)', cbar=true, fill=true, title="Momentum", size=s)
     N = size(j, 1)
     X = [i for i in range(1, size(j, 1), step = step), j in range(1, size(j, 2), step = step)]
     Y = [j for i in range(1, size(j, 1), step = step), j in range(1, size(j, 2), step = step)]
