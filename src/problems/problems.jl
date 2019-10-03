@@ -197,15 +197,16 @@ function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, t
     # Density
     ρ = lbm.density(quadrature, f_in)
 
+    Nx = size(f_in, 1)
+    Ny = size(f_in, 2)
+
     # Momentum
     j = lbm.momentum(quadrature, f_in)
     E = lbm.total_energy(quadrature, f_in)
     E_k = lbm.kinetic_energy(quadrature, f_in, ρ, j ./ ρ)
     ϵ = 1.0 #lbm.internal_energy(quadrature, f_in, ρ, j ./ ρ)
+    p = lbm.pressure(quadrature, f_in, ρ[:, :, 1], j)
 
-
-    Nx = size(f_in, 1)
-    Ny = size(f_in, 2)
     density_field = fill(0.0, Nx, Ny)
     pressure_field = fill(0.0, Nx, Ny)
     velocity_field = fill(0.0, Nx, Ny, lbm.dimension(quadrature))
@@ -221,6 +222,7 @@ function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, t
         velocity_field[x_idx, y_idx, :] = lbm.velocity(problem, x, y, time)
 
         ρ[x_idx, y_idx] = dimensionless_density(problem, ρ[x_idx, y_idx])
+        p[x_idx, y_idx] = dimensionless_pressure(problem, p[x_idx, y_idx])
         j[x_idx, y_idx, :] = dimensionless_velocity(problem, j[x_idx, y_idx, :] ./ ρ[x_idx, y_idx])
     end
 
@@ -235,9 +237,9 @@ function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, t
     kinetic_energy_profile = plot(stats.kinetic_energy, legend=false, title="Kinetic energy", size=s)
 
     plot(
-        # contour(ρ[:, :, 1], fill=true, clims=(0, 1.05), cbar=true, size=s),
-        # contour(lbm.pressure(quadrature, f_in, ρ[:, :, 1], j), title="pressure"),
-        # contour(pressure_field, title="pressure analytical"),
+        contour(ρ[:, :, 1], fill=true, clims=(0, 1.05), cbar=true, size=s),
+        contour(p, title="pressure"),
+        contour(pressure_field, title="pressure analytical"),
         plot!(streamline(j), title="Solution"),
         plot!(streamline(velocity_field), title="exact"),
         # streamline(velocity_field .- ρ .* j),
@@ -316,13 +318,13 @@ end
 lattice_viscosity(problem) = problem.ν #::InitialValueProblem)
 lattice_density(q, problem::InitialValueProblem, x, y, t = 0.0) = density(q, problem, x, y, t)
 lattice_velocity(q, problem::InitialValueProblem, x, y, t = 0.0) = problem.u_max * velocity(problem, x, y, t)
-lattice_pressure(q, problem::InitialValueProblem, x, y, t = 0.0) = pressure(q, problem, x, y, t)
+lattice_pressure(q, problem::InitialValueProblem, x, y, t = 0.0) = problem.u_max^2 * pressure(q, problem, x, y, t)
 lattice_force(problem::InitialValueProblem, x, y, t = 0.0) = problem.u_max * delta_t(problem) * force(problem, x, y, t)
 
 dimensionless_viscosity(problem) = problem.ν * delta_x(problem)^2 / delta_t(problem)
 dimensionless_density(problem::InitialValueProblem, ρ) = ρ
 dimensionless_velocity(problem::InitialValueProblem, u) = u / problem.u_max
-dimensionless_pressure(problem::InitialValueProblem, p) = p
+dimensionless_pressure(problem::InitialValueProblem, p) = p / problem.u_max^2
 dimensionless_temperature(problem::InitialValueProblem, T) = T
 dimensionless_force(problem::InitialValueProblem, F) = F / (problem.u_max * delta_t(problem))
 
