@@ -11,22 +11,23 @@ function analyze_convergence(
     q::lbm.Quadrature,
     p,
     viscosity::Float64,
-    N = 2
+    N = 2,
+    t_end = 2pi
 )
-    stats = DataFrame([Float64[], Int[], Float64[]], [:nu, :scale, :u_error])
+    stats = DataFrame([
+        Float64[], Int[], Float64[], Float64[], Float64[], Float64[]
+    ], [:nu, :scale, :u_error, :delta_x, :delta_t, :Re])
 
     for scale = 0:N
         problem = p(2^scale, viscosity)
-        result = lbm.siumlate(problem, q, base = 200, should_process = false)
-        push!(stats, [viscosity, 2^scale, result[2].u_error[end]])
+        result = lbm.siumlate(problem, q, base = 200, should_process = false, t_end = t_end)
+        push!(stats, [
+            viscosity, 16 .* 2^scale, result[2].u_error[end], lbm.delta_x(problem), lbm.delta_t(problem), lbm.reynolds(problem)
+        ])
     end
 
-    plot()
-    nu_round = round(viscosity, digits = 2)
-    plot!(stats.scale, stats.u_error , label="nu = $nu_round")
-    plot!(x -> stats.u_error[1] * 10.0 * x^(-2), label="y(x) = 10x^(-2)", linestyle=:dash)
-    plot!(scale=:log10, legend=:bottomleft, legendfontsize=5)
-    gui()
+    # plot_convergence(stats, viscosity)
+    # gui()
 
     @show -log.(
         stats.u_error[2:end] ./ stats.u_error[1:(end - 1)]
@@ -36,11 +37,21 @@ function analyze_convergence(
 
     return stats
 end
+function plot_convergence(stats, viscosity)
+    nu_round = round(viscosity, digits = 2)
 
-analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortexExample(viscosity, scale, static = true), 1.0 / 6.0, 3)
-analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortexExample(viscosity, scale, static = false), 1.0 / 6.0, 3)
+    p = plot()
+    plot!(p, stats.scale, stats.u_error , label="nu = $nu_round")
+    plot!(p, x -> stats.u_error[1] * 10.0 * x^(-2), label="y(x) = 10x^(-2)", linestyle=:dash)
+    plot!(p, scale=:log10, legend=:bottomleft, legendfontsize=5)
+    return p
+end
+
+# analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortexExample(viscosity, scale, static = true), 1.0 / 6.0, 2)
+# analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortexExample(viscosity, scale, static = false), 1.0 / 6.0, 3)
 analyze_convergence(D2Q9(), (scale, viscosity) -> PoiseuilleFlow(viscosity, scale, static = true), 1.0 / 6.0, 3)
-analyze_convergence(D2Q9(), (scale, viscosity) -> DecayingShearFlow(viscosity, scale, static = true), 1.0 / 6.0, 3)
+sleep(10)
+# analyze_convergence(D2Q9(), (scale, viscosity) -> DecayingShearFlow(viscosity, scale, static = true), 1.0 / 6.0, 3)
 
     stats = DataFrame([Float64[], Int[], Any[]], [:nu, :scale, :stats])
 
@@ -59,6 +70,12 @@ analyze_convergence(D2Q9(), (scale, viscosity) -> DecayingShearFlow(viscosity, s
     scale = 12
     scale = 2
 
+# relaxation time (BGK model) (tau=sqrt(3/16)+0.5 gives exact solution)
+# tau=sqrt(3/16)+0.5;
+# nu=(2*tau-1)/6;
+
+let
+    return
     example = PoiseuilleFlow(τ, scale, static = true)
     result = lbm.siumlate(example, quadrature, base = 200)
 
@@ -73,6 +90,8 @@ analyze_convergence(D2Q9(), (scale, viscosity) -> DecayingShearFlow(viscosity, s
 
     example = DecayingShearFlow(τ, scale, static = false)
     result = lbm.siumlate(example, quadrature, base = 200)
+
+end
 # @show result[2]
     # return result
 

@@ -1,4 +1,5 @@
 module lbm
+
 using BenchmarkTools
 using TimerOutputs
 
@@ -57,19 +58,23 @@ function process_stats()
         ]
     )
 end
-
+# https://github.com/MagB93/LatticeBoltzmann/blob/master/src/LatticeBoltzmann.jl
 function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
                   base = 200,
                   n_steps = base * problem.NX * problem.NX / (16 * 16),
-                  should_process = true)
+                  should_process = true,
+                  t_end = 1.0)
     # initialize
-    f_out, collision_operator = lbm.initialize(quadrature, problem)
+    f_out, collision_operator = initialize(quadrature, problem)
     f_in = copy(f_out)
     Δt = lbm.delta_t(problem)
     @show Δt, n_steps
     # n_steps = round(Int, 2pi / Δt)
     n_steps = round(Int, .25pi / Δt)
-    n_steps = round(Int, 1.93 / Δt)
+    # n_steps = round(Int, 1.93 / Δt)
+    n_steps = round(Int, 1. / Δt)
+    n_steps = round(Int, 2pi / Δt)
+    n_steps = round(Int, t_end / Δt)
     @show Δt, n_steps
     @show problem
 
@@ -96,13 +101,14 @@ function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
 
         collide!(collision_operator, quadrature, time = t * Δt, problem = problem, f_old = f_in, f_new = f_out)
 
+        # if (typeof(problem) == PoiseuilleFlow)
+        # end
+
         apply_boundary_conditions!(quadrature, problem, f_new = f_in, f_old = f_out, time = t * Δt)
 
-        # stream!(quadrature, f_out, f_in)
         stream!(quadrature, f_new = f_in, f_old = f_out)
 
-        # f_in = stream(quadrature, f_out)
-        # apply boundary conditions
+        # apply_boundary_conditions!(quadrature, problem, f_new = f_out, f_old = f_in, time = t * Δt)
 
         # check_stability(f_in) || return :unstable, f_in, stats       )
     end
@@ -221,5 +227,26 @@ end
 #     return next_x, next_y
 # end
 
+
+
+# """
+#     step(lbm)
+# Computes all individual steps needed in one iteration of the lattice boltzmann
+# scheme.
+#   1. collision operator ( only the BGK is implemented)
+#   2. steaming of the distributions to neighbouring nodes
+#   3. computation of the passed boundary conditions
+#   4. computation of the macroskopic variables
+#   5. equilibrium distribution function
+# """
+# function step!(grid::Grid, velset::Velocity_Set, collision::Collision,
+#               stream::Array{Streaming, 1}, bound::Array{Boundary, 1})
+
+#     compute_collision!(grid, collision)
+#     compute_streaming!(grid, stream, velset)
+#     compute_boundary!(grid, bound, velset)
+#     compute_macro_var!(grid, velset)
+#     compute_f_eq!(grid, velset)
+# end
 
 end

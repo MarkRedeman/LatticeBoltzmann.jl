@@ -1,8 +1,8 @@
-export PoiseuilleFlow
+export CouetteFlow
 
 import Base: range
 
-struct PoiseuilleFlow <: lbm.InitialValueProblem
+struct CouetteFlow <: lbm.InitialValueProblem
     rho_0::Float64
     u_max::Float64
     ν::Float64
@@ -12,38 +12,26 @@ struct PoiseuilleFlow <: lbm.InitialValueProblem
     domain_size::Tuple{Float64, Float64}
 end
 
-function PoiseuilleFlow(
-    ν = 1.0 / 6.0, scale = 2, NX = 8 * scale + 0, NY = NX + 1, domain_size = (1.0, 1.0) ; static = true
+function CouetteFlow(
+    ν = 1.0 / 6.0, scale = 2, NX = 8 * scale + 0, NY = NX, domain_size = (1.0, 1.0); static = true
 )
     u_max = 0.0125 / scale
-    u_max = 0.1 / scale
-    G = 1.0
-    u_max = scale * G * domain_size[2]^2 / 8
-    # u_max = 0.0125 / scale
-    # u_max = 0.01
-
     Re = NX * u_max / ν
     @show u_max, Re
-    Δt = delta_t(PoiseuilleFlow(1.0, u_max, ν, NX, NY + 2, 1.0, domain_size))
-
-    # Δt = u_max / (domain_size[2] / (NY + 1))
-    # tau=sqrt(3/16)+0.5;
-    # ν =(2*Δt * tau-1)/6;
-
+    Δt = delta_t(CouetteFlow(1.0, u_max, ν, NX, NY + 2, 1.0, domain_size))
     @show (ν - Δt / 2)^2
-    return PoiseuilleFlow(
+    return CouetteFlow(
         1.0,
         u_max,
-        ν * scale,
-        # NX,
-        4,
+        ν,
+        NX,
         NY + 2,
         1.0,
         domain_size
     )
 end
 
-function range(problem::PoiseuilleFlow)
+function range(problem::CouetteFlow)
     x_range = range(0.0, problem.domain_size[1], length=problem.NX + 1)
 
     # do not add 1 since the boundary is inclusive
@@ -57,15 +45,15 @@ function range(problem::PoiseuilleFlow)
     return x_range, y_range
 end
 
-function density(q::Quadrature, problem::PoiseuilleFlow, x::Float64, y::Float64, timestep::Float64 = 0.0)
+function density(q::Quadrature, problem::CouetteFlow, x::Float64, y::Float64, timestep::Float64 = 0.0)
     return 1.0
 end
 
-function pressure(q::Quadrature, problem::PoiseuilleFlow, x::Float64, y::Float64, timestep::Float64 = 0.0)
+function pressure(q::Quadrature, problem::CouetteFlow, x::Float64, y::Float64, timestep::Float64 = 0.0)
     return 1.0
 end
 
-function velocity(problem::PoiseuilleFlow, x::Float64, y::Float64, timestep::Float64 = 0.0)
+function velocity(problem::CouetteFlow, x::Float64, y::Float64, timestep::Float64 = 0.0)
     G = 1.0
 
     return [
@@ -73,7 +61,7 @@ function velocity(problem::PoiseuilleFlow, x::Float64, y::Float64, timestep::Flo
         0.0
     ]
 end
-function force(problem::PoiseuilleFlow, x::Float64, y::Float64, time::Float64 = 0.0)
+function force(problem::CouetteFlow, x::Float64, y::Float64, time::Float64 = 0.0)
     G = 1.0
     ν = viscosity(problem)
 
@@ -83,15 +71,15 @@ function force(problem::PoiseuilleFlow, x::Float64, y::Float64, time::Float64 = 
     ]
 end
 
-function delta_x(problem::PoiseuilleFlow)
+function delta_x(problem::CouetteFlow)
     # Don't include the two boundary nodes
     return problem.domain_size[2] * (1 / (problem.NY - 2) )
 end
 
-has_external_force(problem::PoiseuilleFlow) = true
+has_external_force(problem::CouetteFlow) = true
 
 # Temporary
-function is_fluid(problem::PoiseuilleFlow, x::Int64, y::Int64)
+function is_fluid(problem::CouetteFlow, x::Int64, y::Int64)
     if y == 1
         return false
     end
@@ -102,7 +90,7 @@ function is_fluid(problem::PoiseuilleFlow, x::Int64, y::Int64)
 end
 
 apply_boundary_conditions!(q, problem; time = t * Δt, f_new, f_old) = apply_boundary_conditions!(q, problem, f_old, f_new, time = time)
-function apply_boundary_conditions!(q::Quadrature, problem::PoiseuilleFlow, f_in, f_out; time = 0.0)
+function apply_boundary_conditions!(q::Quadrature, problem::CouetteFlow, f_in, f_out; time = 0.0)
 
     f = Array{Float64}(undef, size(f_in, 3))
 

@@ -18,6 +18,12 @@ function DecayingShearFlow(
     @show u_max
     Re = NX * u_max / ν_lb
     @show Re
+    p = DecayingShearFlow(1.0, u_max, ν_lb, NX, NY, 1.0, domain_size, static)
+    p2 = DecayingShearFlow(1.0, u_max * scale, ν_lb * scale, NX, NY, 1.0, domain_size, static)
+
+    # @show delta_t(p), delta_x(p), viscosity(p)
+    # @show delta_t(p2), delta_x(p2), viscosity(p2)
+    # return p2
     return DecayingShearFlow(1.0, u_max, ν_lb, NX, NY, 1.0, domain_size, static)
 end
 

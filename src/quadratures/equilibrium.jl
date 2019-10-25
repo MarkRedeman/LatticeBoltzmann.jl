@@ -102,7 +102,8 @@ function _equilibrium(q::Quadrature, ρ, weight, u_dot_xi, u_squared, T, xi_squa
     a_H_1 = cs * u_dot_xi
 
     H_2_temperature = (cs * T .- 1) .* (xi_squared * cs - dimension(q))
-    # H_2_temperature = 0.0
+    H_2_temperature = 0.0
+
     a_H_2 = cs^2 * (u_dot_xi .* u_dot_xi) .+ H_2_temperature .+ - cs * u_squared
     return ρ .* weight .* (
         a_H_0 .+
@@ -132,8 +133,9 @@ function _equilibrium(q::D2Q17, ρ, weight, u_dot_xi, u_squared, T, xi_squared)
     cs = q.speed_of_sound_squared
     D = dimension(q)
     H_2_temperature = (cs * T .- 1) .* (cs * xi_squared - D)
-    H_3_temperature = 3.0 * (cs * T .- 1) * (cs * xi_squared -2 - D)
-    H_3_temperature = 0.0
+    H_3_temperature = 3.0 * (cs * T .- 1) * (cs * xi_squared - 2 - D)
+    # H_2_temperature = 0.0
+    # H_3_temperature = 0.0
 
     a_H_0 = 1.0
     a_H_1 = cs * u_dot_xi

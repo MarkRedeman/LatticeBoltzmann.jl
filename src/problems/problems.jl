@@ -15,6 +15,10 @@ export process!, initialize, apply_boundary_conditions!,
     lattice_force,
     lattice_viscosity
 
+abstract type LBMProblem end
+abstract type SteadyStateProblem <: LBMProblem end
+abstract type TimeDependantProblem <: LBMProblem end
+
 abstract type InitialValueProblem end
 
 has_external_force(problem::InitialValueProblem) = false
@@ -33,7 +37,7 @@ function initial_condition(q::Quadrature, problem::InitialValueProblem, x::Float
 end
 
 import Base: range
-function range(problem)
+function range(problem::InitialValueProblem)
     x_range = range(0.0, problem.domain_size[1], length=problem.NX + 1)
     y_range = range(0.0, problem.domain_size[2], length=problem.NY + 1)
 
@@ -46,6 +50,7 @@ function initialize(quadrature::Quadrature, problem::InitialValueProblem)
 
     # NOTE: we have periodic boundaries
     x_range, y_range = range(problem)
+    # internal_nodes_index(problem)
     for x_idx in 1:problem.NX, y_idx in 1:problem.NY
         f[x_idx, y_idx, :] = initial_equilibrium(
             quadrature,
@@ -75,6 +80,7 @@ function delta_t(problem)
     k_y = problem.domain_size[2] / problem.NY
 
     Δt = ν * (k_x^2 + k_y^2)
+    @warn "This shouldn't be used"
 
     return Δt
 end
@@ -89,6 +95,7 @@ function process!(problem::InitialValueProblem, q::Quadrature, f_in, time, stats
 
     x_range = range(0, problem.domain_size[1], length=Nx + 1)
     y_range = range(0, problem.domain_size[2], length=Ny + 1)
+    x_range, y_range = range(problem)
 
     total_density = 0.0
     total_momentum = 0.0
@@ -107,7 +114,7 @@ function process!(problem::InitialValueProblem, q::Quadrature, f_in, time, stats
     uy_error_squared = 0.0
     u_error = 0.0
 
-    @inbounds for x_idx in 1:Nx, y_idx in 1:Ny
+    @inbounds for x_idx in 1:Nx, y_idx in 2:Ny-1
         if ! is_fluid(problem, x_idx, y_idx)
             continue
         end
@@ -219,6 +226,9 @@ function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, t
 
     x_range = range(0, problem.domain_size[1], length=Nx + 1)
     y_range = range(0, problem.domain_size[2], length=Ny + 1)
+
+    x_range, y_range = range(problem)
+
     @inbounds for x_idx in 1:Nx, y_idx in 1:Ny
         x = x_range[x_idx]
         y = y_range[y_idx]
@@ -235,10 +245,11 @@ function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, t
     s = (1000, 500)
 
     domain = (2 : (problem.NY - 1)) ./ (problem.NY - 2)
-    velocity_profile_x = plot(domain, j[4, 2:(problem.NY-1), 1], size=s, label="solution", title="u_x")
-    plot!(velocity_profile_x, domain, velocity_field[4, 2:(problem.NY-1), 1], size=s, label="exact")
-    velocity_profile_y = plot(j[4, 2:(problem.NY-1), 2], domain, size=s, label="solution", title="u_y")
-    plot!(velocity_profile_y, velocity_field[4, 2:(problem.NY-1), 2], domain, size=s, label="exact")
+    domain = y_range[1:Ny]
+    velocity_profile_x = plot(domain, j[4, 1:(problem.NY), 1], size=s, label="solution", title="u_x", legend=nothing)
+    plot!(velocity_profile_x, domain, velocity_field[4, 1:(problem.NY), 1], size=s, label="exact")
+    velocity_profile_y = plot(j[4, 1:(problem.NY), 2], domain, size=s, label="solution", title="u_y", legend=nothing)
+    plot!(velocity_profile_y, velocity_field[4, 1:(problem.NY), 2], domain, size=s, label="exact")
 
     # velocity_profile_x = plot(domain, j[:, 4, 1], size=s, label="solution", title="u_x")
     # plot!(velocity_profile_x, domain, velocity_field[:, 4, 1], size=s, label="exact")
@@ -268,7 +279,7 @@ function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, t
     gui()
 end
 
-function streamline(j; amount_of_arrows = 10, step = round(Int, size(j, 1) / amount_of_arrows) )
+function streamline(j; amount_of_arrows = 5, step = round(Int, size(j, 1) / amount_of_arrows) )
     s = (1000, 500)
     velocity_field = contour((j[:, :, 1].^2 .+ j[:, :, 2].^2)', cbar=true, fill=true, title="Momentum", size=s)
     N = size(j, 1)
@@ -280,8 +291,8 @@ function streamline(j; amount_of_arrows = 10, step = round(Int, size(j, 1) / amo
         velocity_field,
         X, Y,
         quiver=(x, y) -> (
-            0.5 * amount_of_arrows * j[x, y, 1] / sqrt(j[x, y, 1]^2 + j[x, y, 2]^2),
-            0.5 * amount_of_arrows * j[x, y, 2] / sqrt(j[x, y, 1]^2 + j[x, y, 2]^2)
+            0.1 * amount_of_arrows * j[Int(x), Int(y), 1] / sqrt(j[Int(x), Int(y), 1]^2 + j[Int(x), Int(y), 2]^2),
+            0.1 * amount_of_arrows * j[Int(x), Int(y), 2] / sqrt(j[Int(x), Int(y), 1]^2 + j[Int(x), Int(y), 2]^2)
         ),
         color="white",
     )
@@ -316,6 +327,13 @@ function force(problem::InitialValueProblem, x_idx::Int64, y_idx::Int64, time::I
     return force(problem, x, y, Δt * time)
 end
 
+function is_steady_state(problem::InitialValueProblem)
+    return problem.static
+end
+function is_time_dependant(problem::InitialValueProblem)
+    return ! problem.static
+end
+
 # Dimensionless
 function viscosity(problem) #::InitialValueProblem)
     return problem.ν * delta_x(problem)^2 / delta_t(problem)
@@ -327,6 +345,9 @@ end
 
 function delta_x(problem::InitialValueProblem)
     return problem.domain_size[1] * (1 / problem.NX)
+end
+function reynolds(problem::InitialValueProblem)
+    return problem.NY * problem.u_max / problem.ν
 end
 
 lattice_viscosity(problem) = problem.ν #::InitialValueProblem)
@@ -345,5 +366,6 @@ dimensionless_force(problem::InitialValueProblem, F) = F / (problem.u_max * delt
 include("taylor-green-vortex-decay.jl")
 include("decaying-shear-flow.jl")
 include("poiseuille.jl")
+include("convergence.jl")
 
 # error(::Val{:density}, node, solution) = density(node) - density(solution)

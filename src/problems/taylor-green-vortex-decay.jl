@@ -15,7 +15,12 @@ function TaylorGreenVortexExample(ν = 1.0 / 6.0 , scale = 2, NX = 16 * scale, N
     u_max = 0.02 / scale
     Re = NX * u_max / ν
     @show Re
-    return TaylorGreenVortexExample(1.0, u_max, ν, NX, NY, domain_size[1] / NX, domain_size[2] / NY, domain_size, static)
+    p = TaylorGreenVortexExample(1.0, u_max, ν, NX, NY, domain_size[1] / NX, domain_size[2] / NY, domain_size, static)
+
+    if (p.u_max > sqrt(2/3) * delta_x(p) / delta_t(p))
+        @warn p.u_max, sqrt(2/3) * delta_x(p) / delta_t(p)
+    end
+    p
 end
 
 function density(q::Quadrature, tgv::TaylorGreenVortexExample, x::Float64, y::Float64, timestep::Float64 = 0.0)
@@ -38,6 +43,13 @@ end
 function velocity(tgv::TaylorGreenVortexExample, x::Float64, y::Float64, timestep::Float64 = 0.0)
     u_max = tgv.u_max
     u_max = 1.0
+
+    # if (timestep == 0.0 && tgv.static)
+    #     return [
+    #         0.0
+    #         0.0
+    #     ]
+    # end
 
     return decay(tgv, x, y, timestep) * [
       -u_max * sqrt(tgv.k_y / tgv.k_x) * cos(x) * sin(y),

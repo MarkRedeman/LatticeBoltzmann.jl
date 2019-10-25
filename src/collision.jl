@@ -20,13 +20,15 @@ function collide!(collision_model::SRT, q::Quadrature, f_in, f_out; time = 0.0, 
     u = zeros(dimension(q))
    
     @inbounds for x = 1 : size(f_in, 1), y = 1 : size(f_in, 2)
-        if ! is_fluid(problem, x, y)
-            continue
-        end
-
-
         @inbounds for f_idx = 1 : size(f_in, 3)
             f[f_idx] = f_in[x, y, f_idx]
+        end
+
+        if ! is_fluid(problem, x, y)
+            @inbounds for f_idx = 1 : size(f_in, 3)
+                f_out[x, y, f_idx] = f[x, y, f_idx]
+            end
+            continue
         end
 
         ρ = density(q, f)
@@ -56,12 +58,15 @@ function collide!(collision_model::SRT_Force, q::Quadrature, f_in, f_out; time =
     F = zeros(dimension(q))
 
     @inbounds for x = 1 : size(f_in, 1), y = 1 : size(f_in, 2)
-        if ! is_fluid(problem, x, y)
-            continue
-        end
-
         @inbounds for f_idx = 1 : size(f_in, 3)
             f[f_idx] = f_in[x, y, f_idx]
+        end
+
+        if ! is_fluid(problem, x, y)
+            @inbounds for f_idx = 1 : size(f_in, 3)
+                f_out[x, y, f_idx] = f[f_idx]
+            end
+            continue
         end
 
         ρ = density(q, f)
@@ -95,7 +100,7 @@ function collide(collision_model::SRT, q, f_in; time = 0.0)::Array{Float64, 3}
     f_out = copy(f_in)
     @inbounds for x = 1 : size(f_in, 1), y = 1 : size(f_in, 2)
         @inbounds for f_idx = 1 : size(f_in, 3)
-            f[f_idx] = f_in[x, y, f_idx]
+            f[f_idx] = f_in[f_idx]
         end
 
         # Density
@@ -227,6 +232,13 @@ struct TRT <: CollisionModel
     τ_symmetric
     τ_asymmetric
 end
+
+# Magic parameter
+function TRT(τ_symmetric, Δt, ν)
+    # \Nabla = (τ_symmetric / Δt - .5) * (τ_asymmetric / Δt - .5)
+    # should equal 1 / 4
+end
+
 
 function collide(collision_model::TRT, quadrature, f_in)
     τ_s = collision_model.τ_symmetric
