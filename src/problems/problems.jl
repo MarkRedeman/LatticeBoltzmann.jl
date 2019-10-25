@@ -24,7 +24,7 @@ function initial_equilibrium(quadrature::Quadrature, problem::InitialValueProble
         quadrature,
         lattice_density(quadrature, problem, x, y),
         lattice_velocity(quadrature, problem, x, y),
-        lattice_pressure(quadrature, problem, x, y) / lattice_density(quadrature, problem, x, y)
+        1.0 / quadrature.speed_of_sound_squared#lattice_pressure(quadrature, problem, x, y) / lattice_density(quadrature, problem, x, y)
     )
 end
 
@@ -32,13 +32,20 @@ function initial_condition(q::Quadrature, problem::InitialValueProblem, x::Float
     initial_equilibrium(q, problem, x, y)
 end
 
+import Base: range
+function range(problem)
+    x_range = range(0.0, problem.domain_size[1], length=problem.NX + 1)
+    y_range = range(0.0, problem.domain_size[2], length=problem.NY + 1)
+
+    return x_range, y_range
+end
+
 function initialize(quadrature::Quadrature, problem::InitialValueProblem)
     # force_field = Array{Any}(undef, problem.NX, problem.NY)
     f = Array{Float64}(undef, problem.NX, problem.NY, length(quadrature.weights))
 
     # NOTE: we have periodic boundaries
-    x_range = range(0, problem.domain_size[1], length=problem.NX + 1)
-    y_range = range(0, problem.domain_size[2], length=problem.NY + 1)
+    x_range, y_range = range(problem)
     for x_idx in 1:problem.NX, y_idx in 1:problem.NY
         f[x_idx, y_idx, :] = initial_equilibrium(
             quadrature,
@@ -101,6 +108,9 @@ function process!(problem::InitialValueProblem, q::Quadrature, f_in, time, stats
     u_error = 0.0
 
     @inbounds for x_idx in 1:Nx, y_idx in 1:Ny
+        if ! is_fluid(problem, x_idx, y_idx)
+            continue
+        end
         # Calculated
         @inbounds for f_idx = 1 : size(f_in, 3)
             f[f_idx] = f_in[x_idx, y_idx, f_idx]
@@ -224,11 +234,11 @@ function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, t
 
     s = (1000, 500)
 
-    domain = (1 : (problem.NY)) ./ (problem.NY)
-    velocity_profile_x = plot(domain, j[4, :, 1], size=s, label="solution", title="u_x")
-    plot!(velocity_profile_x, domain, velocity_field[4, :, 1], size=s, label="exact")
-    velocity_profile_y = plot(j[4, :, 2], domain, size=s, label="solution", title="u_y")
-    plot!(velocity_profile_y, velocity_field[4, :, 2], domain, size=s, label="exact")
+    domain = (2 : (problem.NY - 1)) ./ (problem.NY - 2)
+    velocity_profile_x = plot(domain, j[4, 2:(problem.NY-1), 1], size=s, label="solution", title="u_x")
+    plot!(velocity_profile_x, domain, velocity_field[4, 2:(problem.NY-1), 1], size=s, label="exact")
+    velocity_profile_y = plot(j[4, 2:(problem.NY-1), 2], domain, size=s, label="solution", title="u_y")
+    plot!(velocity_profile_y, velocity_field[4, 2:(problem.NY-1), 2], domain, size=s, label="exact")
 
     # velocity_profile_x = plot(domain, j[:, 4, 1], size=s, label="solution", title="u_x")
     # plot!(velocity_profile_x, domain, velocity_field[:, 4, 1], size=s, label="exact")
@@ -245,7 +255,7 @@ function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, t
         plot!(streamline(j), title="Computed"),
         plot!(streamline(velocity_field), title="exact"),
         heatmap(j[:, :, 1]', fill=true),
-        heatmap(j[:, :, 2]', fill=true),
+        heatmap(j[:, 2:(problem.NY-1), 2]', fill=true),
         heatmap(velocity_field[:, :, 1]', fill=true),
         heatmap(velocity_field[:, :, 2]', fill=true),
         # streamline(velocity_field .- ρ .* j),
@@ -288,8 +298,7 @@ function apply_boundary_conditions!(q::Quadrature, problem::InitialValueProblem,
 end
 
 function force(problem::InitialValueProblem, x_idx::Int64, y_idx::Int64, time::Float64 = 0.0)
-    x_range = range(0, problem.domain_size[1], length=problem.NX + 1)
-    y_range = range(0, problem.domain_size[2], length=problem.NY + 1)
+    x_range, y_range = range(problem)
 
     x = x_range[x_idx]
     y = y_range[y_idx]
@@ -298,8 +307,7 @@ function force(problem::InitialValueProblem, x_idx::Int64, y_idx::Int64, time::F
 end
 
 function force(problem::InitialValueProblem, x_idx::Int64, y_idx::Int64, time::Int64 = 0.0)
-    x_range = range(0, problem.domain_size[1], length=problem.NX + 1)
-    y_range = range(0, problem.domain_size[2], length=problem.NY + 1)
+    x_range, y_range = range(problem)
     Δt = lbm.delta_t(problem)
 
     x = x_range[x_idx]
@@ -336,5 +344,6 @@ dimensionless_force(problem::InitialValueProblem, F) = F / (problem.u_max * delt
 
 include("taylor-green-vortex-decay.jl")
 include("decaying-shear-flow.jl")
+include("poiseuille.jl")
 
 # error(::Val{:density}, node, solution) = density(node) - density(solution)

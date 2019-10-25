@@ -1,5 +1,3 @@
-using TimerOutputs
-
 abstract type CollisionModel end
 struct SRT <: CollisionModel
     τ::Float64
@@ -11,7 +9,9 @@ struct SRT_Force{T} <: CollisionModel
     force::T#::Array{Any, 2}
 end
 
-using TimerOutputs
+
+collide!(c, q::Quadrature; time, f_new, f_old, problem) = collide!(c, q, f_old, f_new, time = time, problem = problem)
+
 function collide!(collision_model::SRT, q::Quadrature, f_in, f_out; time = 0.0, problem = nothing)
     τ = collision_model.τ
 
@@ -39,7 +39,6 @@ function collide!(collision_model::SRT, q::Quadrature, f_in, f_out; time = 0.0, 
         # T = 1.0 / q.speed_of_sound_squared
 
         equilibrium!(q, ρ, u, T, feq);
-
 
         @inbounds for f_idx = 1 : size(f_in, 3)
             f_out[x, y, f_idx] = (1 - 1 / τ) * f[f_idx] + (1 / τ) * feq[f_idx];
@@ -74,9 +73,9 @@ function collide!(collision_model::SRT_Force, q::Quadrature, f_in, f_out; time =
         T = temperature(q, f, ρ, u)
         # T = 1.0 / q.speed_of_sound_squared
 
-        F .= τ * collision_model.force(x, y, time)
+        F .= collision_model.force(x, y, time)
 
-        equilibrium!(q, ρ, u + F, T, feq);
+        equilibrium!(q, ρ, u + τ * F, T, feq);
 
 
         @inbounds for f_idx = 1 : size(f_in, 3)
@@ -195,7 +194,7 @@ function collide_3(collision_model::SRT, q, f_in, f_out, feq)
     # cb(f_out, moments)
 end
 
-function collide_2(collision_model::SRT, q, f_in, f_out, to = TimerOutput())
+function collide_2(collision_model::SRT, q, f_in, f_out)
     τ = collision_model.τ
 
     feq = Array{Float64}(undef, size(f_in, 3))

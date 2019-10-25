@@ -15,6 +15,9 @@ function stream(quadrature::Quadrature, f, f_new = copy(f))
     return f_new
 end
 
+stream!(q::Quadrature; f_new, f_old) = stream!(q, f_old, f_new)
+collide!(c, q::Quadrature; f_new, f_old) = collide!(q, f_old, f_new)
+
 function stream!(quadrature::Quadrature, f, f_new)
     lx, ly, lq = size(f)
 

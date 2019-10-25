@@ -12,6 +12,7 @@ quadratures = [
 ]
 
 include("problems/taylor-green-vortex.jl")
+include("problems/poiseuille.jl")
 
 @testset "LBM.jl" begin
 

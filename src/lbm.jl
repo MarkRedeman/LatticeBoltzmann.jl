@@ -60,25 +60,28 @@ end
 
 function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
                   base = 200,
-                  n_steps = base * problem.NX * problem.NX / (16 * 16))
+                  n_steps = base * problem.NX * problem.NX / (16 * 16),
+                  should_process = true)
     # initialize
     f_out, collision_operator = lbm.initialize(quadrature, problem)
     f_in = copy(f_out)
     Δt = lbm.delta_t(problem)
     @show Δt, n_steps
     # n_steps = round(Int, 2pi / Δt)
-    n_steps = round(Int, .5pi / Δt)
+    n_steps = round(Int, .25pi / Δt)
+    n_steps = round(Int, 1.93 / Δt)
     @show Δt, n_steps
     @show problem
 
     stats = process_stats()
+    # n_steps = 0
     # lbm.process!(problem, quadrature, f_in, 0.0 * Δt, stats, should_visualize = true)
     @inbounds for t = 0:n_steps
         if mod(t, round(Int, n_steps / 10)) == 0
             @show t, t / n_steps, t * Δt
         end
 
-        if (mod(t, 1) == 0)
+        if (should_process && mod(t, 1) == 0)
             lbm.process!(
                 problem,
                 quadrature,
@@ -91,17 +94,20 @@ function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
             )
         end
 
-        collide!(collision_operator, quadrature, f_in, f_out, time = t * Δt, problem = problem)
+        collide!(collision_operator, quadrature, time = t * Δt, problem = problem, f_old = f_in, f_new = f_out)
 
-        # apply_boundary_conditions!(quadrature, problem, f_in, f_out, time = t * Δt)
+        apply_boundary_conditions!(quadrature, problem, f_new = f_in, f_old = f_out, time = t * Δt)
 
-        stream!(quadrature, f_out, f_in)
+        # stream!(quadrature, f_out, f_in)
+        stream!(quadrature, f_new = f_in, f_old = f_out)
+
         # f_in = stream(quadrature, f_out)
         # apply boundary conditions
 
         # check_stability(f_in) || return :unstable, f_in, stats       )
     end
-    lbm.process!(problem, quadrature, f_in, n_steps * Δt, stats, should_visualize = true)
+
+    lbm.process!(problem, quadrature, f_in, n_steps * Δt, stats, should_visualize = should_process)
 
     @show stats
 
