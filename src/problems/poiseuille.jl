@@ -10,6 +10,7 @@ struct PoiseuilleFlow <: lbm.InitialValueProblem
     NY::Int64
     k::Float64
     domain_size::Tuple{Float64, Float64}
+    G::Float64
 end
 
 function PoiseuilleFlow(
@@ -27,7 +28,8 @@ function PoiseuilleFlow(
         NX,
         NY,
         1.0,
-        domain_size
+        domain_size,
+        1.0
     )
 end
 
@@ -40,19 +42,14 @@ function pressure(q::Quadrature, problem::PoiseuilleFlow, x::Float64, y::Float64
 end
 
 function velocity(problem::PoiseuilleFlow, x::Float64, y::Float64, timestep::Float64 = 0.0)
-    G = 1.0
-
     return [
-        y * (problem.domain_size[2] - y) * (G / 2)
+        y * (problem.domain_size[2] - y) * (problem.G / 2)
         0.0
     ]
 end
 function force(problem::PoiseuilleFlow, x::Float64, y::Float64, time::Float64 = 0.0)
-    G = 1.0
-    ν = viscosity(problem)
-
     return [
-        ν * G
+        viscosity(problem) * problem.G
         0.0
     ]
 end
