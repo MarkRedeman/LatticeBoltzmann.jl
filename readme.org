@@ -174,3 +174,32 @@ julia> analyze_convergence(
 │ 3   │ 0.166667 │ 4.0     │ 1.92739e-7 │
 │ 4   │ 0.166667 │ 8.0     │ 4.84159e-8 │
 │ 5   │ 0.166667 │ 16.0    │ 1.21618e-8 │
+
+
+* Poiseuille
+julia> τ =10.5; q = D2Q9(); s = Example.TaylorGreenVortex.analyze_convergence(q, (scale, viscosity) -> PoiseuilleFlow(viscosity, scale, static = true), (τ - 0.5) / q.speed_of_sound_squared, 5, 1.0)
+(u_max, Re, ν) = (0.1, 0.15, 3.3333333333333335)
+τ = 10.5
+(u_max, Re, ν) = (0.05, 0.15, 3.3333333333333335)
+τ = 10.5
+(u_max, Re, ν) = (0.025, 0.15, 3.3333333333333335)
+τ = 10.5
+(u_max, Re, ν) = (0.0125, 0.15, 3.3333333333333335)
+τ = 10.5
+(u_max, Re, ν) = (0.00625, 0.15, 3.3333333333333335)
+τ = 10.5
+(u_max, Re, ν) = (0.003125, 0.15, 3.3333333333333335)
+τ = 10.5
+-(log.(stats.u_error[2:end] ./ stats.u_error[1:end - 1])) ./ log.(stats.nu[2:end] ./ stats.nu[1:end - 1]) = [Inf, Inf, Inf, Inf, Inf]
+6×5 DataFrame
+│ Row │ nu      │ scale   │ u_error    │ delta_x │ delta_t    │
+│     │ Float64 │ Float64 │ Float64    │ Float64 │ Float64    │
+├─────┼─────────┼─────────┼────────────┼─────────┼────────────┤
+│ 1   │ 3.33333 │ 16.0    │ 1.92132    │ 0.2     │ 0.02       │
+│ 2   │ 3.33333 │ 32.0    │ 0.610817   │ 0.1     │ 0.005      │
+│ 3   │ 3.33333 │ 64.0    │ 0.154544   │ 0.05    │ 0.00125    │
+│ 4   │ 3.33333 │ 128.0   │ 0.0381087  │ 0.025   │ 0.0003125  │
+│ 5   │ 3.33333 │ 256.0   │ 0.00910343 │ 0.0125  │ 7.8125e-5  │
+│ 6   │ 3.33333 │ 512.0   │ 0.00206386 │ 0.00625 │ 1.95313e-5 │
+
+julia> Example.TaylorGreenVortex.plot_convergence(s, 1.0 / 6.0)

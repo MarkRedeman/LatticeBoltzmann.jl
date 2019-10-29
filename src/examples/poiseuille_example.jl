@@ -1,5 +1,5 @@
 module Example
-module TaylorGreenVortex
+module PoiseuilleFlow
 
 using BenchmarkTools
 using StatsPlots
@@ -7,92 +7,51 @@ using DataFrames
 using lbm
 using Plots
 
-function analyze_convergence(
-    q::lbm.Quadrature,
-    p,
-    viscosity::Float64,
-    N = 2,
-    t_end = 2pi
-)
-    stats = DataFrame([
-        Float64[], Int[], Float64[], Float64[], Float64[], Float64[]
-    ], [:nu, :scale, :u_error, :delta_x, :delta_t, :Re])
 
-    for scale = 0:N
-        problem = p(2^scale, viscosity)
-        result = lbm.siumlate(problem, q, base = 200, should_process = false, t_end = t_end)
-        push!(stats, [
-            viscosity, 5 .* 2^scale, result[2].u_error[end], lbm.delta_x(problem), lbm.delta_t(problem), lbm.reynolds(problem)
-        ])
+quadratures = [
+    D2Q4(),
+    # D2Q5(),
+    D2Q9(),
+    D2Q17(),
+]
 
-        @show force(problem, 0.0, 0.0, 0.0)
-    end
-
-    # plot_convergence(stats, viscosity)
-    # gui()
-
-    @show -log.(
-        stats.u_error[2:end] ./ stats.u_error[1:(end - 1)]
-    ) ./ log.(
-        stats.nu[2:end] ./ stats.nu[1:(end - 1)]
-    )
-
-    return stats
-end
-function plot_convergence(stats, viscosity)
-    nu_round = round(viscosity, digits = 2)
-
-    p = plot()
-    plot!(p, stats.scale, stats.u_error , label="nu = $nu_round")
-    plot!(p, x -> stats.u_error[1] * 10.0 * x^(-2), label="y(x) = 10x^(-2)", linestyle=:dash)
-    plot!(p, scale=:log10, legend=:bottomleft, legendfontsize=5)
-    return p
-end
-
-# analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortexExample(viscosity, scale, static = true), 1.0 / 6.0, 2)
-# analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortexExample(viscosity, scale, static = false), 1.0 / 6.0, 3)
-analyze_convergence(D2Q9(), (scale, viscosity) -> PoiseuilleFlow(viscosity, scale, static = true), 1.0 / 6.0, 3)
-sleep(10)
-# analyze_convergence(D2Q9(), (scale, viscosity) -> DecayingShearFlow(viscosity, scale, static = true), 1.0 / 6.0, 3)
-
-    stats = DataFrame([Float64[], Int[], Any[]], [:nu, :scale, :stats])
-
-    quadratures = [
-        D2Q4(),
-        # D2Q5(),
-        D2Q9(),
-        D2Q17(),
-    ]
-
-    quadrature = last(quadratures)
-    τ = 0.05 / 6.0
-    # τ = 10.0
-    τ = 10.0 / 6.0
-    τ = 4.0 / 6.0
-    scale = 12
-    scale = 2
+q = last(quadratures)
+scale = 1
 
 # relaxation time (BGK model) (tau=sqrt(3/16)+0.5 gives exact solution)
 # tau=sqrt(3/16)+0.5;
 # nu=(2*tau-1)/6;
 
-let
-    return
-    example = PoiseuilleFlow(τ, scale, static = true)
-    result = lbm.siumlate(example, quadrature, base = 200)
+stats = let
+    # ν = (1.4383 - 0.5) / q.speed_of_sound_squared
+    stats = DataFrame([Float64[], Float64[]], [:τ, :u_error])
+    for τ = 0.01:0.01:2.0
+        ν = (τ - 0.5) / q.speed_of_sound_squared
 
-    example = TaylorGreenVortexExample(τ, scale, static = true)
-    result = lbm.siumlate(example, quadrature, base = 200)
+        problem = PoiseuilleFlow(ν, scale, static = true)
 
-    example = TaylorGreenVortexExample(τ, scale, static = false)
-    result = lbm.siumlate(example, quadrature, base = 200)
+        result = lbm.siumlate(
+            problem,
+            q,
+            t_end = 100.0,
+            should_process = false
+        )
+        if (! isnan(result[2].u_error[end]))
+            push!(stats, [τ, result[2].u_error[end]])
+        end
+    end
 
-    example = DecayingShearFlow(τ, scale, static = true)
-    result = lbm.siumlate(example, quadrature, base = 200)
+    plot(stats.τ, stats.u_error, scale=:log10)
 
-    example = DecayingShearFlow(τ, scale, static = false)
-    result = lbm.siumlate(example, quadrature, base = 200)
+    @show stats.τ[argmin(stats.u_error)]
+# stats.τ[argmin(stats.u_error)] = 1.438
+# 1.438
+# julia> @show stats.τ[argmin(stats.u_error)]
+# stats.τ[argmin(stats.u_error)] = 1.76
+# 1.76
 
+
+    return stats
 end
 # @show result[2]
     # return result
@@ -108,7 +67,7 @@ end
     # νs = [1.0 / 6.0]
     for ν in νs, scale in scales
         continue
-        
+
         # example = TaylorGreenVortexExample(ν, scale, static = false)
         example = DecayingShearFlow(ν, scale, static = true)
         # example = TaylorGreenVortexExample(τ, scale, static = true)

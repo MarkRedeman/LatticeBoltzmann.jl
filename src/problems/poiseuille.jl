@@ -13,30 +13,25 @@ struct PoiseuilleFlow <: lbm.InitialValueProblem
 end
 
 function PoiseuilleFlow(
-    ν = 1.0 / 6.0, scale = 2, NX = 8 * scale + 0, NY = NX + 1, domain_size = (1.0, 1.0) ; static = true
+    ν = 1.0 / 6.0, scale = 2, NX = 5 * scale + 0, NY = NX, domain_size = (1.0, 1.0) ; static = true
 )
-    u_max = 0.0125 / scale
     u_max = 0.1 / scale
-    G = 1.0
-    u_max = scale * G * domain_size[2]^2 / 8
-    # u_max = 0.0125 / scale
-    # u_max = 0.01
 
-    Re = NX * u_max / ν
-    @show u_max, Re
+    Re = NY * u_max / ν
+    @show u_max, Re, ν
     Δt = delta_t(PoiseuilleFlow(1.0, u_max, ν, NX, NY + 2, 1.0, domain_size))
 
     # Δt = u_max / (domain_size[2] / (NY + 1))
     # tau=sqrt(3/16)+0.5;
     # ν =(2*Δt * tau-1)/6;
 
-    @show (ν - Δt / 2)^2
+    # @show (ν - Δt / 2)^2
     return PoiseuilleFlow(
         1.0,
         u_max,
-        ν * scale,
+        ν,
         # NX,
-        4,
+        5,
         NY + 2,
         1.0,
         domain_size

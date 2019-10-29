@@ -65,6 +65,7 @@ function initialize(quadrature::Quadrature, problem::InitialValueProblem)
 
     τ = quadrature.speed_of_sound_squared * lattice_viscosity(problem) + 0.5
     @show τ
+
     if has_external_force(problem)
         collision_operator = SRT_Force(τ, force_field)
     else
@@ -72,17 +73,6 @@ function initialize(quadrature::Quadrature, problem::InitialValueProblem)
     end
 
     return f, collision_operator
-end
-
-function delta_t(problem)
-    ν = viscosity(problem)
-    k_x = problem.domain_size[1] / problem.NX
-    k_y = problem.domain_size[2] / problem.NY
-
-    Δt = ν * (k_x^2 + k_y^2)
-    @warn "This shouldn't be used"
-
-    return Δt
 end
 
 function process!(problem::InitialValueProblem, q::Quadrature, f_in, time, stats; should_visualize = false)
@@ -114,7 +104,7 @@ function process!(problem::InitialValueProblem, q::Quadrature, f_in, time, stats
     uy_error_squared = 0.0
     u_error = 0.0
 
-    @inbounds for x_idx in 1:Nx, y_idx in 2:Ny-1
+    @inbounds for x_idx in 1:Nx, y_idx in 1:Ny
         if ! is_fluid(problem, x_idx, y_idx)
             continue
         end
@@ -149,6 +139,8 @@ function process!(problem::InitialValueProblem, q::Quadrature, f_in, time, stats
         expected_ϵ = (dimension(q) / 2) * expected_p / expected_ρ
         expected_v = lbm.velocity(problem, x, y, time)
         expected_T = expected_p / expected_ρ
+
+        # @show u[1], expected_v[1]
 
         expected_kinetic_energy = (expected_v[1]^2 + expected_v[2]^2)
         expected_internal_energy = expected_T
@@ -369,3 +361,59 @@ include("poiseuille.jl")
 include("convergence.jl")
 
 # error(::Val{:density}, node, solution) = density(node) - density(solution)
+
+struct LatticeProblem2D
+    NX::Int
+    NY::Int
+    τ::Float64
+    u_max::Float64
+end
+
+abstract type StopCriteria end
+struct NoStoppingCriteria <: StopCriteria end
+mutable struct MeanVelocityStoppingCriteria3 <: StopCriteria
+    old_mean_velocity::Float64
+    tolerance::Float64
+    problem::InitialValueProblem
+end
+StopCriteria(problem::InitialValueProblem) = NoStoppingCriteria()
+StopCriteria(problem::PoiseuilleFlow) = MeanVelocityStoppingCriteria3(0.0, 1e-12, problem)
+
+should_stop!(::StopCriteria, q, f_in) = false
+function should_stop!(stop_criteria::MeanVelocityStoppingCriteria3, q, f_in)
+    f = Array{Float64}(undef, size(f_in, 3))
+    u = zeros(dimension(q))
+    Nx = size(f_in, 1)
+    Ny = size(f_in, 2)
+
+    divide_by = 0
+    u_mean = 0.0
+
+    @inbounds for x_idx in 1:Nx, y_idx in 2:Ny-1
+        if ! is_fluid(stop_criteria.problem, x_idx, y_idx)
+            continue
+        end
+        divide_by += 1
+
+        # Calculated
+        @inbounds for f_idx = 1 : size(f_in, 3)
+            f[f_idx] = f_in[x_idx, y_idx, f_idx]
+        end
+        ρ = density(q, f)
+        velocity!(q, f, ρ, u)
+
+        u_mean += u[1]
+    end
+
+    u_mean /= divide_by
+
+    converged = abs(u_mean / stop_criteria.old_mean_velocity - 1)
+
+    if (converged < stop_criteria.tolerance)
+        return true
+    end
+
+    stop_criteria.old_mean_velocity = u_mean
+
+    return false
+end

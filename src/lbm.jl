@@ -68,23 +68,17 @@ function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
     f_out, collision_operator = initialize(quadrature, problem)
     f_in = copy(f_out)
     Δt = lbm.delta_t(problem)
-    @show Δt, n_steps
-    # n_steps = round(Int, 2pi / Δt)
-    n_steps = round(Int, .25pi / Δt)
-    # n_steps = round(Int, 1.93 / Δt)
-    n_steps = round(Int, 1. / Δt)
-    n_steps = round(Int, 2pi / Δt)
     n_steps = round(Int, t_end / Δt)
-    @show Δt, n_steps
-    @show problem
 
     stats = process_stats()
+    stop_criteria = StopCriteria(problem)
+
     # n_steps = 0
     # lbm.process!(problem, quadrature, f_in, 0.0 * Δt, stats, should_visualize = true)
     @inbounds for t = 0:n_steps
-        if mod(t, round(Int, n_steps / 10)) == 0
-            @show t, t / n_steps, t * Δt
-        end
+        # if mod(t, round(Int, n_steps / 10)) == 0
+        #     @show t, t / n_steps, t * Δt
+        # end
 
         if (should_process && mod(t, 1) == 0)
             lbm.process!(
@@ -111,11 +105,19 @@ function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
         # apply_boundary_conditions!(quadrature, problem, f_new = f_out, f_old = f_in, time = t * Δt)
 
         # check_stability(f_in) || return :unstable, f_in, stats       )
+        if mod(t, 100) == 0
+            if (should_stop!(stop_criteria, quadrature, f_in))
+                @show "Stopping after $t steps out of $n_steps"
+                lbm.process!(problem, quadrature, f_in, t * Δt, stats, should_visualize = should_process)
+                return f_in, stats
+            end
+        end
+
     end
 
     lbm.process!(problem, quadrature, f_in, n_steps * Δt, stats, should_visualize = should_process)
 
-    @show stats
+    # @show stats
 
     f_in, stats
 end

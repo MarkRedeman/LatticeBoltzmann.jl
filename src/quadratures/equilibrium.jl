@@ -112,6 +112,11 @@ function _equilibrium(q::Quadrature, ρ, weight, u_dot_xi, u_squared, T, xi_squa
     )
 end
 
+# NOTE: Incompressible
+# function _equilibrium(q::D2Q9, ρ, weight, u_dot_xi, u_squared, T, xi_squared)
+#     return weight * (ρ + 3 * u_dot_xi)
+# end
+
 function _equilibrium(q::D2Q4, ρ, weight, u_dot_xi, u_squared, T, xi_squared)
     cs = q.speed_of_sound_squared
     a_H_0 = 1.0
