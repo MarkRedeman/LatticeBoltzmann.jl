@@ -56,7 +56,7 @@
     #     @show f_in[5, y_idx, :]
     # end
 
-    lbm.apply_boundary_conditions!(q, problem, f_new = f_in, f_old = f_out, time = t * Δt)
+    # lbm.apply_boundary_conditions!(q, problem, f_new = f_in, f_old = f_out, time = t * Δt)
     # lbm.apply_boundary_conditions!(q, problem, f_out, f_in, time = t * Δt)
     @show "after boundary"
     @show f_out[2, 1, :] .- f_out[2, o, :]

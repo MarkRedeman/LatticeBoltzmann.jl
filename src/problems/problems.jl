@@ -87,8 +87,6 @@ function process!(problem::InitialValueProblem, q::Quadrature, f_in, time, stats
     Nx = size(f_in, 1)
     Ny = size(f_in, 2)
 
-    x_range = range(0, problem.domain_size[1], length=Nx + 1)
-    y_range = range(0, problem.domain_size[2], length=Ny + 1)
     x_range, y_range = range(problem)
 
     total_density = 0.0

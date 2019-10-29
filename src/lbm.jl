@@ -85,7 +85,6 @@ function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
                 problem,
                 quadrature,
                 f_in,
-                # t * 1.0, #* Δt,
                 t * Δt,
                 stats,
                 should_visualize = (mod(t, round(Int, n_steps / 20)) == 0)
@@ -95,16 +94,9 @@ function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
 
         collide!(collision_operator, quadrature, time = t * Δt, problem = problem, f_old = f_in, f_new = f_out)
 
-        # if (typeof(problem) == PoiseuilleFlow)
-        # end
-
-        apply_boundary_conditions_before!(quadrature, problem, f_new = f_in, f_old = f_out, time = t * Δt)
-
         stream!(quadrature, f_new = f_in, f_old = f_out)
 
         apply_boundary_conditions_after!(quadrature, problem, f_new = f_in, f_old = f_out, time = t * Δt)
-
-        # apply_boundary_conditions!(quadrature, problem, f_new = f_out, f_old = f_in, time = t * Δt)
 
         # check_stability(f_in) || return :unstable, f_in, stats       )
         if mod(t, 100) == 0

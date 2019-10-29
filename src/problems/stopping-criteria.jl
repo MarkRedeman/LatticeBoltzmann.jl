@@ -1,16 +1,15 @@
-
 abstract type StopCriteria end
 struct NoStoppingCriteria <: StopCriteria end
-mutable struct MeanVelocityStoppingCriteria3 <: StopCriteria
+mutable struct MeanVelocityStoppingCriteria <: StopCriteria
     old_mean_velocity::Float64
     tolerance::Float64
     problem::InitialValueProblem
 end
 StopCriteria(problem::InitialValueProblem) = NoStoppingCriteria()
-StopCriteria(problem::PoiseuilleFlow) = MeanVelocityStoppingCriteria3(0.0, 1e-12, problem)
+StopCriteria(problem::PoiseuilleFlow) = MeanVelocityStoppingCriteria(0.0, 1e-12, problem)
 
 should_stop!(::StopCriteria, q, f_in) = false
-function should_stop!(stop_criteria::MeanVelocityStoppingCriteria3, q, f_in)
+function should_stop!(stop_criteria::MeanVelocityStoppingCriteria, q, f_in)
     f = Array{Float64}(undef, size(f_in, 3))
     u = zeros(dimension(q))
     Nx = size(f_in, 1)

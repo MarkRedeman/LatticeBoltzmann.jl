@@ -61,13 +61,6 @@ function delta_x(problem::PoiseuilleFlow)
     return problem.domain_size[2] / problem.NY
 end
 
-function reynolds(problem::Poiseuilleflow)
-    ν = problem.ν
-    NY = problem.NY
-    u_max = problem.u_max
-    return Re = NY * u_max / ν
-end
-
 has_external_force(problem::PoiseuilleFlow) = true
 
 function apply_boundary_conditions_before!(q::Quadrature, problem::PoiseuilleFlow; time = t * Δt, f_new, f_old)

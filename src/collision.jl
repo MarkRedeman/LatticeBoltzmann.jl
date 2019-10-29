@@ -62,13 +62,6 @@ function collide!(collision_model::SRT_Force, q::Quadrature, f_in, f_out; time =
             f[f_idx] = f_in[x, y, f_idx]
         end
 
-        if ! is_fluid(problem, x, y)
-            @inbounds for f_idx = 1 : size(f_in, 3)
-                f_out[x, y, f_idx] = f[f_idx]
-            end
-            continue
-        end
-
         ρ = density(q, f)
 
         # Momentum

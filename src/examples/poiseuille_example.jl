@@ -24,11 +24,12 @@ scale = 1
 
 stats = let
     # ν = (1.4383 - 0.5) / q.speed_of_sound_squared
+    q = D2Q9()
     stats = DataFrame([Float64[], Float64[]], [:τ, :u_error])
-    for τ = 0.01:0.01:2.0
+    for τ = 0.51:0.01:2.0
         ν = (τ - 0.5) / q.speed_of_sound_squared
 
-        problem = PoiseuilleFlow(ν, scale, static = true)
+        problem = PoiseuilleFlow(ν, 1, static = true)
 
         result = lbm.siumlate(
             problem,
@@ -41,7 +42,7 @@ stats = let
         end
     end
 
-    plot(stats.τ, stats.u_error, scale=:log10)
+    plot(stats.τ, stats.u_error, yscale=:log10)
 
     @show stats.τ[argmin(stats.u_error)]
 # stats.τ[argmin(stats.u_error)] = 1.438
