@@ -1,7 +1,5 @@
 export PoiseuilleFlow
 
-import Base: range
-
 struct PoiseuilleFlow <: lbm.InitialValueProblem
     rho_0::Float64
     u_max::Float64
@@ -59,13 +57,6 @@ function delta_x(problem::PoiseuilleFlow)
 end
 
 has_external_force(problem::PoiseuilleFlow) = true
-
-function apply_boundary_conditions_before!(q::Quadrature, problem::PoiseuilleFlow; time = t * Δt, f_new, f_old)
-    for k = 1:size(f_old, 3)
-        f_old[1, :, k] = f_old[problem.NX - 1, :, k]
-        f_old[problem.NX, :, k]= f_old[2, :, k]
-    end
-end
 
 """
 Apply a bottom and top wall bounce back boundary condition

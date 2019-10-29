@@ -1,5 +1,5 @@
 module Example
-module PoiseuilleFlow
+module PoiseuilleFlowExample
 
 using BenchmarkTools
 using StatsPlots
@@ -22,7 +22,7 @@ scale = 1
 # tau=sqrt(3/16)+0.5;
 # nu=(2*tau-1)/6;
 
-stats = let
+let
     # ν = (1.4383 - 0.5) / q.speed_of_sound_squared
     q = D2Q9()
     stats = DataFrame([Float64[], Float64[]], [:τ, :u_error])
@@ -43,6 +43,7 @@ stats = let
     end
 
     plot(stats.τ, stats.u_error, yscale=:log10)
+    gui()
 
     @show stats.τ[argmin(stats.u_error)]
 # stats.τ[argmin(stats.u_error)] = 1.438
@@ -50,9 +51,6 @@ stats = let
 # julia> @show stats.τ[argmin(stats.u_error)]
 # stats.τ[argmin(stats.u_error)] = 1.76
 # 1.76
-
-
-    return stats
 end
 # @show result[2]
     # return result

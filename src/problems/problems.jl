@@ -368,7 +368,6 @@ include("taylor-green-vortex-decay.jl")
 include("decaying-shear-flow.jl")
 include("poiseuille.jl")
 include("convergence.jl")
-include("stopping-criteria.jl")
 
 # error(::Val{:density}, node, solution) = density(node) - density(solution)
 
