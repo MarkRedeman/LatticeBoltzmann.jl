@@ -38,8 +38,12 @@ end
 
 import Base: range
 function range(problem::InitialValueProblem)
-    x_range = range(0.0, problem.domain_size[1], length=problem.NX + 1)
-    y_range = range(0.0, problem.domain_size[2], length=problem.NY + 1)
+    Δx = problem.domain_size[1] / problem.NX
+    Δy = problem.domain_size[2] / problem.NY
+
+    x_range = range(Δx / 2, problem.domain_size[1] - Δx / 2, length = problem.NX)
+    y_range = range(Δy / 2, problem.domain_size[1] - Δy / 2, length = problem.NY)
+
 
     return x_range, y_range
 end
