@@ -9,6 +9,8 @@ include("collision.jl")
 # include("process.jl")
 include("problems/problems.jl")
 
+include("boundary-conditions.jl")
+
 export Quadrature, Lattice, D2Q4, D2Q5, D2Q9, D2Q17,
     opposite,
     initialize,

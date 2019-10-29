@@ -77,19 +77,6 @@ The nodes at y = 1, NY are facing a stationary wall
 The bounce back boundary condition will reflect any incoming particles
 """
 function apply_boundary_conditions_after!(q::Quadrature, problem::PoiseuilleFlow; time = t * Δt, f_new, f_old)
-    # Bottom wall
-    y_idx = 1
-    for f_idx = 1:size(f_new, 3)
-        if q.abscissae[2, f_idx] > 0
-            f_new[:, y_idx, f_idx] = f_old[:, y_idx, opposite(q, f_idx)]
-        end
-    end
-
-    # Top wall
-    y_idx = problem.NY
-    for f_idx = 1:size(f_new, 3)
-        if q.abscissae[2, f_idx] < 0
-            f_new[:, y_idx, f_idx] = f_old[:, y_idx, opposite(q, f_idx)]
-        end
-    end
+    bounce_back_from_bottom!(q, f_new, f_old, :, 1)
+    bounce_back_from_top!(q, f_new, f_old, :, problem.NY)
 end
