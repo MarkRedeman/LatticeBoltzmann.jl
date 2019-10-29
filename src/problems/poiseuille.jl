@@ -19,11 +19,6 @@ function PoiseuilleFlow(
 
     Re = NY * u_max / ν
     @show u_max, Re, ν
-    Δt = delta_t(PoiseuilleFlow(1.0, u_max, ν, NX, NY + 2, 1.0, domain_size))
-
-    # Δt = u_max / (domain_size[2] / (NY + 1))
-    # tau=sqrt(3/16)+0.5;
-    # ν =(2*Δt * tau-1)/6;
 
     # @show (ν - Δt / 2)^2
     return PoiseuilleFlow(
@@ -32,22 +27,18 @@ function PoiseuilleFlow(
         ν,
         # NX,
         5,
-        NY + 2,
+        NY,
         1.0,
         domain_size
     )
 end
 
 function range(problem::PoiseuilleFlow)
-    x_range = range(0.0, problem.domain_size[1], length=problem.NX + 1)
+    Δx = problem.domain_size[1] / problem.NX
+    Δy = problem.domain_size[2] / problem.NY
 
-    # do not add 1 since the boundary is inclusive
-    y_range = range(0.0, problem.domain_size[2], length=problem.NY)
-
-
-    # Accomodate for the wall at the midway boundary
-    # y_range = range(0.0, problem.domain_size[2], length=problem.NY) # did not add 1
-    # y_range = range(y_range[2], y_range[problem.NY], length=problem.NY - 2)
+    x_range = range(Δx / 2, problem.domain_size[1] - Δx / 2, length = problem.NX)
+    y_range = range(Δy / 2, problem.domain_size[1] - Δy / 2, length = problem.NY)
 
     return x_range, y_range
 end
@@ -80,13 +71,14 @@ end
 
 function delta_x(problem::PoiseuilleFlow)
     # Don't include the two boundary nodes
-    return problem.domain_size[2] * (1 / (problem.NY - 2) )
+    return problem.domain_size[2] * (1 / (problem.NY) )
 end
 
 has_external_force(problem::PoiseuilleFlow) = true
 
 # Temporary
 function is_fluid(problem::PoiseuilleFlow, x::Int64, y::Int64)
+    return true
     if y == 1
         return false
     end
@@ -96,24 +88,38 @@ function is_fluid(problem::PoiseuilleFlow, x::Int64, y::Int64)
     return true
 end
 
-apply_boundary_conditions!(q, problem; time = t * Δt, f_new, f_old) = apply_boundary_conditions!(q, problem, f_old, f_new, time = time)
-function apply_boundary_conditions!(q::Quadrature, problem::PoiseuilleFlow, f_in, f_out; time = 0.0)
+function apply_boundary_conditions_before!(q::Quadrature, problem::PoiseuilleFlow; time = t * Δt, f_new, f_old)
+    for k = 1:size(f_old, 3)
+        f_old[1, :, k] = f_old[problem.NX - 1, :, k]
+        f_old[problem.NX, :, k]= f_old[2, :, k]
+    end
+end
 
-    f = Array{Float64}(undef, size(f_in, 3))
-
+function apply_boundary_conditions_after!(q::Quadrature, problem::PoiseuilleFlow; time = t * Δt, f_new, f_old)
     for x_idx = 1 : problem.NX
-        # Top wall
-        y_idx = 1
-        copy!(f, f_in[x_idx, y_idx, :])
-        for f_idx = 1:size(f_out, 3)
-            f_in[x_idx, y_idx, f_idx] = f[opposite(q, f_idx)]
-        end
-
         # Bottom wall
-        y_idx = problem.NY
-        copy!(f, f_in[x_idx, y_idx, :])
-        for f_idx = 1:size(f_out, 3)
-            f_in[x_idx, y_idx, f_idx] = f[opposite(q, f_idx)]
+        y_idx = 1
+        # for f_idx = 1:size(f_new, 3)
+        for f_idx = 1:size(f_new, 3)
+            if q.abscissae[2, f_idx] > 0
+                f_new[x_idx, y_idx, f_idx] = f_old[x_idx, y_idx, opposite(q, f_idx)]
+            end
         end
+        # for f_idx = [4, 5, 6]
+        #     f_new[x_idx, y_idx, f_idx] = f_old[x_idx, y_idx, opposite(q, f_idx)]
+        # end
+
+        # Top wall
+        y_idx = problem.NY
+
+        for f_idx = 1:size(f_new, 3)
+            if q.abscissae[2, f_idx] < 0
+                f_new[x_idx, y_idx, f_idx] = f_old[x_idx, y_idx, opposite(q, f_idx)]
+            end
+        end
+        # for f_idx = 1:size(f_new, 3)
+        # for f_idx = [2, 8, 9]
+        #     f_new[x_idx, y_idx, f_idx] = f_old[x_idx, y_idx, opposite(q, f_idx)]
+        # end
     end
 end

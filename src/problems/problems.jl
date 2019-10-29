@@ -299,6 +299,13 @@ end
 function apply_boundary_conditions!(q::Quadrature, problem::InitialValueProblem, f_in, f_out; time = 0.0)
     nothing
 end
+function apply_boundary_conditions_before!(q::Quadrature, problem::InitialValueProblem; time = 0.0, f_new, f_old)
+    nothing
+end
+function apply_boundary_conditions_after!(q::Quadrature, problem::InitialValueProblem; time = 0.0, f_new, f_old)
+    nothing
+end
+
 
 function force(problem::InitialValueProblem, x_idx::Int64, y_idx::Int64, time::Float64 = 0.0)
     x_range, y_range = range(problem)

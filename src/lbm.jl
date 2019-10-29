@@ -98,9 +98,11 @@ function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
         # if (typeof(problem) == PoiseuilleFlow)
         # end
 
-        apply_boundary_conditions!(quadrature, problem, f_new = f_in, f_old = f_out, time = t * Δt)
+        apply_boundary_conditions_before!(quadrature, problem, f_new = f_in, f_old = f_out, time = t * Δt)
 
         stream!(quadrature, f_new = f_in, f_old = f_out)
+
+        apply_boundary_conditions_after!(quadrature, problem, f_new = f_in, f_old = f_out, time = t * Δt)
 
         # apply_boundary_conditions!(quadrature, problem, f_new = f_out, f_old = f_in, time = t * Δt)
 
