@@ -8,6 +8,7 @@ end
 StopCriteria(problem::InitialValueProblem) = NoStoppingCriteria()
 StopCriteria(problem::PoiseuilleFlow) = MeanVelocityStoppingCriteria(0.0, 1e-12, problem)
 StopCriteria(problem::CouetteFlow) = MeanVelocityStoppingCriteria(0.0, 1e-12, problem)
+StopCriteria(problem::LidDrivenCavityFlow) = MeanVelocityStoppingCriteria(0.0, 1e-5, problem)
 
 should_stop!(::StopCriteria, q, f_in) = false
 function should_stop!(stop_criteria::MeanVelocityStoppingCriteria, q, f_in)
@@ -19,10 +20,7 @@ function should_stop!(stop_criteria::MeanVelocityStoppingCriteria, q, f_in)
     divide_by = 0
     u_mean = 0.0
 
-    @inbounds for x_idx in 1:Nx, y_idx in 2:Ny-1
-        if ! is_fluid(stop_criteria.problem, x_idx, y_idx)
-            continue
-        end
+    @inbounds for x_idx in 1:Nx, y_idx in 1:Ny
         divide_by += 1
 
         # Calculated
@@ -40,6 +38,10 @@ function should_stop!(stop_criteria::MeanVelocityStoppingCriteria, q, f_in)
     converged = abs(u_mean / stop_criteria.old_mean_velocity - 1)
 
     if (converged < stop_criteria.tolerance)
+        return true
+
+    if (isnan(u_mean))
+        @warn "nan in velocity profile"
         return true
     end
 
