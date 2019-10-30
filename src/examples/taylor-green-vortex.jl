@@ -52,7 +52,6 @@ end
 # analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortexExample(viscosity, scale, static = true), 1.0 / 6.0, 2)
 # analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortexExample(viscosity, scale, static = false), 1.0 / 6.0, 3)
 analyze_convergence(D2Q9(), (scale, viscosity) -> PoiseuilleFlow(viscosity, scale, static = true), 1.0 / 6.0, 3)
-sleep(10)
 # analyze_convergence(D2Q9(), (scale, viscosity) -> DecayingShearFlow(viscosity, scale, static = true), 1.0 / 6.0, 3)
 
     stats = DataFrame([Float64[], Int[], Any[]], [:nu, :scale, :stats])
@@ -77,21 +76,30 @@ sleep(10)
 # nu=(2*tau-1)/6;
 
 let
-    return
-    example = PoiseuilleFlow(τ, scale, static = true)
-    result = lbm.siumlate(example, quadrature, base = 200)
+    q = D2Q9()
+    τ = 1.0 / 6.0
+    scale = 1
 
-    example = TaylorGreenVortexExample(τ, scale, static = true)
-    result = lbm.siumlate(example, quadrature, base = 200)
+    problem = LidDrivenCavityFlow(τ, scale)
+    result = lbm.siumlate(problem, q)
 
-    example = TaylorGreenVortexExample(τ, scale, static = false)
-    result = lbm.siumlate(example, quadrature, base = 200)
+    problem = CouetteFlow(τ, scale)
+    result = lbm.siumlate(problem, q)
 
-    example = DecayingShearFlow(τ, scale, static = true)
-    result = lbm.siumlate(example, quadrature, base = 200)
+    problem = PoiseuilleFlow(τ, scale, static = true)
+    result = lbm.siumlate(problem, q)
 
-    example = DecayingShearFlow(τ, scale, static = false)
-    result = lbm.siumlate(example, quadrature, base = 200)
+    problem = TaylorGreenVortexExample(τ, scale, static = true)
+    result = lbm.siumlate(problem, q)
+
+    problem = TaylorGreenVortexExample(τ, scale, static = false)
+    result = lbm.siumlate(problem, q)
+
+    problem = DecayingShearFlow(τ, scale, static = true)
+    result = lbm.siumlate(problem, q)
+
+    problem = DecayingShearFlow(τ, scale, static = false)
+    result = lbm.siumlate(problem, q)
 
 end
 # @show result[2]
