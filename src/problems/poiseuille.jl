@@ -1,6 +1,6 @@
 export PoiseuilleFlow
 
-struct PoiseuilleFlow <: lbm.InitialValueProblem
+struct PoiseuilleFlow <: InitialValueProblem
     rho_0::Float64
     u_max::Float64
     ν::Float64
@@ -19,16 +19,7 @@ function PoiseuilleFlow(
     NX = 3
     u_max = 0.1 / scale
    
-    return PoiseuilleFlow(
-        1.0,
-        u_max,
-        ν,
-        NX,
-        NY,
-        1.0,
-        domain_size,
-        1.0
-    )
+    return PoiseuilleFlow(1.0, u_max, ν, NX, NY, 1.0, domain_size, 1.0)
 end
 
 function density(q::Quadrature, problem::PoiseuilleFlow, x::Float64, y::Float64, timestep::Float64 = 0.0)
