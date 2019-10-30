@@ -318,16 +318,6 @@ function force(problem::InitialValueProblem, x_idx::Int64, y_idx::Int64, time::F
     return force(problem, x, y, time)
 end
 
-function force(problem::InitialValueProblem, x_idx::Int64, y_idx::Int64, time::Int64 = 0.0)
-    x_range, y_range = range(problem)
-    Δt = lbm.delta_t(problem)
-
-    x = x_range[x_idx]
-    y = y_range[y_idx]
-
-    return force(problem, x, y, Δt * time)
-end
-
 function is_steady_state(problem::InitialValueProblem)
     return problem.static
 end
