@@ -367,6 +367,7 @@ dimensionless_force(problem::InitialValueProblem, F) = F / (problem.u_max * delt
 include("taylor-green-vortex-decay.jl")
 include("decaying-shear-flow.jl")
 include("poiseuille.jl")
+include("couette-flow.jl")
 include("convergence.jl")
 
 # error(::Val{:density}, node, solution) = density(node) - density(solution)

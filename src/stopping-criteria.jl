@@ -7,6 +7,7 @@ mutable struct MeanVelocityStoppingCriteria <: StopCriteria
 end
 StopCriteria(problem::InitialValueProblem) = NoStoppingCriteria()
 StopCriteria(problem::PoiseuilleFlow) = MeanVelocityStoppingCriteria(0.0, 1e-12, problem)
+StopCriteria(problem::CouetteFlow) = MeanVelocityStoppingCriteria(0.0, 1e-12, problem)
 
 should_stop!(::StopCriteria, q, f_in) = false
 function should_stop!(stop_criteria::MeanVelocityStoppingCriteria, q, f_in)
