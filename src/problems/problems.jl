@@ -330,6 +330,10 @@ function viscosity(problem) #::InitialValueProblem)
     return problem.ν * delta_x(problem)^2 / delta_t(problem)
 end
 
+function heat_diffusion(problem) #::InitialValueProblem)
+    return problem.κ * delta_x(problem)^2 / delta_t(problem)
+end
+
 function delta_t(problem::InitialValueProblem)
     return delta_x(problem) * problem.u_max
 end
