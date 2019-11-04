@@ -62,24 +62,12 @@ end
 """
 Choose the next indices which should be streamed to depending on the given
  x and y index and the direction index.
-We use the global abscissae variable to determine the direction and make
+We use the abscissae variable to determine the direction and make
  sure that the indices are bounded
 """
 function stream_periodically_to(q::Quadrature, x, y, lx, ly, f_idx)
-    # Note: to do circshift: we have to subtract
     next_x = x - q.abscissae[1, f_idx]
-    if next_x > lx
-        next_x -= lx
-    elseif next_x < 1
-        next_x += lx
-    end
-
     next_y = y - q.abscissae[2, f_idx]
-    if next_y > ly
-        next_y -= ly
-    elseif next_y < 1
-        next_y += ly
-    end
 
-    return next_x, next_y
+    return mod1(next_x, lx), mod1(next_y, ly)
 end
