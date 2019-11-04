@@ -75,8 +75,6 @@ logspace(start, stop, length) = exp10.(range(start, stop = stop, length = length
 
     @test lbm.density(q, f) ≈ density_field
     @test isapprox(lbm.momentum(q, f), velocity_field, atol=1e-16)
-    # @show lbm.temperature(q, f)
-    # @test lbm.temperature(q, f) ≈ temperature_field
 
     equilibrium(ρ, u) = begin
         v = fill(0.0, 1, 1, lbm.dimension(q))
