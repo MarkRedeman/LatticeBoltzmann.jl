@@ -131,3 +131,24 @@ end
         @test all(q.abscissae[:, idx] .+ q.abscissae[:, opposite_idx] .== 0)
     end
 end
+
+# There was a regression where the stream function did not correctly set a
+# period boundary when using a multispeed quadrature that had a speed exceeding
+# the amount of distributions in the x or y direction
+@testset "Streaming quadratures with multispeeds" for q in quadratures
+    q = D2Q13()
+    N = 1
+    ρ = fill(1.0, N, N)
+    u = fill(0.1, N, N, lbm.dimension(q))
+    T = fill(1.0, N, N)
+
+    feq = lbm.equilibrium(q, 1.0, [0.0, 0.0], 1.0)
+    f = Array{Float64}(undef, 1, 1, length(q.weights))
+    f[1, 1, :] = feq
+
+    f_new = copy(f)
+
+    lbm.stream!(q, f_new = f_new, f_old = f)
+
+    @test all(isapprox.(f, f_new))
+end
