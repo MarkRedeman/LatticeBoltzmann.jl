@@ -1,5 +1,6 @@
 module lbm
 
+using DataFrames
 using BenchmarkTools
 using TimerOutputs
 
@@ -25,21 +26,17 @@ export Quadrature, Lattice, D2Q4, D2Q5, D2Q9, D2Q17,
     equilibrium,
     equilibrium!,
     hermite_equilibrium,
-    hermite_first_nonequilibrium
-export hermite
-
-export stream
-export CollisionModel,
+    hermite_first_nonequilibrium,
+    hermite,
+    stream,
+    stream!,
+    CollisionModel,
     SRT,
     SRT_Force,
     TRT,
-    collide,
-    collide_2,
-    collide_3
+    collide!,
+    simulate
 
-export simulate
-
-using DataFrames
 function process_stats()
     return DataFrame(
         [
@@ -75,7 +72,6 @@ function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
     stats = process_stats()
     stop_criteria = StopCriteria(problem)
 
-    # n_steps = 0
     # lbm.process!(problem, quadrature, f_in, 0.0 * Δt, stats, should_visualize = true)
     @inbounds for t = 0:n_steps
         # if mod(t, round(Int, n_steps / 10)) == 0
@@ -108,7 +104,6 @@ function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
                 return f_in, stats
             end
         end
-
     end
 
     lbm.process!(problem, quadrature, f_in, n_steps * Δt, stats, should_visualize = should_process)

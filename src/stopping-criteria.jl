@@ -39,6 +39,7 @@ function should_stop!(stop_criteria::MeanVelocityStoppingCriteria, q, f_in)
 
     if (converged < stop_criteria.tolerance)
         return true
+    end
 
     if (isnan(u_mean))
         @warn "nan in velocity profile"
