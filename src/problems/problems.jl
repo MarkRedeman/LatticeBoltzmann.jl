@@ -20,6 +20,7 @@ abstract type SteadyStateProblem <: LBMProblem end
 abstract type TimeDependantProblem <: LBMProblem end
 
 abstract type InitialValueProblem end
+abstract type DoubleDistributionProblem <: InitialValueProblem end
 
 has_external_force(problem::InitialValueProblem) = false
 
@@ -141,13 +142,22 @@ lattice_density(q, problem::InitialValueProblem, x, y, t = 0.0) = density(q, pro
 lattice_velocity(q, problem::InitialValueProblem, x, y, t = 0.0) = problem.u_max * velocity(problem, x, y, t)
 lattice_pressure(q, problem::InitialValueProblem, x, y, t = 0.0) = problem.u_max^2 * pressure(q, problem, x, y, t)
 lattice_force(problem::InitialValueProblem, x, y, t = 0.0) = problem.u_max * delta_t(problem) * force(problem, x, y, t)
-lattice_temperature(q, problem::InitialValueProblem, x, y, t = 0.0) = pressure(q, problem, x, y) / density(q, problem, x, y)
+function lattice_temperature(q, problem::InitialValueProblem, x, y, t = 0.0)
+    return pressure(q, problem, x, y) / density(q, problem, x, y)
+
+
+    θ = pressure(q, problem, x, y, t) / density(q, problem, x, y, t)
+
+    return θ * problem.u_max^2 #/ q.speed_of_sound_squared
+    return θ * problem.u_max^2 / q.speed_of_sound_squared
+        # 1.0 / quadrature.speed_of_sound_squared
+end
 
 dimensionless_viscosity(problem) = problem.ν * delta_x(problem)^2 / delta_t(problem)
 dimensionless_density(problem::InitialValueProblem, ρ) = ρ
 dimensionless_velocity(problem::InitialValueProblem, u) = u / problem.u_max
-dimensionless_pressure(q, problem::InitialValueProblem, p) = p
-dimensionless_temperature(q, problem::InitialValueProblem, T) = T
+dimensionless_pressure(q, problem::InitialValueProblem, p) = p# (p - 1.0) / (q.speed_of_sound_squared * problem.u_max^2 )
+dimensionless_temperature(q, problem::InitialValueProblem, T) = T #* q.speed_of_sound_squared
 dimensionless_force(problem::InitialValueProblem, F) = F / (problem.u_max * delta_t(problem))
 
 include("taylor-green-vortex-decay.jl")
