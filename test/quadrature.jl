@@ -8,71 +8,17 @@ using TimerOutputs
     Q = length(w)
     δ(α, β) = α == β ? 1.0 : 0.0
 
-    @testset "Symmetry $n" for n = 0:lbm.order(q)
-        if n == 0
-            H = sum(w) - 1.0
-        elseif n == 1
-            H = [
-                sum(ξs[α, :] .* w[:])
-                for α = 1:D
-            ]
-        elseif n == 2
-            H = [
-                sum(w[:] .* (q.speed_of_sound_squared .* ξs[β, :] .* ξs[α, :] .- δ(α, β)))
-                for α = 1:D, β = 1:D
-            ]
-        elseif n == 3
-            H = [
-                sum(
-                    w[:] .* (
-                        (q.speed_of_sound_squared .* ξs[γ, :] .* ξs[β, :] .* ξs[α, :]) .-
-                        (ξs[α, :] .* δ(β, γ) .+ ξs[β, :] .* δ(α, γ) .+ ξs[γ, :] .* δ(α, β))
-                    )
-                )
-                for α = 1:D, β = 1:D, γ = 1:D
-            ]
-        elseif n == 4
-            H = [
-                sum(
-                    w[:] .* (
-                        q.speed_of_sound_squared^2 .* ξs[α_4, :] .* ξs[α_3, :] .* ξs[α_2, :] .* ξs[α_1, :] .-
-                        q.speed_of_sound_squared .* (
-                            # 6 terms
-                            (ξs[α_1, :] .* ξs[α_2, :]) .* δ(α_3, α_4) .+
-                            (ξs[α_1, :] .* ξs[α_3, :]) .* δ(α_2, α_4) .+
-                            (ξs[α_1, :] .* ξs[α_4, :]) .* δ(α_3, α_2) .+
-                            (ξs[α_2, :] .* ξs[α_3, :]) .* δ(α_1, α_4) .+
-                            (ξs[α_2, :] .* ξs[α_4, :]) .* δ(α_1, α_3) .+
-                            (ξs[α_3, :] .* ξs[α_4, :]) .* δ(α_1, α_2)
-                        ) .+
-                        (δ(α_1, α_2) * δ(α_3, α_4) + δ(α_1, α_3) * δ(α_2, α_4) + δ(α_1, α_4) * δ(α_2, α_3))
-                    )
-                )
-                for α_1 = 1:D, α_2 = 1:D, α_3 = 1:D, α_4 = 1:D
-            ]
-        elseif n == 5
-            H = 0.0
-            # H = [
-            #     sum(
-            #         w[:] .* (
-            #             q.speed_of_sound_squared^2 .* ξs[α_5, :] .* ξs[α_4, :] .* ξs[α_3, :] .* ξs[α_2, :] .* ξs[α_1, :] .-
-            #             q.speed_of_sound_squared .* (
-            #                 # 10 terms (5!) / (2^2 * 3! * 1!)
-            #                 (ξs[α_1, :] .* ξs[α_2, :] .* ξs[α_3, :]) .* δ(α_4, α_5) .+
-            #             ) .+
-            #             (
-            #                 # 5! / (2^2 1! 2!) = 15 terms :O
-            #                 δ(α_1, α_2) * δ(α_3, α_4) .* ξ[α_5, :] .+
-            #             )
-            #         )
-            #     )
-            #     for α_1 = 1:D, α_2 = 1:D, α_3 = 1:D, α_4 = 1:D, α_5 = 1:D
-            # ]
-        else
-            H = 0.0
-        end
+    # If we didn't manage to choose correct weights all other tests will likely fail
+    @test sum(q.weights) ≈ 1.0
 
-        @test all(abs.(H) .< 10eps())
+    @testset "Symmetry $n" for n = 1:div(lbm.order(q), 2)
+        H = sum([
+            q.weights[f_idx] *
+            hermite(n, q.abscissae[:, f_idx], q)
+            for f_idx = 1:length(q.weights)
+        ])
+
+        @test all(isapprox.(H, 0.0, atol=1e-15))
     end
 end
 
