@@ -55,15 +55,4 @@ function D2Q17()
 end
 
 order(q::D2Q17) = 7
-
-function opposite(q::D2Q17, idx::Int64)
-    if idx == 1
-        return 1
-    end
-    if (mod(idx, 2) == 0)
-        return idx + 1
-    end
-    return idx - 1
-end
-
 Base.show(io::IO, q::D2Q17)= show(io, "D2Q17")
