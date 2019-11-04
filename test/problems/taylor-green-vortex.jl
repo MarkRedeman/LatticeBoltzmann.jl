@@ -6,8 +6,6 @@
     tgv = TaylorGreenVortexExample(ν, scale,)
     f, c = lbm.initialize(q, tgv)
 
-    @show f[1, 1, :]
-
     ρ = lbm.density(q, f)
     j = lbm.momentum(q, f)
     T = lbm.temperature(q, f, ρ, j ./ ρ)

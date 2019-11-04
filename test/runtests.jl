@@ -8,7 +8,10 @@ quadratures = [
     D2Q4(),
     D2Q5(),
     D2Q9(),
+    D2Q13(),
     D2Q17(),
+    D2Q21(),
+    D2Q37()
 ]
 
 include("problems/taylor-green-vortex.jl")
