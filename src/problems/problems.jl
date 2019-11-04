@@ -28,7 +28,7 @@ function initial_equilibrium(quadrature::Quadrature, problem::InitialValueProble
         quadrature,
         lattice_density(quadrature, problem, x, y),
         lattice_velocity(quadrature, problem, x, y),
-        1.0 / quadrature.speed_of_sound_squared#lattice_pressure(quadrature, problem, x, y) / lattice_density(quadrature, problem, x, y)
+        lattice_temperature(quadrature, problem, x, y)
     )
 end
 
@@ -141,12 +141,13 @@ lattice_density(q, problem::InitialValueProblem, x, y, t = 0.0) = density(q, pro
 lattice_velocity(q, problem::InitialValueProblem, x, y, t = 0.0) = problem.u_max * velocity(problem, x, y, t)
 lattice_pressure(q, problem::InitialValueProblem, x, y, t = 0.0) = problem.u_max^2 * pressure(q, problem, x, y, t)
 lattice_force(problem::InitialValueProblem, x, y, t = 0.0) = problem.u_max * delta_t(problem) * force(problem, x, y, t)
+lattice_temperature(q, problem::InitialValueProblem, x, y, t = 0.0) = pressure(q, problem, x, y) / density(q, problem, x, y)
 
 dimensionless_viscosity(problem) = problem.ν * delta_x(problem)^2 / delta_t(problem)
 dimensionless_density(problem::InitialValueProblem, ρ) = ρ
 dimensionless_velocity(problem::InitialValueProblem, u) = u / problem.u_max
-dimensionless_pressure(problem::InitialValueProblem, p) = p / problem.u_max^2
-dimensionless_temperature(problem::InitialValueProblem, T) = T
+dimensionless_pressure(q, problem::InitialValueProblem, p) = p
+dimensionless_temperature(q, problem::InitialValueProblem, T) = T
 dimensionless_force(problem::InitialValueProblem, F) = F / (problem.u_max * delta_t(problem))
 
 include("taylor-green-vortex-decay.jl")

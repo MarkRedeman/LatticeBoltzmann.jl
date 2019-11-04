@@ -37,7 +37,7 @@ function pressure(q::Quadrature, tgv::TaylorGreenVortexExample, x::Float64, y::F
         (tgv.k_x / tgv.k_y) * cos(2.0 * y)
     ) * decay(tgv, x, y, timestep)^2
 
-    return 1.0 + q.speed_of_sound_squared * tgv.u_max * P
+    return 1.0 + q.speed_of_sound_squared * tgv.u_max^2 * P
 end
 
 function velocity(tgv::TaylorGreenVortexExample, x::Float64, y::Float64, timestep::Float64 = 0.0)

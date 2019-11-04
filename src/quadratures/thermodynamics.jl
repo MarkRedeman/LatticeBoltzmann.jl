@@ -60,13 +60,13 @@ end
 pressure(q::D2Q4, f::Array{Float64}, ρ::Float64, u::Array{Float64, 1}) = 1.0
 pressure(q::D2Q5, f::Array{Float64}, ρ::Float64, u::Array{Float64, 1}) = 1.0
 function pressure(q::Quadrature, f::Array{Float64}, ρ::Float64, u::Array{Float64, 1})::Float64
+    D = dimension(q)
     E = 0.0
     @inbounds for idx = 1:length(f)
         E += f[idx] * (q.abscissae[1, idx]^2 + q.abscissae[2, idx]^2)
     end
 
-    p = (E - ρ * dot(u, u)) / dimension(q)
-
+    p = q.speed_of_sound_squared * (E - ρ * (u[1]^2 + u[2]^2)) / D
     return p
 end
 

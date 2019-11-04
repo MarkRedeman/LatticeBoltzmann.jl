@@ -45,7 +45,7 @@ function process_stats()
             # Float64[],
             # Float64[],
             # Float64[],
-            Float64[]
+            Float64[], Float64[]
         ],
         [
             :density, :momentum, :total_energy, :kinetic_energy, :internal_energy,
@@ -53,7 +53,7 @@ function process_stats()
             # :density_e,
             # :momentum_e,
             # :kinetic_energy_e,
-            :u_error
+            :u_error, :p_error
         ]
     )
 end

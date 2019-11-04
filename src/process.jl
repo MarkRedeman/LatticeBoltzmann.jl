@@ -27,6 +27,7 @@ function process!(problem::InitialValueProblem, q::Quadrature, f_in, time, stats
     ux_error_squared = 0.0
     uy_error_squared = 0.0
     u_error = 0.0
+    p_error = 0.0
 
     @inbounds for x_idx in 1:Nx, y_idx in 1:Ny
         if ! is_fluid(problem, x_idx, y_idx)
@@ -44,10 +45,12 @@ function process!(problem::InitialValueProblem, q::Quadrature, f_in, time, stats
         # u += cm.τ * F
 
         T = temperature(q, f, ρ, u)
+        p = pressure(q, f, ρ, u)
 
         ρ = dimensionless_density(problem, ρ)
         u = dimensionless_velocity(problem, u)
         T = dimensionless_temperature(q, problem, T)
+        p = dimensionless_pressure(q, problem, p)
 
         total_density += ρ
         total_momentum += (u[1] + u[2]) * ρ
@@ -97,6 +100,9 @@ function process!(problem::InitialValueProblem, q::Quadrature, f_in, time, stats
                 )^2
             )
         )
+        p_error += opp * (
+            (p - expected_p)^2
+        )
     end
 
     # Compare with analytical results?
@@ -116,7 +122,8 @@ function process!(problem::InitialValueProblem, q::Quadrature, f_in, time, stats
         # uy_error_squared,
         # u_error / expected_total_momentum,
         # sqrt(u_error) / expected_total_momentum,
-        sqrt(u_error) #/ expected_total_momentum
+        sqrt(u_error), #/ expected_total_momentum
+        sqrt(p_error)
         # sqrt(ux_error_squared),
         # sqrt(uy_error_squared)
     ])
@@ -166,30 +173,42 @@ function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, t
         # velocity!(q, f, ρ, u)
 
         ρ[x_idx, y_idx] = dimensionless_density(problem, ρ[x_idx, y_idx])
-        p[x_idx, y_idx] = dimensionless_pressure(problem, p[x_idx, y_idx])
+        p[x_idx, y_idx] = dimensionless_pressure(q, problem, p[x_idx, y_idx])
+        # T[x_idx, y_idx] = dimensionless_temperature(problem, T[x_idx, y_idx])
         j[x_idx, y_idx, :] = dimensionless_velocity(problem, j[x_idx, y_idx, :] ./ ρ[x_idx, y_idx])
     end
 
     s = (1000, 500)
 
     domain = (2 : (problem.NY - 1)) ./ (problem.NY - 2)
-    domain = y_range[1:Ny]
 
     if (typeof(problem) != DecayingShearFlow)
-        x_pos = problem.NX >= 5 ? 4 : 2
         x_pos = round(Int, problem.NX / 2)
+        domain = y_range[1:Ny]
+
         velocity_profile_x = plot(domain, j[x_pos, 1:(problem.NY), 1], size=s, label="solution", title="u_x", legend=nothing)
         plot!(velocity_profile_x, domain, velocity_field[x_pos, 1:(problem.NY), 1], size=s, label="exact")
+
         velocity_profile_y = plot(j[x_pos, 1:(problem.NY), 2], domain, size=s, label="solution", title="u_y", legend=nothing)
         plot!(velocity_profile_y, velocity_field[x_pos, 1:(problem.NY), 2], domain, size=s, label="exact")
+
+        pressure_profile = plot(domain, p[x_pos, 1:(problem.NY)], size=s, label="solution", title="p", legend=nothing)
+        plot!(pressure_profile, domain, pressure_field[x_pos, 1:(problem.NY)], size=s, label="exact")
+
+        # temperature_profile = plot(domain, T[x_pos, 1:(problem.NY), 1], size=s, label="solution", title="p", legend=nothing)
+        # plot!(temperature_profile, domain, temperature_field[x_pos, 1:(problem.NY), 1], size=s, label="exact")
     else
         y_pos = round(Int, problem.NY / 2)
-        # Useful for decaying shear wave
         domain = x_range[1:Nx]
+
         velocity_profile_x = plot(domain, j[:, y_pos, 1], size=s, label="solution", title="u_x")
         plot!(velocity_profile_x, domain, velocity_field[:, y_pos, 1], size=s, label="exact")
+
         velocity_profile_y = plot(j[:, y_pos, 2], domain, size=s, label="solution", title="u_y")
         plot!(velocity_profile_y, velocity_field[:, y_pos, 2], domain, size=s, label="exact")
+
+        pressure_profile = plot(domain, p[:, y_pos], size=s, label="solution", title="p", legend=nothing)
+        plot!(pressure_profile, domain, pressure_field[:, y_pos], size=s, label="exact")
     end
 
 
@@ -198,16 +217,18 @@ function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, t
     plot(
         contour(ρ, fill=true, cbar=true, size=s),
         contour(p', title="pressure", fill=true),
-        contour(pressure_field, title="pressure analytical", fill=true),
+        # contour(pressure_field', title="pressure analytical", fill=true),
         plot!(streamline(j), title="Computed"),
-        # plot!(streamline(velocity_field), title="exact"),
-        heatmap(j[:, :, 1]', fill=true),
-        heatmap(j[:, 2:(problem.NY-1), 2]', fill=true),
-        heatmap(velocity_field[:, :, 1]', fill=true),
-        heatmap(velocity_field[:, :, 2]', fill=true),
+        plot!(streamline(velocity_field), title="exact"),
+        # heatmap(j[:, :, 1]', fill=true),
+        # heatmap(j[:, 2:(problem.NY-1), 2]', fill=true),
+        # heatmap(velocity_field[:, :, 1]', fill=true),
+        # heatmap(velocity_field[:, :, 2]', fill=true),
         # streamline(velocity_field .- ρ .* j),
         plot(stats.u_error, legend=false, title="U_e"),
+        plot(stats.p_error, legend=false, title="P_e"),
         kinetic_energy_profile,
+        pressure_profile,
         velocity_profile_x,
         velocity_profile_y,
         size=(1000, 600)
