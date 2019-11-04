@@ -7,8 +7,8 @@ using TimerOutputs
 include("quadratures/quadrature.jl")
 include("stream.jl")
 include("collision.jl")
-# include("process.jl")
 include("problems/problems.jl")
+include("process.jl")
 include("stopping-criteria.jl")
 include("boundary-conditions.jl")
 
@@ -85,6 +85,7 @@ function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
                 f_in,
                 t * Δt,
                 stats,
+                # should_visualize = (mod(t, 50) == 0)
                 should_visualize = (mod(t, round(Int, n_steps / 20)) == 0)
                 # should_visualize = true
             )
