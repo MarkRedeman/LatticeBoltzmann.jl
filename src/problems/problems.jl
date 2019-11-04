@@ -116,11 +116,16 @@ function process!(problem::InitialValueProblem, q::Quadrature, f_in, time, stats
         end
         ρ = density(q, f)
         velocity!(q, f, ρ, u)
+
+        # Adding the forcing term moves the optimal tau for poiseuille flows
+        # F = cm.force(x_idx, y_idx, 0.0)
+        # u += cm.τ * F
+
         T = temperature(q, f, ρ, u)
 
         ρ = dimensionless_density(problem, ρ)
         u = dimensionless_velocity(problem, u)
-        T = dimensionless_temperature(problem, T)
+        T = dimensionless_temperature(q, problem, T)
 
         total_density += ρ
         total_momentum += (u[1] + u[2]) * ρ
@@ -201,8 +206,10 @@ function process!(problem::InitialValueProblem, q::Quadrature, f_in, time, stats
 end
 
 function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, time, stats)
+    q = quadrature
     # Density
     ρ = lbm.density(quadrature, f_in)
+    ρ = Array{Float64}(undef, size(f_in, 1), size(f_in, 2))
 
     Nx = size(f_in, 1)
     Ny = size(f_in, 2)
@@ -218,18 +225,23 @@ function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, t
     pressure_field = fill(0.0, Nx, Ny)
     velocity_field = fill(0.0, Nx, Ny, lbm.dimension(quadrature))
 
-    x_range = range(0, problem.domain_size[1], length=Nx + 1)
-    y_range = range(0, problem.domain_size[2], length=Ny + 1)
-
     x_range, y_range = range(problem)
 
+    f = Array{Float64}(undef, size(f_in, 3))
+    u = zeros(dimension(q))
     @inbounds for x_idx in 1:Nx, y_idx in 1:Ny
+        @inbounds for f_idx = 1 : size(f_in, 3)
+            f[f_idx] = f_in[x_idx, y_idx, f_idx]
+        end
         x = x_range[x_idx]
         y = y_range[y_idx]
 
         density_field[x_idx, y_idx] = lbm.density(quadrature, problem, x, y, time)
         pressure_field[x_idx, y_idx] = lbm.pressure(quadrature, problem, x, y, time)
         velocity_field[x_idx, y_idx, :] = lbm.velocity(problem, x, y, time)
+
+        ρ[x_idx, y_idx] = density(q, f)
+        # velocity!(q, f, ρ, u)
 
         ρ[x_idx, y_idx] = dimensionless_density(problem, ρ[x_idx, y_idx])
         p[x_idx, y_idx] = dimensionless_pressure(problem, p[x_idx, y_idx])
@@ -240,25 +252,33 @@ function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, t
 
     domain = (2 : (problem.NY - 1)) ./ (problem.NY - 2)
     domain = y_range[1:Ny]
-    velocity_profile_x = plot(domain, j[4, 1:(problem.NY), 1], size=s, label="solution", title="u_x", legend=nothing)
-    plot!(velocity_profile_x, domain, velocity_field[4, 1:(problem.NY), 1], size=s, label="exact")
-    velocity_profile_y = plot(j[4, 1:(problem.NY), 2], domain, size=s, label="solution", title="u_y", legend=nothing)
-    plot!(velocity_profile_y, velocity_field[4, 1:(problem.NY), 2], domain, size=s, label="exact")
 
-    # velocity_profile_x = plot(domain, j[:, 4, 1], size=s, label="solution", title="u_x")
-    # plot!(velocity_profile_x, domain, velocity_field[:, 4, 1], size=s, label="exact")
-    # velocity_profile_y = plot(j[:, 4, 2], domain, size=s, label="solution", title="u_y")
-    # plot!(velocity_profile_y, velocity_field[:, 4, 2], domain, size=s, label="exact")
+    if (typeof(problem) != DecayingShearFlow)
+        x_pos = problem.NX >= 5 ? 4 : 2
+        x_pos = round(Int, problem.NX / 2)
+        velocity_profile_x = plot(domain, j[x_pos, 1:(problem.NY), 1], size=s, label="solution", title="u_x", legend=nothing)
+        plot!(velocity_profile_x, domain, velocity_field[x_pos, 1:(problem.NY), 1], size=s, label="exact")
+        velocity_profile_y = plot(j[x_pos, 1:(problem.NY), 2], domain, size=s, label="solution", title="u_y", legend=nothing)
+        plot!(velocity_profile_y, velocity_field[x_pos, 1:(problem.NY), 2], domain, size=s, label="exact")
+    else
+        y_pos = round(Int, problem.NY / 2)
+        # Useful for decaying shear wave
+        domain = x_range[1:Nx]
+        velocity_profile_x = plot(domain, j[:, y_pos, 1], size=s, label="solution", title="u_x")
+        plot!(velocity_profile_x, domain, velocity_field[:, y_pos, 1], size=s, label="exact")
+        velocity_profile_y = plot(j[:, y_pos, 2], domain, size=s, label="solution", title="u_y")
+        plot!(velocity_profile_y, velocity_field[:, y_pos, 2], domain, size=s, label="exact")
+    end
 
 
     kinetic_energy_profile = plot(stats.kinetic_energy, legend=false, title="Kinetic energy", size=s)
 
     plot(
-        contour(ρ[:, :, 1]', fill=true, clims=(0, 1.05), cbar=true, size=s),
-        # contour(p, title="pressure"),
-        # contour(pressure_field, title="pressure analytical"),
+        contour(ρ, fill=true, cbar=true, size=s),
+        contour(p', title="pressure", fill=true),
+        contour(pressure_field, title="pressure analytical", fill=true),
         plot!(streamline(j), title="Computed"),
-        plot!(streamline(velocity_field), title="exact"),
+        # plot!(streamline(velocity_field), title="exact"),
         heatmap(j[:, :, 1]', fill=true),
         heatmap(j[:, 2:(problem.NY-1), 2]', fill=true),
         heatmap(velocity_field[:, :, 1]', fill=true),
