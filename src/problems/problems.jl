@@ -359,6 +359,7 @@ include("decaying-shear-flow.jl")
 include("poiseuille.jl")
 include("couette-flow.jl")
 include("lid-driven-cavity.jl")
+include("linear-hydrodynamics-modes.jl")
 include("convergence.jl")
 
 # error(::Val{:density}, node, solution) = density(node) - density(solution)
