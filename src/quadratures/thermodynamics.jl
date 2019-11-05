@@ -38,14 +38,6 @@ function velocity!(q::Quadrature, f::Array{Float64, 1}, ρ::Float64, u::Array{Fl
     return
 end
 
-function momentum2!(q::Quadrature, f::Array{Float64, 1}, j::Array{Float64, 1})
-    @inbounds for d in 1 : dimension(q)
-        j[d] = dot(f, view(q.abscissae, d, :))
-        # j[d] = f' * view(q.abscissae, d, :)
-    end
-    return
-end
-
 function pressure(q::Quadrature, f::Array{Float64, 3}, ρ::Array{Float64, 2}, u::Array{Float64, 3})
     p = Array{Float64}(undef, size(f, 1), size(f, 2))
 
