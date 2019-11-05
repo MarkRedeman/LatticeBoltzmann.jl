@@ -139,6 +139,7 @@ function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, t
     # Density
     ρ = lbm.density(quadrature, f_in)
     ρ = Array{Float64}(undef, size(f_in, 1), size(f_in, 2))
+    p = Array{Float64}(undef, size(f_in, 1), size(f_in, 2))
 
     Nx = size(f_in, 1)
     Ny = size(f_in, 2)
@@ -148,7 +149,6 @@ function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, t
     E = lbm.total_energy(quadrature, f_in)
     E_k = lbm.kinetic_energy(quadrature, f_in, ρ, j ./ ρ)
     ϵ = 1.0 #lbm.internal_energy(quadrature, f_in, ρ, j ./ ρ)
-    p = lbm.pressure(quadrature, f_in, ρ[:, :, 1], j)
 
     density_field = fill(0.0, Nx, Ny)
     pressure_field = fill(0.0, Nx, Ny)
@@ -170,6 +170,7 @@ function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, t
         velocity_field[x_idx, y_idx, :] = lbm.velocity(problem, x, y, time)
 
         ρ[x_idx, y_idx] = density(q, f)
+        p[x_idx, y_idx] = pressure(q, f, ρ[x_idx, y_idx], j[x_idx, y_idx, :] ./ ρ[x_idx, y_idx])
         # velocity!(q, f, ρ, u)
 
         ρ[x_idx, y_idx] = dimensionless_density(problem, ρ[x_idx, y_idx])
