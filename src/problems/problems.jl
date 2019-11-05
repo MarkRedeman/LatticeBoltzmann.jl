@@ -86,10 +86,6 @@ function initialize(quadrature::Quadrature, problem::InitialValueProblem)
     return f, collision_operator
 end
 
-function is_fluid(problem::InitialValueProblem, x, y)
-    return true
-end
-
 function apply_boundary_conditions!(q::Quadrature, problem::InitialValueProblem, f_in, f_out; time = 0.0)
     nothing
 end

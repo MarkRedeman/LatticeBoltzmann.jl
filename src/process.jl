@@ -30,9 +30,6 @@ function process!(problem::InitialValueProblem, q::Quadrature, f_in, time, stats
     p_error = 0.0
 
     @inbounds for x_idx in 1:Nx, y_idx in 1:Ny
-        if ! is_fluid(problem, x_idx, y_idx)
-            continue
-        end
         # Calculated
         @inbounds for f_idx = 1 : size(f_in, 3)
             f[f_idx] = f_in[x_idx, y_idx, f_idx]
