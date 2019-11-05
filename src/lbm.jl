@@ -72,7 +72,6 @@ function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
     stats = process_stats()
     stop_criteria = StopCriteria(problem)
 
-    # lbm.process!(problem, quadrature, f_in, 0.0 * Δt, stats, should_visualize = true)
     @inbounds for t = 0:n_steps
         # if mod(t, round(Int, n_steps / 10)) == 0
         #     @show t, t / n_steps, t * Δt
