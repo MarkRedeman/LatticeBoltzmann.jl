@@ -214,7 +214,7 @@ function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, t
 
     plot(
         contour(ρ, fill=true, cbar=true, size=s),
-        contour(p', title="pressure", fill=true),
+        contour(p, title="pressure", fill=true),
         # contour(pressure_field', title="pressure analytical", fill=true),
         plot!(streamline(j), title="Computed"),
         plot!(streamline(velocity_field), title="exact"),
