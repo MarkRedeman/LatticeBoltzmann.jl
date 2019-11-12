@@ -137,6 +137,7 @@ function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, t
     ρ = lbm.density(quadrature, f_in)
     ρ = Array{Float64}(undef, size(f_in, 1), size(f_in, 2))
     p = Array{Float64}(undef, size(f_in, 1), size(f_in, 2))
+    T = Array{Float64}(undef, size(f_in, 1), size(f_in, 2))
 
     Nx = size(f_in, 1)
     Ny = size(f_in, 2)
@@ -168,10 +169,12 @@ function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, t
 
         ρ[x_idx, y_idx] = density(q, f)
         p[x_idx, y_idx] = pressure(q, f, ρ[x_idx, y_idx], j[x_idx, y_idx, :] ./ ρ[x_idx, y_idx])
+        T[x_idx, y_idx] = temperature(q, f, ρ[x_idx, y_idx], j[x_idx, y_idx, :] ./ ρ[x_idx, y_idx])
         # velocity!(q, f, ρ, u)
 
         ρ[x_idx, y_idx] = dimensionless_density(problem, ρ[x_idx, y_idx])
         p[x_idx, y_idx] = dimensionless_pressure(q, problem, p[x_idx, y_idx])
+        T[x_idx, y_idx] = dimensionless_temperature(q, problem, T[x_idx, y_idx])
         # T[x_idx, y_idx] = dimensionless_temperature(problem, T[x_idx, y_idx])
         j[x_idx, y_idx, :] = dimensionless_velocity(problem, j[x_idx, y_idx, :] ./ ρ[x_idx, y_idx])
     end
@@ -193,7 +196,7 @@ function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, t
         pressure_profile = plot(domain, p[x_pos, 1:(problem.NY)], size=s, label="solution", title="p", legend=nothing)
         plot!(pressure_profile, domain, pressure_field[x_pos, 1:(problem.NY)], size=s, label="exact")
 
-        # temperature_profile = plot(domain, T[x_pos, 1:(problem.NY), 1], size=s, label="solution", title="p", legend=nothing)
+        temperature_profile = plot(domain, T[x_pos, 1:(problem.NY), 1], size=s, label="solution", title="T", legend=nothing)
         # plot!(temperature_profile, domain, temperature_field[x_pos, 1:(problem.NY), 1], size=s, label="exact")
     else
         y_pos = round(Int, problem.NY / 2)
@@ -207,14 +210,17 @@ function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, t
 
         pressure_profile = plot(domain, p[:, y_pos], size=s, label="solution", title="p", legend=nothing)
         plot!(pressure_profile, domain, pressure_field[:, y_pos], size=s, label="exact")
+
+        temperature_profile = plot(domain, T[:, y_pos], size=s, label="solution", title="T", legend=nothing)
     end
 
 
     kinetic_energy_profile = plot(stats.kinetic_energy, legend=false, title="Kinetic energy", size=s)
 
     plot(
-        contour(ρ, fill=true, cbar=true, size=s),
-        contour(p, title="pressure", fill=true),
+        contour(ρ, title="Density", fill=true, cbar=true, size=s),
+        contour(p, title="Pressure", fill=true),
+        contour(T, title="Temperature", fill=true),
         # contour(pressure_field', title="pressure analytical", fill=true),
         plot!(streamline(j), title="Computed"),
         plot!(streamline(velocity_field), title="exact"),
@@ -227,6 +233,7 @@ function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, t
         plot(stats.p_error, legend=false, title="P_e"),
         kinetic_energy_profile,
         pressure_profile,
+        temperature_profile,
         velocity_profile_x,
         velocity_profile_y,
         size=(1000, 600)
