@@ -73,11 +73,21 @@ function dimension(q::Quadrature)::Int
 end
 
 function temperature(q::Quadrature, f, ρ, u)
-    return [
-        pressure(q, f[x_idx, y_idx, :], ρ[x_idx, y_idx, 1], u[x_idx, y_idx, :]) ./ ρ for x_idx = 1:size(f, 1), y_idx = 1:size(f, 2)
-    ]
+    return pressure(q, f, ρ[:, :, 1], u) ./ ρ
     # return internal_energy(q, f, ρ, u) * (2 / dimension(q))
 end
+function pressure(q::Quadrature, f::Array{Float64, 3}, ρ::Array{Float64, 2}, u::Array{Float64, 3})
+    return [
+        pressure(q, f[x_idx, y_idx, :], ρ[x_idx, y_idx, 1], u[x_idx, y_idx, :]) ./ ρ[x_idx, y_idx] for x_idx = 1:size(f, 1), y_idx = 1:size(f, 2)
+    ]
+end
+# function temperature(q::Quadrature, f::Array{Float64, 3}, ρ, u)
+
+#     return [
+#         pressure(q, f[x_idx, y_idx, :], ρ[x_idx, y_idx, 1], u[x_idx, y_idx, :]) ./ ρ for x_idx = 1:size(f, 1), y_idx = 1:size(f, 2)
+#     ]
+#     # return internal_energy(q, f, ρ, u) * (2 / dimension(q))
+# end
 
 function temperature(q::Quadrature, f::Vector{Float64}, ρ::Float64, u::Vector{Float64})
     return pressure(q, f, ρ, u) ./ ρ
