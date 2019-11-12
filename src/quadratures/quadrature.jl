@@ -25,6 +25,7 @@ end
 
 δ(α, β) = α == β ? 1 : 0
 include("hermite.jl")
+include("equilibrium-coefficients.jl")
 include("thermodynamics.jl")
 include("equilibrium.jl")
 
