@@ -34,3 +34,14 @@ function opposite(q::D2Q5, idx::Int64)
 end
 
 Base.show(io::IO, q::D2Q5)= show(io, "D2Q5")
+
+# The D2Q5 lattice is unable to include temperature
+pressure(q::D2Q5, f::Array{Float64}, ρ::Float64, u::Array{Float64, 1}) = 1.0
+
+function _equilibrium(q::D2Q5, ρ, weight, u_dot_xi, u_squared, T, xi_squared)
+    cs = q.speed_of_sound_squared
+    a_H_0 = 1.0
+    a_H_1 = cs * u_dot_xi
+
+    return ρ .* weight .* (a_H_0 .+ a_H_1)
+end

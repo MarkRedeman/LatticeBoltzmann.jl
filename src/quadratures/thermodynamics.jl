@@ -38,9 +38,6 @@ function velocity!(q::Quadrature, f::Array{Float64, 1}, ρ::Float64, u::Array{Fl
     return
 end
 
-# The D2Q4 and D2Q5 lattices are unable to include temperature
-pressure(q::D2Q4, f::Array{Float64}, ρ::Float64, u::Array{Float64, 1}) = 1.0
-pressure(q::D2Q5, f::Array{Float64}, ρ::Float64, u::Array{Float64, 1}) = 1.0
 function pressure(q::Quadrature, f::Array{Float64}, ρ::Float64, u::Array{Float64, 1})::Float64
     D = dimension(q)
     E = 0.0

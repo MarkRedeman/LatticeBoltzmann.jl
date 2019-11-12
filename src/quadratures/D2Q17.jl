@@ -9,25 +9,6 @@
 # https://www.researchgate.net/publication/23315587_Multiple-relaxation_time_model_for_the_correct_thermodynamic_equations
 #
 # https://www.researchgate.net/profile/Zhaoli_Guo2/publication/23315587_Multiple-relaxation_time_model_for_the_correct_thermodynamic_equations/links/0046352b40f45699f8000000.pdf
-
-function generate_quadratures()
-    c = 1.
-    rest = [0, 0]
-    group_1 = [[cos(i - 1)π  / 2, sin(i - 1)π / 2] * c for i = 1 : 4]
-    group_2 = [[cos(2i - 9)π  / 4, sin(2i - 9)π / 4] * sqrt(2) * c for i = 5 : 8]
-    group_3 = [[cos(i - 1)π  / 2, sin(i - 1)π / 2] * 2c for i = 9 : 12]
-    group_4 = [[cos(2i - 9)π  / 4, sin(2i - 9)π / 4] * sqrt(2) * c for i = 13 : 16]
-
-    return [
-        rest,
-        group_1...,
-        group_2...,
-        group_3...,
-        group_4...,
-    ]
-end
-
-
 struct D2Q17 <: Quadrature
     abscissae::Array{Int64, 2}
     weights::Array{Float64, 1}
@@ -56,3 +37,26 @@ end
 
 order(q::D2Q17) = 7
 Base.show(io::IO, q::D2Q17)= show(io, "D2Q17")
+
+function _equilibrium(q::D2Q17, ρ, weight, u_dot_xi, u_squared, T, xi_squared)
+    # Truncated upto order 2
+    cs = q.speed_of_sound_squared
+    D = dimension(q)
+    H_2_temperature = cs * (T .- 1) .* (cs * xi_squared - D)
+    H_3_temperature = 3.0 * cs * (T .- 1) * (cs * xi_squared - 2 - D)
+    # H_2_temperature = 0.0
+    # H_3_temperature = 0.0
+
+    a_H_0 = 1.0
+    a_H_1 = cs * u_dot_xi
+    a_H_2 = cs^2 * (u_dot_xi .* u_dot_xi) .+ H_2_temperature .+ - cs * u_squared
+    a_H_3 = cs * u_dot_xi .* (
+        cs^2 * (u_dot_xi .* u_dot_xi) -  3 * cs * u_squared .+ H_3_temperature
+    )
+    return ρ .* weight .* (
+        a_H_0 .+
+        a_H_1 .+
+        (1 / 2) * a_H_2 .+
+        (1 / 6) * a_H_3
+    )
+end

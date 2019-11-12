@@ -23,7 +23,12 @@ function opposite(q::Quadrature, idx::Int64)
 end
 
 
+δ(α, β) = α == β ? 1 : 0
 include("hermite.jl")
+include("thermodynamics.jl")
+include("equilibrium.jl")
+
+# Specific quadrature rules
 include("D2Q4.jl")
 include("D2Q5.jl")
 include("D2Q9.jl")
@@ -31,8 +36,6 @@ include("D2Q13.jl")
 include("D2Q17.jl")
 include("D2Q21.jl")
 include("D2Q37.jl")
-include("thermodynamics.jl")
-include("equilibrium.jl")
 
 
 # plot(map(q -> lbm.plot_quadrature(q, false), [D2Q4(), D2Q5(), D2Q9(), D2Q13(), D2Q17(), D2Q21(), D2Q37()])...)

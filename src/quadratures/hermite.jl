@@ -1,6 +1,5 @@
 # functions to determine hermite coefficients of a function
 
-δ(α, β) = α == β ? 1 : 0
 hermite(::Type{Val{0}}) = 1.0
 hermite(::Type{Val{0}}, ξ) = hermite(Val{0})
 hermite(::Type{Val{1}}, ξ) = ξ .* hermite(Val{0})
