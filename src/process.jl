@@ -1,6 +1,26 @@
 using Plots
 using DataFrames
 
+function process_stats()
+    return DataFrame(
+        [
+            Float64[], Float64[], Float64[], Float64[], Float64[],
+            Float64[], Float64[], Float64[], Float64[], Float64[],
+            # Float64[],
+            # Float64[],
+            # Float64[],
+            Float64[], Float64[]
+        ],
+        [
+            :density, :momentum, :total_energy, :kinetic_energy, :internal_energy,
+            :density_a, :momentum_a, :total_energy_a, :kinetic_energy_a, :internal_energy_a,
+            # :density_e,
+            # :momentum_e,
+            # :kinetic_energy_e,
+            :u_error, :p_error
+        ]
+    )
+end
 function process!(problem::InitialValueProblem, q::Quadrature, f_in, time, stats; should_visualize = false)
     f = Array{Float64}(undef, size(f_in, 3))
     u = zeros(dimension(q))

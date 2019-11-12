@@ -37,26 +37,6 @@ export Quadrature, Lattice, D2Q4, D2Q5, D2Q9, D2Q17,
     collide!,
     simulate
 
-function process_stats()
-    return DataFrame(
-        [
-            Float64[], Float64[], Float64[], Float64[], Float64[],
-            Float64[], Float64[], Float64[], Float64[], Float64[],
-            # Float64[],
-            # Float64[],
-            # Float64[],
-            Float64[], Float64[]
-        ],
-        [
-            :density, :momentum, :total_energy, :kinetic_energy, :internal_energy,
-            :density_a, :momentum_a, :total_energy_a, :kinetic_energy_a, :internal_energy_a,
-            # :density_e,
-            # :momentum_e,
-            # :kinetic_energy_e,
-            :u_error, :p_error
-        ]
-    )
-end
 # https://github.com/MagB93/LatticeBoltzmann/blob/master/src/LatticeBoltzmann.jl
 function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
                   base = 200,
