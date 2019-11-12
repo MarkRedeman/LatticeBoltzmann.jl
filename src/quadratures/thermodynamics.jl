@@ -73,7 +73,9 @@ function dimension(q::Quadrature)::Int
 end
 
 function temperature(q::Quadrature, f, ρ, u)
-    return pressure(q, f, ρ[:, :, 1], u) ./ ρ
+    return [
+        pressure(q, f[x_idx, y_idx, :], ρ[x_idx, y_idx, 1], u[x_idx, y_idx, :]) ./ ρ for x_idx = 1:size(f, 1), y_idx = 1:size(f, 2)
+    ]
     # return internal_energy(q, f, ρ, u) * (2 / dimension(q))
 end
 
