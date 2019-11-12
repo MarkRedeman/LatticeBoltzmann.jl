@@ -24,7 +24,7 @@ function TaylorGreenVortexExample(ν = 1.0 / 6.0 , scale = 2, NX = 16 * scale, N
 end
 
 function density(q::Quadrature, tgv::TaylorGreenVortexExample, x::Float64, y::Float64, timestep::Float64 = 0.0)
-    # return pressure(q, tgv, x, y, timestep)
+    return pressure(q, tgv, x, y, timestep)
     
     # If not athermal
     return 1.0
