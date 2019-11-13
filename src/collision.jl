@@ -47,25 +47,7 @@ struct MRT{Force} <: CollisionModel
     force::Force#::Array{Any, 2}
 end
 
-function MRT(q::Quadrature, τs::Vector{Float64})
-    N = round(Int, order(q) / 2)
-    Hs = [
-        [
-            hermite(Val{n}, q.abscissae[:, i], q)
-            for i = 1:length(q.weights)
-        ]
-        for n = 1:N
-    ]
-
-    MRT(
-        τs,
-        1.0,
-        Hs,
-        copy(Hs),
-        nothing
-    )
-end
-function MRT(q::Quadrature, τs::Vector{Float64}, force)
+function MRT(q::Quadrature, τs::Vector{Float64}, force = nothing)
     N = round(Int, order(q) / 2)
     Hs = [
         [
