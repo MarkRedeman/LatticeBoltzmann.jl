@@ -53,13 +53,13 @@ function equilibrium!(
     end
 
     for idx = 1:length(q.weights)
-        cs = q.abscissae[1, idx] .* u[1] .+ q.abscissae[2, idx] .* u[2]
+        u_dot_xi = q.abscissae[1, idx] .* u[1] .+ q.abscissae[2, idx] .* u[2]
 
         f[idx] = _equilibrium(
             q,
             ρ,
             q.weights[idx],
-            cs,
+            u_dot_xi,
             u_squared,
             T,
             q.abscissae[1, idx]^2 + q.abscissae[2, idx]^2
