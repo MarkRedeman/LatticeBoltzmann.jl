@@ -75,39 +75,6 @@ function LatticeBoltzmannMethod(
     )
 end
 
-function collide!(lbm; time, problem)
-    collide!(
-        lbm.collision_model,
-        lbm.quadrature,
-        f_new = lbm.f_collision,
-        f_old = lbm.f_stream,
-        time = t * Δt,
-        problem = problem
-    )
-end
-
-function stream!(lbm)
-    stream!(
-        lbm.quadrature,
-        f_new = lbm.f_stream,
-        f_old = lbm.f_collision
-    )
-end
-
-function apply_boundary_conditions!(lbm; time = 0.0)
-    apply!(
-        lbm.boundary_conditions,
-        lbm.quadrature,
-        lbm.f_stream,
-        lbm.f_collision,
-        time = t * Δt
-    )
-end
-
-function process_step!(lbm, t::Int64)
-    next!(lbm.processing_method, lbm.quadrature, lbm.f_stream, t)
-end
-
 function siumlate(
     problem::FluidFlowProblem,
     q::Quadrature;
@@ -140,6 +107,44 @@ function siumlate(
     process_step!(lbm, n_steps)
 
     lbm
+end
+
+# The following are helper functions which use the old interface where we
+# explicitely pass the quadrature, collision model etc.
+# This will likely be refactored so that we can write specialized function
+# for each specific LatticeBoltzmannModel (once we also introduce ddf models)
+
+function collide!(lbm; time, problem)
+    collide!(
+        lbm.collision_model,
+        lbm.quadrature,
+        f_new = lbm.f_collision,
+        f_old = lbm.f_stream,
+        time = time,
+        problem = problem
+    )
+end
+
+function stream!(lbm)
+    stream!(
+        lbm.quadrature,
+        f_new = lbm.f_stream,
+        f_old = lbm.f_collision
+    )
+end
+
+function apply_boundary_conditions!(lbm; time = 0.0)
+    apply!(
+        lbm.boundary_conditions,
+        lbm.quadrature,
+        lbm.f_stream,
+        lbm.f_collision,
+        time = time
+    )
+end
+
+function process_step!(lbm, t::Int64)
+    next!(lbm.processing_method, lbm.quadrature, lbm.f_stream, t)
 end
 
 end
