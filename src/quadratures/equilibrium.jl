@@ -23,6 +23,8 @@ function equilibrium(
 )
     u_squared = sum(u.^2)
     f = zeros(length(q.weights));
+    hermite_based_equilibrium!(q, ρ, u, T, f)
+    return f
 
     for idx = 1:length(q.weights)
         cs = q.abscissae[1, idx] .* u[1] .+ q.abscissae[2, idx] .* u[2]
