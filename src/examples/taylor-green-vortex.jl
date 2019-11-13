@@ -7,52 +7,10 @@ using DataFrames
 using lbm
 using Plots
 
-function analyze_convergence(
-    q::lbm.Quadrature,
-    p,
-    viscosity::Float64,
-    N = 2,
-    t_end = 2pi
-)
-    stats = DataFrame([
-        Float64[], Int[], Float64[], Float64[], Float64[], Float64[]
-    ], [:nu, :scale, :u_error, :delta_x, :delta_t, :Re])
-
-    for scale = 0:N
-        problem = p(2^scale, viscosity)
-        result = lbm.siumlate(problem, q, base = 200, should_process = false, t_end = t_end)
-        push!(stats, [
-            viscosity, 5 .* 2^scale, result[2].u_error[end], lbm.delta_x(problem), lbm.delta_t(problem), lbm.reynolds(problem)
-        ])
-
-        @show force(problem, 0.0, 0.0, 0.0)
-    end
-
-    # plot_convergence(stats, viscosity)
-    # gui()
-
-    @show -log.(
-        stats.u_error[2:end] ./ stats.u_error[1:(end - 1)]
-    ) ./ log.(
-        stats.nu[2:end] ./ stats.nu[1:(end - 1)]
-    )
-
-    return stats
-end
-function plot_convergence(stats, viscosity)
-    nu_round = round(viscosity, digits = 2)
-
-    p = plot()
-    plot!(p, stats.scale, stats.u_error , label="nu = $nu_round")
-    plot!(p, x -> stats.u_error[1] * 10.0 * x^(-2), label="y(x) = 10x^(-2)", linestyle=:dash)
-    plot!(p, scale=:log10, legend=:bottomleft, legendfontsize=5)
-    return p
-end
-
-# analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortexExample(viscosity, scale, static = true), 1.0 / 6.0, 2)
-# analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortexExample(viscosity, scale, static = false), 1.0 / 6.0, 3)
-analyze_convergence(D2Q9(), (scale, viscosity) -> PoiseuilleFlow(viscosity, scale, static = true), 1.0 / 6.0, 3)
-# analyze_convergence(D2Q9(), (scale, viscosity) -> DecayingShearFlow(viscosity, scale, static = true), 1.0 / 6.0, 3)
+# lbm.analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortexExample(viscosity, scale, static = true), 1.0 / 6.0, 2)
+# lbm.analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortexExample(viscosity, scale, static = false), 1.0 / 6.0, 3)
+# lbm.analyze_convergence(D2Q9(), (scale, viscosity) -> PoiseuilleFlow(viscosity, scale, static = true), 1.0 / 6.0, 3)
+# lbm.analyze_convergence(D2Q9(), (scale, viscosity) -> DecayingShearFlow(viscosity, scale, static = true), 1.0 / 6.0, 3)
 
     stats = DataFrame([Float64[], Int[], Any[]], [:nu, :scale, :stats])
 
