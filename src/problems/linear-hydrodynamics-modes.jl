@@ -37,7 +37,7 @@ struct LinearizedThermalDiffusion <: InitialValueProblem
     NX::Int64
     NY::Int64
 end
-function LinearizedThermalDiffusion(ν, κ, scale, NY = 8 * scale)
+function LinearizedThermalDiffusion(ν, κ, scale, NY = 4 * scale)
     u_max = 0.01 / scale
 
     return LinearizedThermalDiffusion(
