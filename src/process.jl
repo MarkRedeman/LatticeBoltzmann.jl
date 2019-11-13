@@ -3,14 +3,14 @@ using DataFrames
 
 abstract type ProcessingMethod end
 ProcessingMethod(problem, should_process, n_steps) = CompareWithAnalyticalSolution(problem, should_process, n_steps)
-struct CompareWithAnalyticalSolution5{T} <: ProcessingMethod
+struct CompareWithAnalyticalSolution{T} <: ProcessingMethod
     problem::InitialValueProblem
     should_process::Bool
     n_steps::Int64
     stop_criteria::StopCriteria
     df::T
 end
-CompareWithAnalyticalSolution(problem, should_process, n_steps) = CompareWithAnalyticalSolution5(
+CompareWithAnalyticalSolution(problem, should_process, n_steps) = CompareWithAnalyticalSolution(
     problem,
     should_process,
     n_steps,
@@ -29,7 +29,7 @@ CompareWithAnalyticalSolution(problem, should_process, n_steps) = CompareWithAna
     )
 )
 
-function next!(stats::CompareWithAnalyticalSolution5, q, f_in, t::Int64)
+function next!(stats::CompareWithAnalyticalSolution, q, f_in, t::Int64)
     if mod(t, 100) == 0
         if (should_stop!(stats.stop_criteria, q, f_in))
             @info "Stopping after $t steps out of $stats.n_steps"
