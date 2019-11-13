@@ -44,10 +44,11 @@ function siumlate(
     base = 200,
     n_steps = base * problem.NX * problem.NX / (16 * 16),
     should_process = true,
-    t_end = 1.0
+    t_end = 1.0,
+    collision_model = SRT
 )
     # Combine both of these two lines into LBM(f_in, f_out, quadrature)
-    f_stream, collision_operator = initialize(q, problem)
+    f_stream, collision_operator = initialize(q, problem, collision_model)
     f_collision = similar(f_stream)
     boundary_conditions = lbm.boundary_conditions(problem)
 

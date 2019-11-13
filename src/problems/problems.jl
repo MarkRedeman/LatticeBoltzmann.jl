@@ -49,7 +49,7 @@ function range(problem::InitialValueProblem)
     return x_range, y_range
 end
 
-function initialize(quadrature::Quadrature, problem::InitialValueProblem)
+function initialize(quadrature::Quadrature, problem::InitialValueProblem, cm = SRT)
     # force_field = Array{Any}(undef, problem.NX, problem.NY)
     f = Array{Float64}(undef, problem.NX, problem.NY, length(quadrature.weights))
 
@@ -68,9 +68,13 @@ function initialize(quadrature::Quadrature, problem::InitialValueProblem)
 
     if has_external_force(problem)
         force_field = (x_idx, y_idx, t) -> lattice_force(problem, x_idx, y_idx, t)
-        collision_operator = SRT_Force(τ, force_field)
+        if cm <: SRT
+            collision_operator = SRT_Force(τ, force_field)
+        end
     else
-        collision_operator = SRT(τ)
+        if cm <: SRT
+            collision_operator = SRT(τ)
+        end
     end
 
     # if (
