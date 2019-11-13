@@ -59,7 +59,8 @@ function collide!(collision_model::SRT, q::Quadrature, f_in, f_out; time = 0.0, 
         velocity!(q, f, ρ, u)
 
         # Temperature
-        T = temperature(q, f, ρ, u)
+        # T = temperature(q, f, ρ, u)
+        T = 1.0
 
         equilibrium!(q, ρ, u, T, feq);
 
@@ -89,7 +90,8 @@ function collide!(collision_model::SRT_Force, q::Quadrature, f_in, f_out; time =
         velocity!(q, f, ρ, u)
 
         # Temperature
-        T = temperature(q, f, ρ, u)
+        # T = temperature(q, f, ρ, u)
+        T = 1.0
 
         F .= collision_model.force(x, y, time)
 

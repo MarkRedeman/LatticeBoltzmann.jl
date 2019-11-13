@@ -44,8 +44,8 @@ function _equilibrium(q::D2Q17, ρ, weight, u_dot_xi, u_squared, T, xi_squared)
     D = dimension(q)
     H_2_temperature = cs * (T .- 1) .* (cs * xi_squared - D)
     H_3_temperature = 3.0 * cs * (T .- 1) * (cs * xi_squared - 2 - D)
-    # H_2_temperature = 0.0
-    # H_3_temperature = 0.0
+    H_2_temperature = 0.0
+    H_3_temperature = 0.0
 
     a_H_0 = 1.0
     a_H_1 = cs * u_dot_xi
