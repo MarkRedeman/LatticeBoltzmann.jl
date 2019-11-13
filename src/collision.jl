@@ -265,5 +265,3 @@ function collide_mrt!(
     end
     return
 end
-
-# end
