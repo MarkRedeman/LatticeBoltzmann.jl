@@ -14,6 +14,7 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 StatsPlots = "f3b207a7-027a-5e70-b257-86293d7955fd"
 TensorOperations = "6aa20fa7-93e2-5fca-9bc0-fbd0db3c71a2"
 TimerOutputs = "a759f4b9-e2f1-59dc-863e-4aeb61b1ea8f"
+UnicodePlots = "b8865327-cd53-5732-bb35-84acbb429228"
 
 [compat]
 julia = "^1"
