@@ -22,5 +22,25 @@ end
 include("hermite-polynomials/hermite.jl")
 include("hermite-polynomials/equilibrium-coefficients.jl")
 include("hermite-polynomials/equilibrium.jl")
-include("quadratures/quadrature.jl")
 include("thermodynamics.jl")
+
+# Specific quadrature rules
+include("quadratures/D2Q4.jl")
+include("quadratures/D2Q5.jl")
+include("quadratures/D2Q9.jl")
+include("quadratures/D2Q13.jl")
+include("quadratures/D2Q17.jl")
+include("quadratures/D2Q21.jl")
+include("quadratures/D2Q37.jl")
+
+const Quadratures = (
+    D2Q4 = D2Q4(),
+    D2Q5 = D2Q5(),
+    D2Q9 = D2Q9(),
+    D2Q13 = D2Q13(),
+    D2Q17 = D2Q17(),
+    D2Q21 = D2Q21(),
+    D2Q37 = D2Q37(),
+)
+
+include("quadratures/plot-quadratures.jl")
