@@ -11,6 +11,7 @@ include("problems/problems.jl")
 include("collision.jl")
 include("stopping-criteria.jl")
 include("process.jl")
+include("analysis.jl")
 
 export Quadrature, Lattice, D2Q4, D2Q5, D2Q9, D2Q17,
     opposite,
