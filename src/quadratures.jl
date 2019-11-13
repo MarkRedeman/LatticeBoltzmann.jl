@@ -19,8 +19,8 @@ function opposite(q::Quadrature, idx::Int64)
 end
 
 δ(α, β) = α == β ? 1 : 0
-include("quadratures/hermite.jl")
-include("quadratures/equilibrium-coefficients.jl")
-include("quadratures/thermodynamics.jl")
-include("quadratures/equilibrium.jl")
+include("hermite-polynomials/hermite.jl")
+include("hermite-polynomials/equilibrium-coefficients.jl")
+include("hermite-polynomials/equilibrium.jl")
+include("thermodynamics.jl")
 include("quadratures/quadrature.jl")

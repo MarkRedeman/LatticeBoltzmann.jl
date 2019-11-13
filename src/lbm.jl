@@ -4,7 +4,7 @@ using DataFrames
 using BenchmarkTools
 using TimerOutputs
 
-include("quadratures/quadrature.jl")
+include("quadratures.jl")
 include("boundary-conditions.jl")
 include("stream.jl")
 include("problems/problems.jl")
