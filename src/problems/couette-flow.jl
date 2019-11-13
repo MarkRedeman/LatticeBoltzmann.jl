@@ -42,12 +42,10 @@ function force(problem::CouetteFlow, x::Float64, y::Float64, time::Float64 = 0.0
 end
 
 """
-Apply a bottom and top wall bounce back boundary condition
-
-The nodes at y = 1, NY are facing a stationary wall
-The bounce back boundary condition will reflect any incoming particles
+Apply a bounce back to the bottom of the domain and a moving wall to the
+top of the domain
 """
-function apply_boundary_conditions_after!(q::Quadrature, problem::CouetteFlow; time = t * Δt, f_new, f_old)
-    bounce_back_from_bottom!(q, f_new, f_old, :, 1)
-    bounce_back_from_top!(q, f_new, f_old, :, problem.NY, [problem.u_max, 0])
-end
+boundary_conditions(problem::CouetteFlow) = [
+    BounceBack(South(), 1:problem.NX, 1:problem.NY),
+    MovingWall(North(), 1:problem.NX, 1:problem.NY, [problem.u_max, 0]),
+]

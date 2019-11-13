@@ -5,12 +5,12 @@ using BenchmarkTools
 using TimerOutputs
 
 include("quadratures/quadrature.jl")
+include("boundary-conditions.jl")
 include("stream.jl")
 include("collision.jl")
 include("problems/problems.jl")
-include("process.jl")
 include("stopping-criteria.jl")
-include("boundary-conditions.jl")
+include("process.jl")
 
 export Quadrature, Lattice, D2Q4, D2Q5, D2Q9, D2Q17,
     opposite,
@@ -46,6 +46,8 @@ function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
     # initialize
     f_out, collision_operator = initialize(quadrature, problem)
     f_in = copy(f_out)
+    boundary_conditions = lbm.boundary_conditions(problem)
+
     Δt = lbm.delta_t(problem)
     n_steps = round(Int, t_end / Δt)
 
@@ -74,7 +76,7 @@ function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
 
         stream!(quadrature, f_new = f_in, f_old = f_out)
 
-        apply_boundary_conditions_after!(quadrature, problem, f_new = f_in, f_old = f_out, time = t * Δt)
+        apply!(boundary_conditions, q, f_in, f_out, time = t * Δt)
 
         # check_stability(f_in) || return :unstable, f_in, stats       )
         if mod(t, 100) == 0

@@ -51,11 +51,8 @@ has_external_force(problem::PoiseuilleFlow) = true
 
 """
 Apply a bottom and top wall bounce back boundary condition
-
-The nodes at y = 1, NY are facing a stationary wall
-The bounce back boundary condition will reflect any incoming particles
 """
-function apply_boundary_conditions_after!(q::Quadrature, problem::PoiseuilleFlow; time = t * Δt, f_new, f_old)
-    bounce_back_from_bottom!(q, f_new, f_old, :, 1)
-    bounce_back_from_top!(q, f_new, f_old, :, problem.NY)
-end
+boundary_conditions(problem::PoiseuilleFlow) = [
+    BounceBack(North(), 1:problem.NX, 1:problem.NY),
+    BounceBack(South(), 1:problem.NX, 1:problem.NY),
+]

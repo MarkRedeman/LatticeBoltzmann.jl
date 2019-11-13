@@ -36,15 +36,12 @@ function velocity(problem::LidDrivenCavityFlow, x::Float64, y::Float64, timestep
 end
 
 """
-Apply a bottom and top wall bounce back boundary condition
-
-The nodes at y = 1, NY are facing a stationary wall
-The bounce back boundary condition will reflect any incoming particles
+Apply a moving wall to the top of the domain and bounce back to all other
+sides of the domain
 """
-function apply_boundary_conditions_after!(q::Quadrature, problem::LidDrivenCavityFlow; time = t * Δt, f_new, f_old)
-    bounce_back_from_left!(q, f_new, f_old, 1, :)
-    bounce_back_from_right!(q, f_new, f_old, problem.NX, :)
-    bounce_back_from_bottom!(q, f_new, f_old, :, 1)
-
-    bounce_back_from_top!(q, f_new, f_old, :, problem.NY, [problem.u_max, 0])
-end
+boundary_conditions(problem::LidDrivenCavityFlow) = [
+    BounceBack(East(), 1:problem.NX, 1:problem.NY),
+    BounceBack(South(), 1:problem.NX, 1:problem.NY),
+    BounceBack(West(), 1:problem.NX, 1:problem.NY),
+    MovingWall(North(), 1:problem.NX, 1:problem.NY, [problem.u_max, 0]),
+]
