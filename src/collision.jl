@@ -24,6 +24,13 @@ struct SRT <: CollisionModel
     τ::Float64
 end
 
+struct SRT_Force{T} <: CollisionModel
+    τ::Float64
+    # force::Array{Float64, 3}
+    force::T#::Array{Any, 2}
+end
+SRT(τ, force) = SRT_Force(τ, force)
+
 struct TRT <: CollisionModel
     τ_symmetric
     τ_asymmetric
@@ -33,13 +40,6 @@ function TRT(τ_symmetric, Δt, ν)
     # \Nabla = (τ_symmetric / Δt - .5) * (τ_asymmetric / Δt - .5)
     # should equal 1 / 4
 end
-
-struct SRT_Force{T} <: CollisionModel
-    τ::Float64
-    # force::Array{Float64, 3}
-    force::T#::Array{Any, 2}
-end
-SRT(τ, force) = SRT_Force(τ, force)
 
 struct MRT <: CollisionModel
     τs::Vector{Float64}
