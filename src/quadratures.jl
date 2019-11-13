@@ -22,5 +22,5 @@ end
 include("hermite-polynomials/hermite.jl")
 include("hermite-polynomials/equilibrium-coefficients.jl")
 include("hermite-polynomials/equilibrium.jl")
-include("thermodynamics.jl")
 include("quadratures/quadrature.jl")
+include("thermodynamics.jl")
