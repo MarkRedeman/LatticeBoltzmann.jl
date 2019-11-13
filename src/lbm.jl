@@ -6,12 +6,11 @@ using TimerOutputs
 
 include("quadratures.jl")
 include("boundary-conditions.jl")
-include("stream.jl")
 include("problems/problems.jl")
+include("stream.jl")
 include("collision.jl")
-include("stopping-criteria.jl")
-include("process.jl")
 include("analysis.jl")
+include("process.jl")
 
 export Quadrature, Lattice, D2Q4, D2Q5, D2Q9, D2Q17,
     opposite,
