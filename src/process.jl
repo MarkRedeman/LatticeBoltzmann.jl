@@ -1,26 +1,65 @@
 using Plots
 using DataFrames
 
-function process_stats()
-    return DataFrame(
+abstract type ProcessingMethod end
+struct CompareWithAnalyticalSolution5{T} <: ProcessingMethod
+    problem::InitialValueProblem
+    should_process::Bool
+    n_steps::Int64
+    stop_criteria::StopCriteria
+    df::T
+end
+CompareWithAnalyticalSolution(problem, should_process, n_steps) = CompareWithAnalyticalSolution5(
+    problem,
+    should_process,
+    n_steps,
+    StopCriteria(problem),
+    DataFrame(
         [
             Float64[], Float64[], Float64[], Float64[], Float64[],
             Float64[], Float64[], Float64[], Float64[], Float64[],
-            # Float64[],
-            # Float64[],
-            # Float64[],
             Float64[], Float64[]
         ],
         [
             :density, :momentum, :total_energy, :kinetic_energy, :internal_energy,
             :density_a, :momentum_a, :total_energy_a, :kinetic_energy_a, :internal_energy_a,
-            # :density_e,
-            # :momentum_e,
-            # :kinetic_energy_e,
             :u_error, :p_error
         ]
     )
+)
+
+function next!(stats::CompareWithAnalyticalSolution5, q, f_in, t::Int64)
+    if mod(t, 100) == 0
+        if (should_stop!(stats.stop_criteria, q, f_in))
+            @info "Stopping after $t steps out of $n_steps"
+            return true
+        end
+    end
+
+    if (! stats.should_process)
+        return false
+    end
+
+    Δt = delta_t(stats.problem)
+    time = t * Δt
+
+    if mod(t, 1) == 0
+        process!(
+            stats.problem,
+            q,
+            f_in,
+            time,
+            stats.df;
+            should_visualize = (
+                t == stats.n_steps ||
+                mod(t, round(Int, stats.n_steps / 20)) == 0
+            )
+        )
+    end
+
+    return false
 end
+
 function process!(problem::InitialValueProblem, q::Quadrature, f_in, time, stats; should_visualize = false)
     f = Array{Float64}(undef, size(f_in, 3))
     u = zeros(dimension(q))

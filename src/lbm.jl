@@ -38,61 +38,38 @@ export Quadrature, Lattice, D2Q4, D2Q5, D2Q9, D2Q17,
     simulate
 
 # https://github.com/MagB93/LatticeBoltzmann/blob/master/src/LatticeBoltzmann.jl
-function siumlate(problem::InitialValueProblem, quadrature::Quadrature = D2Q9();
-                  base = 200,
-                  n_steps = base * problem.NX * problem.NX / (16 * 16),
-                  should_process = true,
-                  t_end = 1.0)
-    # initialize
-    f_out, collision_operator = initialize(quadrature, problem)
-    f_in = copy(f_out)
+function siumlate(
+    problem::InitialValueProblem,
+    q::Quadrature;
+    base = 200,
+    n_steps = base * problem.NX * problem.NX / (16 * 16),
+    should_process = true,
+    t_end = 1.0
+)
+    # Combine both of these two lines into LBM(f_in, f_out, quadrature)
+    f_stream, collision_operator = initialize(q, problem)
+    f_collision = similar(f_stream)
     boundary_conditions = lbm.boundary_conditions(problem)
 
     Δt = lbm.delta_t(problem)
     n_steps = round(Int, t_end / Δt)
 
-    stats = process_stats()
-    stop_criteria = StopCriteria(problem)
-
+    processing_method = CompareWithAnalyticalSolution(problem, should_process, n_steps)
     @inbounds for t = 0:n_steps
-        # if mod(t, round(Int, n_steps / 10)) == 0
-        #     @show t, t / n_steps, t * Δt
-        # end
-
-        if (should_process && mod(t, 1) == 0)
-            lbm.process!(
-                problem,
-                quadrature,
-                f_in,
-                t * Δt,
-                stats,
-                # should_visualize = (mod(t, 50) == 0)
-                should_visualize = (mod(t, round(Int, n_steps / 20)) == 0)
-                # should_visualize = true
-            )
+        if next!(processing_method, q, f_stream, t)
+            break
         end
 
-        collide!(collision_operator, quadrature, time = t * Δt, problem = problem, f_old = f_in, f_new = f_out)
+        collide!(collision_operator, q, f_new = f_collision, f_old = f_stream, time = t * Δt, problem = problem)
 
-        stream!(quadrature, f_new = f_in, f_old = f_out)
+        stream!(q, f_new = f_stream, f_old = f_collision)
 
-        apply!(boundary_conditions, q, f_in, f_out, time = t * Δt)
-
-        # check_stability(f_in) || return :unstable, f_in, stats       )
-        if mod(t, 100) == 0
-            if (should_stop!(stop_criteria, quadrature, f_in))
-                @show "Stopping after $t steps out of $n_steps"
-                lbm.process!(problem, quadrature, f_in, t * Δt, stats, should_visualize = should_process)
-                return f_in, stats
-            end
-        end
+        apply!(boundary_conditions, q, f_stream, f_collision, time = t * Δt)
     end
 
-    lbm.process!(problem, quadrature, f_in, n_steps * Δt, stats, should_visualize = should_process)
+    next!(processing_method, q, f_stream, n_steps)
 
-    # @show stats
-
-    f_in, stats
+    f_stream, processing_method
 end
 
 # export process!
