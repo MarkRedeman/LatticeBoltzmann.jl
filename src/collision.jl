@@ -18,18 +18,12 @@ function CollisionModel(
         return SRT(τ, force_field)
     end
 
-    return SRT(τ)
+    return SRT(τ, nothing)
 end
-struct SRT <: CollisionModel
+struct SRT{Force} <: CollisionModel
     τ::Float64
+    force::Force
 end
-
-struct SRT_Force{T} <: CollisionModel
-    τ::Float64
-    # force::Array{Float64, 3}
-    force::T#::Array{Any, 2}
-end
-SRT(τ, force) = SRT_Force(τ, force)
 
 struct TRT <: CollisionModel
     τ_symmetric
@@ -41,17 +35,7 @@ function TRT(τ_symmetric, Δt, ν)
     # should equal 1 / 4
 end
 
-struct MRT <: CollisionModel
-    τs::Vector{Float64}
-
-    # We will be using Hermite polynomials to compute the corresponding coefficients
-    H0::Float64
-    Hs::Array{Array{T, 1} where T}
-    # Keep higher order coefficients allocated
-    As::Array{Array{T, 1} where T}
-end
-
-struct MRT_Force{Force} <: CollisionModel
+struct MRT{Force} <: CollisionModel
     τs::Vector{Float64}
 
     # We will be using Hermite polynomials to compute the corresponding coefficients
@@ -62,6 +46,7 @@ struct MRT_Force{Force} <: CollisionModel
 
     force::Force#::Array{Any, 2}
 end
+
 function MRT(q::Quadrature, τs::Vector{Float64})
     N = round(Int, order(q) / 2)
     Hs = [
@@ -76,7 +61,8 @@ function MRT(q::Quadrature, τs::Vector{Float64})
         τs,
         1.0,
         Hs,
-        copy(Hs)
+        copy(Hs),
+        nothing
     )
 end
 function MRT(q::Quadrature, τs::Vector{Float64}, force)
@@ -89,7 +75,7 @@ function MRT(q::Quadrature, τs::Vector{Float64}, force)
         for n = 1:N
     ]
 
-    MRT_Force(
+    MRT(
         τs,
         1.0,
         Hs,
@@ -119,43 +105,15 @@ function collide!(c, q::Quadrature; time, f_new, f_old, problem)
     collide!(c, q, f_old, f_new, time = time, problem = problem)
 end
 
-function collide!(collision_model::SRT, q::Quadrature, f_in, f_out; time = 0.0, problem = nothing)
+function collide!(collision_model::SRT{Force}, q::Quadrature, f_in, f_out; time = 0.0, problem = nothing) where {Force}
     τ = collision_model.τ
 
     feq = Array{Float64}(undef, size(f_in, 3))
     f = Array{Float64}(undef, size(f_in, 3))
     u = zeros(dimension(q))
-   
-    @inbounds for x = 1 : size(f_in, 1), y = 1 : size(f_in, 2)
-        @inbounds for f_idx = 1 : size(f_in, 3)
-            f[f_idx] = f_in[x, y, f_idx]
-        end
-
-        ρ = density(q, f)
-
-        # Momentum
-        velocity!(q, f, ρ, u)
-
-        # Temperature
-        # T = temperature(q, f, ρ, u)
-        T = 1.0
-
-        equilibrium!(q, ρ, u, T, feq);
-
-        @inbounds for f_idx = 1 : size(f_in, 3)
-            f_out[x, y, f_idx] = (1 - 1 / τ) * f[f_idx] + (1 / τ) * feq[f_idx]
-        end
+    if ! (Force <: Nothing)
+        F = zeros(dimension(q))
     end
-    return
-end
-
-function collide!(collision_model::SRT_Force, q::Quadrature, f_in, f_out; time = 0.0, problem = nothing)
-    τ = collision_model.τ
-
-    feq = Array{Float64}(undef, size(f_in, 3))
-    f = Array{Float64}(undef, size(f_in, 3))
-    u = zeros(dimension(q))
-    F = zeros(dimension(q))
 
     @inbounds for x = 1 : size(f_in, 1), y = 1 : size(f_in, 2)
         @inbounds for f_idx = 1 : size(f_in, 3)
@@ -171,9 +129,13 @@ function collide!(collision_model::SRT_Force, q::Quadrature, f_in, f_out; time =
         # T = temperature(q, f, ρ, u)
         T = 1.0
 
-        F .= collision_model.force(x, y, time)
+        if Force <: Nothing
+            equilibrium!(q, ρ, u, T, feq);
+        else
+            F .= collision_model.force(x, y, time)
 
-        equilibrium!(q, ρ, u + τ * F, T, feq);
+            equilibrium!(q, ρ, u + τ * F, T, feq);
+        end
 
 
         @inbounds for f_idx = 1 : size(f_in, 3)
