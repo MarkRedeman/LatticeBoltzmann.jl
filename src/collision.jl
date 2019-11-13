@@ -39,7 +39,9 @@ function CollisionModel(
     return SRT(τ)
 end
 
-collide!(c, q::Quadrature; time, f_new, f_old, problem) = collide!(c, q, f_old, f_new, time = time, problem = problem)
+function collide!(c, q::Quadrature; time, f_new, f_old, problem)
+    collide!(c, q, f_old, f_new, time = time, problem = problem)
+end
 
 function collide!(collision_model::SRT, q::Quadrature, f_in, f_out; time = 0.0, problem = nothing)
     τ = collision_model.τ
