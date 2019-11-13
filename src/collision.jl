@@ -2,6 +2,24 @@ export SRT, TRT, MRT
 export CollisionModel
 
 abstract type CollisionModel end
+
+"""
+Our default collision model uses the Single Relaxation Time method
+"""
+function CollisionModel(
+    cm::Type{<:CollisionModel},
+    q::Quadrature,
+    problem::InitialValueProblem
+)
+    τ = q.speed_of_sound_squared * lattice_viscosity(problem) + 0.5
+
+    if has_external_force(problem)
+        force_field = (x_idx, y_idx, t) -> lattice_force(problem, x_idx, y_idx, t)
+        return SRT(τ, force_field)
+    end
+
+    return SRT(τ)
+end
 struct SRT <: CollisionModel
     τ::Float64
 end
@@ -22,21 +40,6 @@ struct SRT_Force{T} <: CollisionModel
     force::T#::Array{Any, 2}
 end
 SRT(τ, force) = SRT_Force(τ, force)
-
-function CollisionModel(
-    cm::Type{<:CollisionModel},
-    q::Quadrature,
-    problem::InitialValueProblem
-)
-    τ = q.speed_of_sound_squared * lattice_viscosity(problem) + 0.5
-
-    if has_external_force(problem)
-        force_field = (x_idx, y_idx, t) -> lattice_force(problem, x_idx, y_idx, t)
-        return SRT(τ, force_field)
-    end
-
-    return SRT(τ)
-end
 
 struct MRT <: CollisionModel
     τs::Vector{Float64}
