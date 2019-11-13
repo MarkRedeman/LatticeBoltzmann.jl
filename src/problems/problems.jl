@@ -53,9 +53,7 @@ function initialize(quadrature::Quadrature, problem::InitialValueProblem)
     # force_field = Array{Any}(undef, problem.NX, problem.NY)
     f = Array{Float64}(undef, problem.NX, problem.NY, length(quadrature.weights))
 
-    # NOTE: we have periodic boundaries
     x_range, y_range = range(problem)
-    # internal_nodes_index(problem)
     for x_idx in 1:problem.NX, y_idx in 1:problem.NY
         f[x_idx, y_idx, :] = initial_equilibrium(
             quadrature,
@@ -66,12 +64,10 @@ function initialize(quadrature::Quadrature, problem::InitialValueProblem)
 
         # force_field[x_idx, y_idx, :] = force(problem, x, y)
     end
-    force_field = (x_idx, y_idx, t) -> lattice_force(problem, x_idx, y_idx, t)
-
     τ = quadrature.speed_of_sound_squared * lattice_viscosity(problem) + 0.5
-    @show τ
 
     if has_external_force(problem)
+        force_field = (x_idx, y_idx, t) -> lattice_force(problem, x_idx, y_idx, t)
         collision_operator = SRT_Force(τ, force_field)
     else
         collision_operator = SRT(τ)
