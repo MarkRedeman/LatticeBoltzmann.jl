@@ -2,6 +2,7 @@ using Plots
 using DataFrames
 
 abstract type ProcessingMethod end
+ProcessingMethod(problem, should_process, n_steps) = CompareWithAnalyticalSolution(problem, should_process, n_steps)
 struct CompareWithAnalyticalSolution5{T} <: ProcessingMethod
     problem::InitialValueProblem
     should_process::Bool
@@ -31,7 +32,7 @@ CompareWithAnalyticalSolution(problem, should_process, n_steps) = CompareWithAna
 function next!(stats::CompareWithAnalyticalSolution5, q, f_in, t::Int64)
     if mod(t, 100) == 0
         if (should_stop!(stats.stop_criteria, q, f_in))
-            @info "Stopping after $t steps out of $n_steps"
+            @info "Stopping after $t steps out of $stats.n_steps"
             return true
         end
     end
@@ -40,20 +41,26 @@ function next!(stats::CompareWithAnalyticalSolution5, q, f_in, t::Int64)
         return false
     end
 
-    Δt = delta_t(stats.problem)
-    time = t * Δt
 
     if mod(t, 1) == 0
+        should_visualize = false
+        if t == stats.n_steps
+            should_visualize = true
+        end
+
+        if mod(t, max(10, round(Int, stats.n_steps / 2))) == 0
+            should_visualize = true
+        end
+
+
+        Δt = delta_t(stats.problem)
         process!(
             stats.problem,
             q,
             f_in,
-            time,
+            t * Δt,
             stats.df;
-            should_visualize = (
-                t == stats.n_steps ||
-                mod(t, round(Int, stats.n_steps / 20)) == 0
-            )
+            should_visualize = should_visualize
         )
     end
 

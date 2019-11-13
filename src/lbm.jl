@@ -56,7 +56,7 @@ function siumlate(
     Δt = lbm.delta_t(problem)
     n_steps = round(Int, t_end / Δt)
 
-    processing_method = CompareWithAnalyticalSolution(problem, should_process, n_steps)
+    processing_method = ProcessingMethod(problem, should_process, n_steps)
     @inbounds for t = 0:n_steps
         if next!(processing_method, q, f_stream, t)
             break
