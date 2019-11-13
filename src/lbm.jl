@@ -7,8 +7,8 @@ using TimerOutputs
 include("quadratures/quadrature.jl")
 include("boundary-conditions.jl")
 include("stream.jl")
-include("collision.jl")
 include("problems/problems.jl")
+include("collision.jl")
 include("stopping-criteria.jl")
 include("process.jl")
 
@@ -48,9 +48,10 @@ function siumlate(
     collision_model = SRT
 )
     # Combine both of these two lines into LBM(f_in, f_out, quadrature)
-    f_stream, collision_operator = initialize(q, problem, collision_model)
+    f_stream = initialize(q, problem, collision_model)
     f_collision = similar(f_stream)
     boundary_conditions = lbm.boundary_conditions(problem)
+    collision_operator = CollisionModel(collision_model, q, problem)
 
     Δt = lbm.delta_t(problem)
     n_steps = round(Int, t_end / Δt)

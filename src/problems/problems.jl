@@ -45,12 +45,10 @@ function range(problem::InitialValueProblem)
     x_range = range(Δx / 2, problem.domain_size[1] - Δx / 2, length = problem.NX)
     y_range = range(Δy / 2, problem.domain_size[1] - Δy / 2, length = problem.NY)
 
-
     return x_range, y_range
 end
 
 function initialize(quadrature::Quadrature, problem::InitialValueProblem, cm = SRT)
-    # force_field = Array{Any}(undef, problem.NX, problem.NY)
     f = Array{Float64}(undef, problem.NX, problem.NY, length(quadrature.weights))
 
     x_range, y_range = range(problem)
@@ -61,32 +59,12 @@ function initialize(quadrature::Quadrature, problem::InitialValueProblem, cm = S
             x_range[x_idx],
             y_range[y_idx]
         )
-
-        # force_field[x_idx, y_idx, :] = force(problem, x, y)
-    end
-    τ = quadrature.speed_of_sound_squared * lattice_viscosity(problem) + 0.5
-
-    if has_external_force(problem)
-        force_field = (x_idx, y_idx, t) -> lattice_force(problem, x_idx, y_idx, t)
-        if cm <: SRT
-            collision_operator = SRT_Force(τ, force_field)
-        end
-    else
-        if cm <: SRT
-            collision_operator = SRT(τ)
-        end
     end
 
-    # if (
-    #     typeof(problem) == LinearizedThermalDiffusion ||
-    #     typeof(problem) == LinearizedTransverseShearWave
-    # )
-    # end
-
-    return f, collision_operator
+    return f
 end
 
-boundary_conditions(problem::InitialValueProblem) = []
+boundary_conditions(problem::InitialValueProblem) = BoundaryCondition[]
 
 function force(problem::InitialValueProblem, x_idx::Int64, y_idx::Int64, time::Float64 = 0.0)
     x_range, y_range = range(problem)

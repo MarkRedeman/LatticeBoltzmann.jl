@@ -3,8 +3,8 @@
 
     scale = 1
     ν = 1.0 / 6.0
-    tgv = TaylorGreenVortexExample(ν, scale,)
-    f, c = lbm.initialize(q, tgv)
+    problem = TaylorGreenVortexExample(ν, scale,)
+    f = lbm.initialize(q, problem)
 
     ρ = lbm.density(q, f)
     j = lbm.momentum(q, f)

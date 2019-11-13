@@ -99,7 +99,6 @@ end
         # @code_warntype lbm.equilibrium(q, ρ, u, 1.0);
         # @code_warntype collide(collision_model, q, f)
         @inferred lbm.collide!(SRT(1.0), q, f_old = f, f_new = f_out, time = 0.0, problem = nothing)
-        return
     end
 
     @testset "Stream and collide" begin
@@ -113,6 +112,7 @@ end
         f_inn = copy(f)
         f_out = copy(f)
         f_fff = f
+        τ = 1.0
         for t = 0:3
             lbm.collide!(SRT(τ), q, f_old = f_inn, f_new = f_out, time = 0.0, problem = nothing)
             lbm.stream!(q, f_new = f_inn, f_old = f_out)

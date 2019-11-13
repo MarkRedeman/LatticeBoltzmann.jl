@@ -1,3 +1,6 @@
+export SRT, TRT, MRT
+export CollisionModel
+
 abstract type CollisionModel end
 struct SRT <: CollisionModel
     τ::Float64
@@ -18,7 +21,23 @@ struct SRT_Force{T} <: CollisionModel
     # force::Array{Float64, 3}
     force::T#::Array{Any, 2}
 end
+SRT(τ, force) = SRT_Force(τ, force)
 
+
+function CollisionModel(
+    cm::Type{<:CollisionModel},
+    q::Quadrature,
+    problem::InitialValueProblem
+)
+    τ = q.speed_of_sound_squared * lattice_viscosity(problem) + 0.5
+
+    if has_external_force(problem)
+        force_field = (x_idx, y_idx, t) -> lattice_force(problem, x_idx, y_idx, t)
+        return SRT(τ, force_field)
+    end
+
+    return SRT(τ)
+end
 
 collide!(c, q::Quadrature; time, f_new, f_old, problem) = collide!(c, q, f_old, f_new, time = time, problem = problem)
 
