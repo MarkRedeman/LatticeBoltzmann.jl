@@ -1,6 +1,6 @@
 export RayleighBenard
 
-struct RayleighBenard <: InitialValueProblem
+struct RayleighBenard <: FluidFlowProblem
     rho_0::Float64
     u_max::Float64
     ν::Float64

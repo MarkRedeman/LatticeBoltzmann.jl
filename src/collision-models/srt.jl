@@ -8,7 +8,7 @@ end
 function CollisionModel(
     cm::Type{<:SRT},
     q::Quadrature,
-    problem::InitialValueProblem
+    problem::FluidFlowProblem
 )
     τ = q.speed_of_sound_squared * lattice_viscosity(problem) + 0.5
 

@@ -109,7 +109,7 @@ function process_step!(lbm, t::Int64)
 end
 
 function siumlate(
-    problem::InitialValueProblem,
+    problem::FluidFlowProblem,
     q::Quadrature;
     process_method = nothing,
     should_process = true,

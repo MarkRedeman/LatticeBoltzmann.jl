@@ -1,6 +1,6 @@
 export CouetteFlow
 
-struct CouetteFlow <: InitialValueProblem
+struct CouetteFlow <: FluidFlowProblem
     rho_0::Float64
     u_max::Float64
     ν::Float64

@@ -3,7 +3,7 @@ export LinearizedThermalDiffusion, LinearizedTransverseShearWave
 # A General Multiple-Relaxation-Time Boltzmann Collision Model
 # by Xiaowen Shan and Hudong Chen
 
-# struct LinearHydrodynamicsModes <: InitialValueProblem
+# struct LinearHydrodynamicsModes <: FluidFlowProblem
 #     rho_0::Float64
 #     u_max::Float64
 #     ν::Float64
@@ -21,7 +21,7 @@ u = 0
 
 It is expected that the temperature θ decays at the rate of exp(- κ t)
 """
-struct LinearizedThermalDiffusion <: InitialValueProblem
+struct LinearizedThermalDiffusion <: FluidFlowProblem
     ρ_0::Float64
     θ_0::Float64
 
@@ -97,7 +97,7 @@ u = [ ũ sin(2pi y / Ly), 0 ]
 
 It is expected that the temperature θ decays at the rate of exp(- κ t)
 """
-struct LinearizedTransverseShearWave <: InitialValueProblem
+struct LinearizedTransverseShearWave <: FluidFlowProblem
     ρ_0::Float64
     θ_0::Float64
 

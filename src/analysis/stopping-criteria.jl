@@ -3,9 +3,9 @@ struct NoStoppingCriteria <: StopCriteria end
 mutable struct MeanVelocityStoppingCriteria <: StopCriteria
     old_mean_velocity::Float64
     tolerance::Float64
-    problem::InitialValueProblem
+    problem::FluidFlowProblem
 end
-StopCriteria(problem::InitialValueProblem) = NoStoppingCriteria()
+StopCriteria(problem::FluidFlowProblem) = NoStoppingCriteria()
 StopCriteria(problem::PoiseuilleFlow) = MeanVelocityStoppingCriteria(0.0, 1e-12, problem)
 StopCriteria(problem::CouetteFlow) = MeanVelocityStoppingCriteria(0.0, 1e-12, problem)
 StopCriteria(problem::LidDrivenCavityFlow) = MeanVelocityStoppingCriteria(0.0, 1e-5, problem)

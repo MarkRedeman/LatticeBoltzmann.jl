@@ -3,7 +3,7 @@ using DataFrames
 using lbm
 using Plots
 
-function test_convergence(problem::Problem, scales) where { Problem <: InitialValueProblem }
+function test_convergence(problem::Problem, scales) where { Problem <: FluidFlowProblem }
 end
 
 function analyze_convergence(

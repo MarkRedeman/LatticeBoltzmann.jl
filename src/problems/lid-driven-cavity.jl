@@ -1,6 +1,6 @@
 export LidDrivenCavityFlow
 
-struct LidDrivenCavityFlow <: InitialValueProblem
+struct LidDrivenCavityFlow <: FluidFlowProblem
     rho_0::Float64
     u_max::Float64
     ν::Float64

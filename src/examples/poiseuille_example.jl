@@ -124,7 +124,7 @@ end
 
 
 # Idea: introduce an Initial Value Problem
-# problem = InitialValueProblem
+# problem = FluidFlowProblem
 # solution = solve(problem, LBM(Lattice, CollisionModel))
 # LBM(Lattice, CollisionModel) can be a solution method
 

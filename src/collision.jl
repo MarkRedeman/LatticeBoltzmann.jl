@@ -12,11 +12,10 @@ Our default collision model uses the Single Relaxation Time method
 function CollisionModel(
     cm::Type{<:CollisionModel},
     q::Quadrature,
-    problem::InitialValueProblem
+    problem::FluidFlowProblem
 )
     return CollisionModel(SRT, q, problem)
 end
-
 function collide!(c, q::Quadrature; time, f_new, f_old, problem)
     collide!(c, q, f_old, f_new, time = time, problem = problem)
 end

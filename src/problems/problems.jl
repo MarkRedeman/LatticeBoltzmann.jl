@@ -1,5 +1,3 @@
-using Plots
-
 export process!, initialize, apply_boundary_conditions!,
     density,
     velocity,
@@ -8,23 +6,23 @@ export process!, initialize, apply_boundary_conditions!,
     decay,
     force,
     initialize,
-    InitialValueProblem, viscosity, delta_t,
+    FluidFlowProblem, viscosity, delta_t,
     lattice_velocity,
     lattice_density,
     lattice_pressure,
     lattice_force,
     lattice_viscosity
 
-abstract type LBMProblem end
-abstract type SteadyStateProblem <: LBMProblem end
-abstract type TimeDependantProblem <: LBMProblem end
+abstract type FluidFlowProblem end
+abstract type SteadyStateProblem <: FluidFlowProblem end
+abstract type TimeDependantProblem <: FluidFlowProblem end
 
-abstract type InitialValueProblem end
-abstract type DoubleDistributionProblem <: InitialValueProblem end
+abstract type InitialValueProblem <: FluidFlowProblem end
+abstract type DoubleDistributionProblem <: FluidFlowProblem end
 
-has_external_force(problem::InitialValueProblem) = false
+has_external_force(problem::FluidFlowProblem) = false
 
-function initial_equilibrium(quadrature::Quadrature, problem::InitialValueProblem, x::Float64, y::Float64)
+function initial_equilibrium(quadrature::Quadrature, problem::FluidFlowProblem, x::Float64, y::Float64)
     return equilibrium(
         quadrature,
         lattice_density(quadrature, problem, x, y),
@@ -33,12 +31,12 @@ function initial_equilibrium(quadrature::Quadrature, problem::InitialValueProble
     )
 end
 
-function initial_condition(q::Quadrature, problem::InitialValueProblem, x::Float64, y::Float64)
+function initial_condition(q::Quadrature, problem::FluidFlowProblem, x::Float64, y::Float64)
     initial_equilibrium(q, problem, x, y)
 end
 
 import Base: range
-function range(problem::InitialValueProblem)
+function range(problem::FluidFlowProblem)
     Δx = problem.domain_size[1] / problem.NX
     Δy = problem.domain_size[2] / problem.NY
 
@@ -48,7 +46,7 @@ function range(problem::InitialValueProblem)
     return x_range, y_range
 end
 
-function initialize(quadrature::Quadrature, problem::InitialValueProblem, cm = SRT)
+function initialize(quadrature::Quadrature, problem::FluidFlowProblem, cm = SRT)
     f = Array{Float64}(undef, problem.NX, problem.NY, length(quadrature.weights))
 
     x_range, y_range = range(problem)
@@ -64,9 +62,9 @@ function initialize(quadrature::Quadrature, problem::InitialValueProblem, cm = S
     return f
 end
 
-boundary_conditions(problem::InitialValueProblem) = BoundaryCondition[]
+boundary_conditions(problem::FluidFlowProblem) = BoundaryCondition[]
 
-function force(problem::InitialValueProblem, x_idx::Int64, y_idx::Int64, time::Float64 = 0.0)
+function force(problem::FluidFlowProblem, x_idx::Int64, y_idx::Int64, time::Float64 = 0.0)
     x_range, y_range = range(problem)
 
     x = x_range[x_idx]
@@ -75,55 +73,46 @@ function force(problem::InitialValueProblem, x_idx::Int64, y_idx::Int64, time::F
     return force(problem, x, y, time)
 end
 
-function is_steady_state(problem::InitialValueProblem)
+function is_steady_state(problem::FluidFlowProblem)
     return problem.static
 end
-function is_time_dependant(problem::InitialValueProblem)
+function is_time_dependant(problem::FluidFlowProblem)
     return ! problem.static
 end
 
 # Dimensionless
-function viscosity(problem) #::InitialValueProblem)
+function viscosity(problem) #::FluidFlowProblem)
     return problem.ν * delta_x(problem)^2 / delta_t(problem)
 end
 
-function heat_diffusion(problem) #::InitialValueProblem)
+function heat_diffusion(problem) #::FluidFlowProblem)
     return problem.κ * delta_x(problem)^2 / delta_t(problem)
 end
 
-function delta_t(problem::InitialValueProblem)
+function delta_t(problem::FluidFlowProblem)
     return delta_x(problem) * problem.u_max
 end
 
-function delta_x(problem::InitialValueProblem)
+function delta_x(problem::FluidFlowProblem)
     return problem.domain_size[1] * (1 / problem.NX)
 end
-function reynolds(problem::InitialValueProblem)
+function reynolds(problem::FluidFlowProblem)
     return problem.NY * problem.u_max / problem.ν
 end
 
-lattice_viscosity(problem) = problem.ν #::InitialValueProblem)
-lattice_density(q, problem::InitialValueProblem, x, y, t = 0.0) = density(q, problem, x, y, t)
-lattice_velocity(q, problem::InitialValueProblem, x, y, t = 0.0) = problem.u_max * velocity(problem, x, y, t)
-lattice_pressure(q, problem::InitialValueProblem, x, y, t = 0.0) = problem.u_max^2 * pressure(q, problem, x, y, t)
-lattice_force(problem::InitialValueProblem, x, y, t = 0.0) = problem.u_max * delta_t(problem) * force(problem, x, y, t)
-function lattice_temperature(q, problem::InitialValueProblem, x, y, t = 0.0)
-    return pressure(q, problem, x, y) / density(q, problem, x, y)
-
-
-    θ = pressure(q, problem, x, y, t) / density(q, problem, x, y, t)
-
-    return θ * problem.u_max^2 #/ q.speed_of_sound_squared
-    return θ * problem.u_max^2 / q.speed_of_sound_squared
-        # 1.0 / quadrature.speed_of_sound_squared
-end
+lattice_viscosity(problem) = problem.ν #::FluidFlowProblem)
+lattice_density(q, problem::FluidFlowProblem, x, y, t = 0.0) = density(q, problem, x, y, t)
+lattice_velocity(q, problem::FluidFlowProblem, x, y, t = 0.0) = problem.u_max * velocity(problem, x, y, t)
+lattice_pressure(q, problem::FluidFlowProblem, x, y, t = 0.0) = problem.u_max^2 * pressure(q, problem, x, y, t)
+lattice_force(problem::FluidFlowProblem, x, y, t = 0.0) = problem.u_max * delta_t(problem) * force(problem, x, y, t)
+lattice_temperature(q, problem::FluidFlowProblem, x, y, t = 0.0) = pressure(q, problem, x, y) / density(q, problem, x, y)
 
 dimensionless_viscosity(problem) = problem.ν * delta_x(problem)^2 / delta_t(problem)
-dimensionless_density(problem::InitialValueProblem, ρ) = ρ
-dimensionless_velocity(problem::InitialValueProblem, u) = u / problem.u_max
-dimensionless_pressure(q, problem::InitialValueProblem, p) = p# (p - 1.0) / (q.speed_of_sound_squared * problem.u_max^2 )
-dimensionless_temperature(q, problem::InitialValueProblem, T) = T #* q.speed_of_sound_squared
-dimensionless_force(problem::InitialValueProblem, F) = F / (problem.u_max * delta_t(problem))
+dimensionless_density(problem::FluidFlowProblem, ρ) = ρ
+dimensionless_velocity(problem::FluidFlowProblem, u) = u / problem.u_max
+dimensionless_pressure(q, problem::FluidFlowProblem, p) = p# (p - 1.0) / (q.speed_of_sound_squared * problem.u_max^2 )
+dimensionless_temperature(q, problem::FluidFlowProblem, T) = T #* q.speed_of_sound_squared
+dimensionless_force(problem::FluidFlowProblem, F) = F / (problem.u_max * delta_t(problem))
 
 include("taylor-green-vortex-decay.jl")
 include("decaying-shear-flow.jl")
@@ -133,11 +122,3 @@ include("lid-driven-cavity.jl")
 include("linear-hydrodynamics-modes.jl")
 
 # error(::Val{:density}, node, solution) = density(node) - density(solution)
-
-struct LatticeProblem2D
-    NX::Int
-    NY::Int
-    τ::Float64
-    u_max::Float64
-end
-

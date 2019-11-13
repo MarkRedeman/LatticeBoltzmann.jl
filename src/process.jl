@@ -4,7 +4,7 @@ using DataFrames
 abstract type ProcessingMethod end
 ProcessingMethod(problem, should_process, n_steps) = CompareWithAnalyticalSolution(problem, should_process, n_steps)
 struct CompareWithAnalyticalSolution{T} <: ProcessingMethod
-    problem::InitialValueProblem
+    problem::FluidFlowProblem
     should_process::Bool
     n_steps::Int64
     stop_criteria::StopCriteria
@@ -67,7 +67,7 @@ function next!(stats::CompareWithAnalyticalSolution, q, f_in, t::Int64)
     return false
 end
 
-function process!(problem::InitialValueProblem, q::Quadrature, f_in, time, stats; should_visualize = false)
+function process!(problem::FluidFlowProblem, q::Quadrature, f_in, time, stats; should_visualize = false)
     f = Array{Float64}(undef, size(f_in, 3))
     u = zeros(dimension(q))
     expected_u = zeros(dimension(q))
@@ -197,7 +197,7 @@ function process!(problem::InitialValueProblem, q::Quadrature, f_in, time, stats
     return
 end
 
-function visualize(problem::InitialValueProblem, quadrature::Quadrature, f_in, time, stats)
+function visualize(problem::FluidFlowProblem, quadrature::Quadrature, f_in, time, stats)
     q = quadrature
     # Density
     ρ = lbm.density(quadrature, f_in)
