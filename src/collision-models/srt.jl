@@ -4,6 +4,7 @@ struct SRT{Force} <: CollisionModel
     τ::Float64
     force::Force
 end
+SRT(τ) = SRT(τ, nothing)
 
 function CollisionModel(
     cm::Type{<:SRT},
