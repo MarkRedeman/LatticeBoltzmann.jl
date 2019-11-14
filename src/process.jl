@@ -36,18 +36,22 @@ function next!(process_method::CompareWithAnalyticalSolution, q, f_in, t::Int64)
     end
 
     if (! process_method.should_process)
-        return false
+        if (t != process_method.n_steps)
+            return false
+        end
     end
 
 
     if mod(t, 1) == 0
         should_visualize = false
-        if t == process_method.n_steps
-            should_visualize = true
-        end
+        if (process_method.should_process)
+            if t == process_method.n_steps
+                should_visualize = true
+            end
 
-        if mod(t, max(10, round(Int, process_method.n_steps / 2))) == 0
-            should_visualize = true
+            if mod(t, max(10, round(Int, process_method.n_steps / 2))) == 0
+                should_visualize = true
+            end
         end
 
 

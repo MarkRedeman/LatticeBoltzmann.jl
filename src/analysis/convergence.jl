@@ -10,16 +10,16 @@ function analyze_convergence(
     N = 2,
     t_end = 2pi
 )
-    stats = Vector{NamedTuple{(:nu, :scale, :u_error), Tuple{Float64, Int, Float64}}}
+    stats = Vector{NamedTuple{(:nu, :scale, :u_error), Tuple{Float64, Int, Float64}}}()
 
     for scale = 0:N
         problem = p(2^scale, viscosity)
-        result = siumlate(problem, q, base = 200, should_process = false, t_end = t_end)
-       
+        result = siumlate(problem, q, should_process = false, t_end = t_end)
+
         push!(stats, (
             nu = viscosity,
             scale = 16 * 2^scale,
-            u_error = result[2].u_error[end],
+            u_error = result.processing_method.df[end].u_error,
         ))
     end
 
