@@ -1,6 +1,3 @@
-module Example
-module PoiseuilleFlowExample
-
 using DataFrames
 using lbm
 using Plots
@@ -115,6 +112,3 @@ end
 # problem = FluidFlowProblem
 # solution = solve(problem, LBM(Lattice, CollisionModel))
 # LBM(Lattice, CollisionModel) can be a solution method
-
-end
-end

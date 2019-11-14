@@ -1,6 +1,3 @@
-module Example
-module TaylorGreenVortex
-
 using DataFrames
 using lbm
 using Plots
@@ -132,6 +129,3 @@ end
 # Idea: introduce an Initial Value Problem
 # solution = solve(problem, LBM(Lattice, CollisionModel))
 # LBM(Lattice, CollisionModel) can be a solution method
-
-end
-end
