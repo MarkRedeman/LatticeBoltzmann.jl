@@ -1,5 +1,3 @@
-export TaylorGreenVortexDecay, TaylorGreenVortexExample
-
 struct TaylorGreenVortexExample <: lbm.FluidFlowProblem
     rho_0::Float64
     u_max::Float64

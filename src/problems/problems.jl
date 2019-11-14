@@ -1,18 +1,3 @@
-export process!, initialize, apply_boundary_conditions!,
-    density,
-    velocity,
-    pressure,
-    temperature,
-    decay,
-    force,
-    initialize,
-    FluidFlowProblem, viscosity, delta_t,
-    lattice_velocity,
-    lattice_density,
-    lattice_pressure,
-    lattice_force,
-    lattice_viscosity
-
 abstract type FluidFlowProblem end
 abstract type SteadyStateProblem <: FluidFlowProblem end
 abstract type TimeDependantProblem <: FluidFlowProblem end

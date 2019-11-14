@@ -1,5 +1,3 @@
-export analayze_convergence
-
 function test_convergence(problem::Problem, scales) where { Problem <: FluidFlowProblem }
 end
 

@@ -1,5 +1,3 @@
-export TRT
-
 struct TRT <: CollisionModel
     τ_symmetric
     τ_asymmetric

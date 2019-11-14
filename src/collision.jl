@@ -1,5 +1,3 @@
-export CollisionModel
-
 abstract type CollisionModel end
 
 include("collision-models/srt.jl")

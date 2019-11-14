@@ -1,5 +1,3 @@
-export SRT
-
 struct SRT{Force} <: CollisionModel
     τ::Float64
     force::Force

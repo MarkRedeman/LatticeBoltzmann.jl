@@ -13,9 +13,33 @@ include("collision.jl")
 include("analysis.jl")
 include("process.jl")
 
-export Quadrature, Lattice, D2Q4, D2Q5, D2Q9, D2Q17,
-    opposite,
+export CollisionModel, SRT, TRT, MRT
+export Quadrature, D2Q4, D2Q5, D2Q9, D2Q13, D2Q17, D2Q21, D2Q37, opposite
+
+export analayze_convergence
+# Problems
+export DecayingShearFlow
+export LidDrivenCavityFlow
+export TaylorGreenVortexDecay, TaylorGreenVortexExample
+export CouetteFlow
+export GenericFluidFlowProblem
+export LinearizedThermalDiffusion, LinearizedTransverseShearWave
+export PoiseuilleFlow
+
+export process!, initialize, apply_boundary_conditions!,
+    density,
+    velocity,
+    pressure,
+    temperature,
+    decay,
+    force,
     initialize,
+    FluidFlowProblem,
+    viscosity,
+    delta_t
+export Lattice,
+    initialize,
+    # Thermodynamics
     density,
     momentum,
     pressure,
@@ -24,16 +48,14 @@ export Quadrature, Lattice, D2Q4, D2Q5, D2Q9, D2Q17,
     internal_energy,
     temperature,
     dimension,
+    # Equilibria
     equilibrium,
     equilibrium!,
     hermite_equilibrium,
     hermite_first_nonequilibrium,
     hermite,
-    stream,
+    # Siumlation
     stream!,
-    CollisionModel,
-    SRT,
-    TRT,
     collide!,
     simulate
 

@@ -1,5 +1,3 @@
-export DecayingShearFlow
-
 struct DecayingShearFlow <: lbm.FluidFlowProblem
     rho_0::Float64
     u_max::Float64

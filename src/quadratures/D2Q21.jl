@@ -3,7 +3,6 @@
 
 # Same as D2Q17, but vertical and horizontal vectors are extended by one
 
-export D2Q21
 struct D2Q21 <: Quadrature
     abscissae::Array{Int64, 2}
     weights::Array{Float64, 1}

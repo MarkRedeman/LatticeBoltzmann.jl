@@ -1,4 +1,3 @@
-export D2Q13
 struct D2Q13 <: Quadrature
     abscissae::Array{Int64, 2}
     weights::Array{Float64, 1}

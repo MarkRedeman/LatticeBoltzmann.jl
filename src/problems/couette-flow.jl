@@ -1,5 +1,3 @@
-export CouetteFlow
-
 struct CouetteFlow <: FluidFlowProblem
     rho_0::Float64
     u_max::Float64

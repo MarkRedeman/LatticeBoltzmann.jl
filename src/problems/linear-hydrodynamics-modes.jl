@@ -1,4 +1,3 @@
-export LinearizedThermalDiffusion, LinearizedTransverseShearWave
 # This problem attempts to reproduce the results from the article
 # A General Multiple-Relaxation-Time Boltzmann Collision Model
 # by Xiaowen Shan and Hudong Chen

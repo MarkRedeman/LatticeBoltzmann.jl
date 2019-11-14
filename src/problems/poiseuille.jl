@@ -1,5 +1,3 @@
-export PoiseuilleFlow
-
 struct PoiseuilleFlow <: FluidFlowProblem
     rho_0::Float64
     u_max::Float64
