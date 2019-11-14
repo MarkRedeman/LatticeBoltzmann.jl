@@ -1,8 +1,6 @@
 module Example
 module TaylorGreenVortex
 
-using BenchmarkTools
-using StatsPlots
 using DataFrames
 using lbm
 using Plots
@@ -14,12 +12,7 @@ using Plots
 
     stats = DataFrame([Float64[], Int[], Any[]], [:nu, :scale, :stats])
 
-    quadratures = [
-        D2Q4(),
-        # D2Q5(),
-        D2Q9(),
-        D2Q17(),
-    ]
+    quadratures = lbm.Quadratures
 
     quadrature = last(quadratures)
     τ = 0.05 / 6.0
@@ -34,15 +27,20 @@ using Plots
 # nu=(2*tau-1)/6;
 
 let
+    using lbm, Plots, DataFrames, StaticArrays
     q = D2Q9()
     τ = 1.0 / 6.0
     scale = 1
+    problem = CouetteFlow(τ, scale)
+    result = lbm.siumlate(problem, q)
 
     problem = LidDrivenCavityFlow(τ, scale)
     result = lbm.siumlate(problem, q)
 
+    for q in quadratures
     problem = CouetteFlow(τ, scale)
     result = lbm.siumlate(problem, q)
+        end
 
     problem = PoiseuilleFlow(τ, scale, static = true)
     result = lbm.siumlate(problem, q)

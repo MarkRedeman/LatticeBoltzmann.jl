@@ -1,22 +1,10 @@
 module Example
 module PoiseuilleFlowExample
 
-using BenchmarkTools
-using StatsPlots
 using DataFrames
 using lbm
 using Plots
 
-
-quadratures = [
-    D2Q4(),
-    # D2Q5(),
-    D2Q9(),
-    D2Q17(),
-]
-
-q = last(quadratures)
-scale = 1
 
 # relaxation time (BGK model) (tau=sqrt(3/16)+0.5 gives exact solution)
 # tau=sqrt(3/16)+0.5;
