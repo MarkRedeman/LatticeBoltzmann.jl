@@ -1,6 +1,3 @@
-using BenchmarkTools
-using TimerOutputs
-
 @testset "Symmetry requirements of lattice $q" for q in quadratures
     w = q.weights
     ξs = q.abscissae
