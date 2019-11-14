@@ -1,5 +1,3 @@
-using LinearAlgebra
-
 function equilibrium(
     q::Quadrature,
     ρ,#::Array{Float64, 2},

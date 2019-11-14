@@ -1,8 +1,6 @@
-using Plots
-using DataFrames
-
 abstract type ProcessingMethod end
 ProcessingMethod(problem, should_process, n_steps) = CompareWithAnalyticalSolution(problem, should_process, n_steps)
+
 struct CompareWithAnalyticalSolution{T} <: ProcessingMethod
     problem::FluidFlowProblem
     should_process::Bool
@@ -15,51 +13,51 @@ CompareWithAnalyticalSolution(problem, should_process, n_steps) = CompareWithAna
     should_process,
     n_steps,
     StopCriteria(problem),
-    DataFrame(
-        [
-            Float64[], Float64[], Float64[], Float64[], Float64[],
-            Float64[], Float64[], Float64[], Float64[], Float64[],
-            Float64[], Float64[]
-        ],
-        [
+    Vector{NamedTuple{
+        (
             :density, :momentum, :total_energy, :kinetic_energy, :internal_energy,
             :density_a, :momentum_a, :total_energy_a, :kinetic_energy_a, :internal_energy_a,
             :u_error, :p_error
-        ]
-    )
+        ),
+        Tuple{
+            Float64, Float64, Float64, Float64, Float64,
+            Float64, Float64, Float64, Float64, Float64,
+            Float64, Float64
+        }
+    }}()
 )
 
-function next!(stats::CompareWithAnalyticalSolution, q, f_in, t::Int64)
+function next!(process_method::CompareWithAnalyticalSolution, q, f_in, t::Int64)
     if mod(t, 100) == 0
-        if (should_stop!(stats.stop_criteria, q, f_in))
-            @info "Stopping after $t steps out of $stats.n_steps"
+        if (should_stop!(process_method.stop_criteria, q, f_in))
+            @info "Stopping after $t steps out of $process_method.n_steps"
             return true
         end
     end
 
-    if (! stats.should_process)
+    if (! process_method.should_process)
         return false
     end
 
 
     if mod(t, 1) == 0
         should_visualize = false
-        if t == stats.n_steps
+        if t == process_method.n_steps
             should_visualize = true
         end
 
-        if mod(t, max(10, round(Int, stats.n_steps / 2))) == 0
+        if mod(t, max(10, round(Int, process_method.n_steps / 2))) == 0
             should_visualize = true
         end
 
 
-        Δt = delta_t(stats.problem)
+        Δt = delta_t(process_method.problem)
         process!(
-            stats.problem,
+            process_method.problem,
             q,
             f_in,
             t * Δt,
-            stats.df;
+            process_method.df;
             should_visualize = should_visualize
         )
     end
@@ -169,27 +167,20 @@ function process!(problem::FluidFlowProblem, q::Quadrature, f_in, time, stats; s
     end
 
     # Compare with analytical results?
-    push!(stats, [
-        total_density,
-        total_momentum,
-        total_energy,
-        total_kinetic_energy,
-        total_internal_energy,
-        expected_total_density,
-        expected_total_momentum,
-        expected_total_energy,
-        expected_total_kinetic_energy,
-        expected_total_internal_energy,
-        # rho_error_squared,
-        # ux_error_squared,
-        # uy_error_squared,
-        # u_error / expected_total_momentum,
-        # sqrt(u_error) / expected_total_momentum,
-        sqrt(u_error), #/ expected_total_momentum
-        sqrt(p_error)
-        # sqrt(ux_error_squared),
-        # sqrt(uy_error_squared)
-    ])
+    push!(stats, (
+        density = total_density,
+        momentum = total_momentum,
+        total_energy = total_energy,
+        kinetic_energy = total_kinetic_energy,
+        internal_energy = total_internal_energy,
+        density_a = expected_total_density,
+        momentum_a = expected_total_momentum,
+        total_energy_a = expected_total_energy,
+        kinetic_energy_a = expected_total_kinetic_energy,
+        internal_energy_a = expected_total_internal_energy,
+        u_error = sqrt(u_error),
+        p_error = sqrt(p_error),
+    ))
 
     if should_visualize
         visualize(problem, q, f_in, time, stats)
@@ -281,7 +272,7 @@ function visualize(problem::FluidFlowProblem, quadrature::Quadrature, f_in, time
     end
 
 
-    kinetic_energy_profile = plot(stats.kinetic_energy, legend=false, title="Kinetic energy", size=s)
+    kinetic_energy_profile = plot(getfield.(stats, :kinetic_energy), legend=false, title="Kinetic energy", size=s)
 
     plot(
         contour(ρ, title="Density", fill=true, cbar=true, size=s),
@@ -295,8 +286,8 @@ function visualize(problem::FluidFlowProblem, quadrature::Quadrature, f_in, time
         # heatmap(velocity_field[:, :, 1]', fill=true),
         # heatmap(velocity_field[:, :, 2]', fill=true),
         # streamline(velocity_field .- ρ .* j),
-        plot(stats.u_error, legend=false, title="U_e"),
-        plot(stats.p_error, legend=false, title="P_e"),
+        plot(getfield.(stats, :u_error), legend=false, title="U_e"),
+        plot(getfield.(stats, :p_error), legend=false, title="P_e"),
         kinetic_energy_profile,
         pressure_profile,
         temperature_profile,

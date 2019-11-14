@@ -1,4 +1,3 @@
-using lbm
 @testset "Poiseuille Problem" begin #for q in quadratures
     q = D2Q9()
 

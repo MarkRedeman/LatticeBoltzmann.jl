@@ -1,8 +1,9 @@
 module lbm
 
-using DataFrames
-using BenchmarkTools
-using TimerOutputs
+import Base: range
+
+using LinearAlgebra
+using Plots
 
 include("quadratures.jl")
 include("boundary-conditions.jl")

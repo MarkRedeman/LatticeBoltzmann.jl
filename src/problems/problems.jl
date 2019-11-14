@@ -35,7 +35,6 @@ function initial_condition(q::Quadrature, problem::FluidFlowProblem, x::Float64,
     initial_equilibrium(q, problem, x, y)
 end
 
-import Base: range
 function range(problem::FluidFlowProblem)
     Δx = problem.domain_size[1] / problem.NX
     Δy = problem.domain_size[2] / problem.NY

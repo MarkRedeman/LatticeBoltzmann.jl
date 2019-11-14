@@ -1,5 +1,3 @@
-using LinearAlgebra
-
 abstract type Quadrature end
 
 """
