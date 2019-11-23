@@ -127,7 +127,7 @@ function siumlate(
         apply_boundary_conditions!(lbm, time = t * Δt)
     end
 
-    process_step!(lbm, n_steps)
+    process_step!(lbm, n_steps + 1)
 
     lbm
 end
