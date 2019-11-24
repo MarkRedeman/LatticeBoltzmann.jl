@@ -6,6 +6,9 @@ abstract type InitialValueProblem <: FluidFlowProblem end
 abstract type DoubleDistributionProblem <: FluidFlowProblem end
 
 has_external_force(problem::FluidFlowProblem) = false
+function acceleration(tgv::FluidFlowProblem, x::Float64, y::Float64, timestep::Float64 = 0.0)
+    return zeros(2, 2)
+end
 
 function initial_equilibrium(quadrature::Quadrature, problem::FluidFlowProblem, x::Float64, y::Float64)
     return equilibrium(
