@@ -119,15 +119,14 @@ function siumlate(
     simulate(lbm, 0:n_steps)
 end
 function simulate(lbm::LatticeBoltzmannMethod, time)
-    problem = lbm.processing_method.problem
-    Δt = delta_t(problem)
+    Δt = delta_t(lbm.processing_method.problem)
 
     @inbounds for t = time
         if process_step!(lbm, t)
             break
         end
 
-        collide!(lbm, time = t * Δt, problem = problem)
+        collide!(lbm, time = t * Δt)
         stream!(lbm)
         apply_boundary_conditions!(lbm, time = t * Δt)
     end
@@ -142,14 +141,13 @@ end
 # This will likely be refactored so that we can write specialized function
 # for each specific LatticeBoltzmannModel (once we also introduce ddf models)
 
-function collide!(lbm; time, problem)
+function collide!(lbm; time)
     collide!(
         lbm.collision_model,
         lbm.quadrature,
         f_new = lbm.f_collision,
         f_old = lbm.f_stream,
-        time = time,
-        problem = problem
+        time = time
     )
 end
 

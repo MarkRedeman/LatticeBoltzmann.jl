@@ -46,8 +46,8 @@ function CollisionModel(
     return MRT(q, τs)
 end
 
-function collide!(collision_model::MRT, q, f_in, f_out; time = 0.0, problem = nothing)
-    collide_mrt!(collision_model, q, f_in, f_out, time = time, problem = problem)
+function collide!(collision_model::MRT, q, f_in, f_out; time = 0.0)
+    collide_mrt!(collision_model, q, f_in, f_out, time = time)
 end
 
 # NOTE: we can do some clever optimizations where we check the value of τ_n
@@ -59,17 +59,10 @@ function collide_mrt!(
     f_in,
     f_out;
     time = 0.0,
-    problem = nothing
 ) where { CM <: CollisionModel }
     @info "Using a special collision operator"
     cs = q.speed_of_sound_squared
-    τ_2 = cs * problem.ν + 0.5
-    # τ_3 = cs * problem.κ + 0.5
-    τ_3 = τ_2
-
-    # TRT
-    τs = [1.0, τ_2, τ_3, τ_2, τ_3]
-    # τs = [1.0, 1.0, 1.5, 1.0, 1.5]
+    τs = cm.τs
 
     D = dimension(q)
     N = div(lbm.order(q), 2)

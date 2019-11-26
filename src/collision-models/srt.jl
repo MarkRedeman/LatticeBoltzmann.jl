@@ -24,8 +24,7 @@ function collide!(
     q::Quadrature,
     f_in,
     f_out;
-    time = 0.0,
-    problem = nothing
+    time = 0.0
 ) where {Force}
     τ = collision_model.τ
 
