@@ -51,7 +51,7 @@ function next!(process_method::CompareWithAnalyticalSolution, q, f_in, t::Int64)
                 should_visualize = true
             end
 
-            if mod(t, max(10, round(Int, process_method.n_steps / 2))) == 0
+            if mod(t, max(10, round(Int, process_method.n_steps / 5))) == 0
                 should_visualize = true
             end
         end
@@ -250,38 +250,43 @@ function visualize(problem::FluidFlowProblem, quadrature::Quadrature, f_in, time
         x_pos = round(Int, problem.NX / 2)
         domain = y_range[1:Ny]
 
-        velocity_profile_x = plot(domain, j[x_pos, 1:(problem.NY), 1], size=s, label="solution", title="u_x", legend=nothing)
-        plot!(velocity_profile_x, domain, velocity_field[x_pos, 1:(problem.NY), 1], size=s, label="exact")
+        velocity_profile_x = plot(domain, j[x_pos, 1:(problem.NY), 1], label="solution", title="u_x", legend=nothing)
+        plot!(velocity_profile_x, domain, velocity_field[x_pos, 1:(problem.NY), 1], label="exact")
 
-        velocity_profile_y = plot(j[x_pos, 1:(problem.NY), 2], domain, size=s, label="solution", title="u_y", legend=nothing)
-        plot!(velocity_profile_y, velocity_field[x_pos, 1:(problem.NY), 2], domain, size=s, label="exact")
+        # @show j[x_pos, 1:(problem.NY), 1] velocity_field[x_pos, 1:(problem.NY), 1]
+        # velocity_profile_x = plot(domain, j[x_pos, 1:(problem.NY), 1] - velocity_field[x_pos, 1:(problem.NY), 1], label="solution", title="u_x", legend=nothing)
+        # scatter!(velocity_profile_x, domain, j[x_pos, 1:(problem.NY), 1] - velocity_field[x_pos, 1:(problem.NY), 1], label="solution", title="u_x", legend=nothing)
 
-        pressure_profile = plot(domain, p[x_pos, 1:(problem.NY)], size=s, label="solution", title="p", legend=nothing)
-        plot!(pressure_profile, domain, pressure_field[x_pos, 1:(problem.NY)], size=s, label="exact")
+        velocity_profile_y = plot(j[x_pos, 1:(problem.NY), 2], domain, label="solution", title="u_y", legend=nothing)
+        plot!(velocity_profile_y, velocity_field[x_pos, 1:(problem.NY), 2], domain, label="exact")
 
-        temperature_profile = plot(domain, T[x_pos, 1:(problem.NY), 1], size=s, label="solution", title="T", legend=nothing)
-        # plot!(temperature_profile, domain, temperature_field[x_pos, 1:(problem.NY), 1], size=s, label="exact")
+        pressure_profile = plot(domain, p[x_pos, 1:(problem.NY)], label="solution", title="p", legend=nothing)
+        plot!(pressure_profile, domain, pressure_field[x_pos, 1:(problem.NY)], label="exact")
+
+        temperature_profile = plot(domain, T[x_pos, 1:(problem.NY), 1], label="solution", title="T", legend=nothing)
+        # plot!(temperature_profile, domain, temperature_field[x_pos, 1:(problem.NY), 1], label="exact")
     else
         y_pos = round(Int, problem.NY / 2)
         domain = x_range[1:Nx]
 
-        velocity_profile_x = plot(domain, j[:, y_pos, 1], size=s, label="solution", title="u_x")
-        plot!(velocity_profile_x, domain, velocity_field[:, y_pos, 1], size=s, label="exact")
+        velocity_profile_x = plot(domain, j[:, y_pos, 1] ./ ρ[:, y_pos], label="solution", title="u_x")
+        plot!(velocity_profile_x, domain, velocity_field[:, y_pos, 1], label="exact")
 
-        velocity_profile_y = plot(j[:, y_pos, 2], domain, size=s, label="solution", title="u_y")
-        plot!(velocity_profile_y, velocity_field[:, y_pos, 2], domain, size=s, label="exact")
+        velocity_profile_y = plot(j[:, y_pos, 2] ./ ρ[:, y_pos], domain, label="solution", title="u_y")
+        plot!(velocity_profile_y, velocity_field[:, y_pos, 2], domain, label="exact")
+        # velocity_profile_y = plot(j[:, y_pos, 2] ./ ρ[:, y_pos] - velocity_field[:, y_pos, 2], domain, label="solution", title="u_y")
 
-        pressure_profile = plot(domain, p[:, y_pos], size=s, label="solution", title="p", legend=nothing)
-        plot!(pressure_profile, domain, pressure_field[:, y_pos], size=s, label="exact")
+        pressure_profile = plot(domain, p[:, y_pos], label="solution", title="p", legend=nothing)
+        plot!(pressure_profile, domain, pressure_field[:, y_pos], label="exact")
 
-        temperature_profile = plot(domain, T[:, y_pos], size=s, label="solution", title="T", legend=nothing)
+        temperature_profile = plot(domain, T[:, y_pos], label="solution", title="T", legend=nothing)
     end
 
 
-    kinetic_energy_profile = plot(getfield.(stats, :kinetic_energy), legend=false, title="Kinetic energy", size=s)
+    # kinetic_energy_profile = plot(getfield.(stats, :kinetic_energy), legend=false, title="Kinetic energy")
 
     plot(
-        contour(ρ, title="Density", fill=true, cbar=true, size=s),
+        contour(ρ, title="Density", fill=true, cbar=true),
         contour(p, title="Pressure", fill=true),
         contour(T, title="Temperature", fill=true),
         # contour(pressure_field', title="pressure analytical", fill=true),
@@ -292,9 +297,11 @@ function visualize(problem::FluidFlowProblem, quadrature::Quadrature, f_in, time
         # heatmap(velocity_field[:, :, 1]', fill=true),
         # heatmap(velocity_field[:, :, 2]', fill=true),
         # streamline(velocity_field .- ρ .* j),
-        kinetic_energy_profile,
         plot(getfield.(stats, :error_u), legend=false, title="U_e"),
         plot(getfield.(stats, :error_p), legend=false, title="P_e"),
+        # plot(getfield.(stats, :error_u), legend=false, title="U_e"),
+        # plot(getfield.(stats, :error_p), legend=false, title="P_e"),
+        # kinetic_energy_profile,
         pressure_profile,
         temperature_profile,
         velocity_profile_x,
@@ -306,7 +313,7 @@ end
 
 function streamline(j; amount_of_arrows = 5, step = round(Int, size(j, 1) / amount_of_arrows) )
     s = (1000, 500)
-    velocity_field = contour((j[:, :, 1].^2 .+ j[:, :, 2].^2)', cbar=true, fill=true, title="Momentum", size=s)
+    velocity_field = contour((j[:, :, 1].^2 .+ j[:, :, 2].^2)', cbar=true, fill=true, title="Momentum")
     N = size(j, 1)
     X = [i for i in range(2, size(j, 1), step = step), j in range(1, size(j, 2), step = step)]
     Y = [j for i in range(2, size(j, 1), step = step), j in range(1, size(j, 2), step = step)]
