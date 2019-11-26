@@ -19,7 +19,7 @@ CompareWithAnalyticalSolution(problem, should_process, n_steps) = CompareWithAna
         (
             :density, :momentum, :total_energy, :kinetic_energy, :internal_energy,
             :density_a, :momentum_a, :total_energy_a, :kinetic_energy_a, :internal_energy_a,
-            :u_error, :p_error
+            :error_u, :error_p,
         ),
         Tuple{
             Float64, Float64, Float64, Float64, Float64,
@@ -96,8 +96,8 @@ function process!(problem::FluidFlowProblem, q::Quadrature, f_in, time, stats; s
     rho_error_squared = 0.0
     ux_error_squared = 0.0
     uy_error_squared = 0.0
-    u_error = 0.0
-    p_error = 0.0
+    error_u = 0.0
+    error_p = 0.0
 
     @inbounds for x_idx in 1:Nx, y_idx in 1:Ny
         # Calculated
@@ -153,11 +153,11 @@ function process!(problem::FluidFlowProblem, q::Quadrature, f_in, time, stats; s
         rho_error_squared += (ρ - expected_ρ)^2
         ux_error_squared += (u[1] - expected_v[1])^2
         uy_error_squared += (u[2] - expected_v[2])^2
-        # u_error += sqrt((u[1] - expected_v[1])^2 + (u[2] - expected_v[2])^2)
+        # error_u += sqrt((u[1] - expected_v[1])^2 + (u[2] - expected_v[2])^2)
         opp = Float64(y_range.step) * Float64(x_range.step)
         # opp = 1.0
         # opp = Float64(y_range.step)
-        u_error += (
+        error_u += (
             opp * (
                 (
                     (u[1] - expected_v[1])
@@ -167,7 +167,7 @@ function process!(problem::FluidFlowProblem, q::Quadrature, f_in, time, stats; s
                 )^2
             )
         )
-        p_error += opp * (
+        error_p += opp * (
             (p - expected_p)^2
         )
     end
@@ -184,8 +184,8 @@ function process!(problem::FluidFlowProblem, q::Quadrature, f_in, time, stats; s
         total_energy_a = expected_total_energy,
         kinetic_energy_a = expected_total_kinetic_energy,
         internal_energy_a = expected_total_internal_energy,
-        u_error = sqrt(u_error),
-        p_error = sqrt(p_error),
+        error_u = sqrt(error_u),
+        error_p = sqrt(error_p),
     ))
 
     if should_visualize
@@ -292,9 +292,9 @@ function visualize(problem::FluidFlowProblem, quadrature::Quadrature, f_in, time
         # heatmap(velocity_field[:, :, 1]', fill=true),
         # heatmap(velocity_field[:, :, 2]', fill=true),
         # streamline(velocity_field .- ρ .* j),
-        plot(getfield.(stats, :u_error), legend=false, title="U_e"),
-        plot(getfield.(stats, :p_error), legend=false, title="P_e"),
         kinetic_energy_profile,
+        plot(getfield.(stats, :error_u), legend=false, title="U_e"),
+        plot(getfield.(stats, :error_p), legend=false, title="P_e"),
         pressure_profile,
         temperature_profile,
         velocity_profile_x,
