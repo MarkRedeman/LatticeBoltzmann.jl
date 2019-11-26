@@ -79,7 +79,7 @@ end
 
         # @show "COLLIDE"
         # When τ = 1.0 we immediatly get the equilibrium distribution
-        lbm.collide!(SRT(1.0), q, f_old = f, f_new = f_out, time = 0.0, problem = nothing)
+        lbm.collide!(SRT(1.0), q, f_old = f, f_new = f_out, time = 0.0)
         # @show ρ = lbm.density(q, f)
         # @show j = lbm.momentum(q, f)
         # @show lbm.temperature(q, f, ρ, j ./ ρ)
@@ -95,7 +95,7 @@ end
         @inferred lbm.equilibrium(q, ρ, u, 1.0);
         # @code_warntype lbm.equilibrium(q, ρ, u, 1.0);
         # @code_warntype collide(collision_model, q, f)
-        @inferred lbm.collide!(SRT(1.0), q, f_old = f, f_new = f_out, time = 0.0, problem = nothing)
+        @inferred lbm.collide!(SRT(1.0), q, f_old = f, f_new = f_out, time = 0.0)
     end
 
     @testset "Stream and collide" begin
@@ -111,7 +111,7 @@ end
         f_fff = f
         τ = 1.0
         for t = 0:3
-            lbm.collide!(SRT(τ), q, f_old = f_inn, f_new = f_out, time = 0.0, problem = nothing)
+            lbm.collide!(SRT(τ), q, f_old = f_inn, f_new = f_out, time = 0.0)
             lbm.stream!(q, f_new = f_inn, f_old = f_out)
         end
 

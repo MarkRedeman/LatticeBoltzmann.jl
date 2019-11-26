@@ -35,7 +35,7 @@
     # @show f_in
     # @show f_in[4, 2, :] .- f_in[4, p, :]
     # lbm.collide!(collision_operator, q, f_in, f_out, time = t * Δt, problem = problem)
-    lbm.collide!(collision_operator, q, time = t * Δt, problem = problem, f_old = f_in, f_new = f_out)
+    lbm.collide!(collision_operator, q, time = t * Δt, f_old = f_in, f_new = f_out)
     # f_out = copy(f_in)
 
     # @show "after collision"
