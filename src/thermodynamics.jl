@@ -48,6 +48,30 @@ function pressure(q::Quadrature, f::Array{Float64}, ρ::Float64, u::Array{Float6
     p = q.speed_of_sound_squared * (E - ρ * (u[1]^2 + u[2]^2)) / D
     return p
 end
+function momentum_flux(q::Quadrature, f::Array{Float64}, ρ::Float64, u::Array{Float64, 1})
+    D = dimension(q)
+    P = zeros(D, D)
+    @inbounds for x_idx =  1:D, y_idx = 1:D
+        P[x_idx, y_idx] =  sum(
+            # Pressure tensor
+            f[f_idx] * (q.abscissae[x_idx, f_idx] - u[x_idx]) * (q.abscissae[y_idx, f_idx] - u[y_idx])
+
+            # Stress tensor
+            # f[f_idx] * (q.abscissae[x_idx, f_idx]) * (q.abscissae[y_idx, f_idx])
+            for f_idx = 1:length(f)
+        ) #- ρ * u[x_idx] * u[y_idx]
+    end
+
+    return q.speed_of_sound_squared * P #- I(2) * pressure(q, f, ρ, u)
+
+    E = 0.0
+    @inbounds for idx = 1:length(f)
+        E += f[idx] * (q.abscissae[1, idx]^2 + q.abscissae[2, idx]^2)
+    end
+
+    p = q.speed_of_sound_squared * (E - ρ * (u[1]^2 + u[2]^2)) / D
+    return p
+end
 
 # total energy density
 function total_energy(q::Quadrature, f)
