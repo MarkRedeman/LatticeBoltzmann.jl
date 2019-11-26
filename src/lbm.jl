@@ -141,7 +141,7 @@ end
 # This will likely be refactored so that we can write specialized function
 # for each specific LatticeBoltzmannModel (once we also introduce ddf models)
 
-function collide!(lbm; time)
+function collide!(lbm::LatticeBoltzmannMethod; time)
     collide!(
         lbm.collision_model,
         lbm.quadrature,
@@ -151,7 +151,7 @@ function collide!(lbm; time)
     )
 end
 
-function stream!(lbm)
+function stream!(lbm::LatticeBoltzmannMethod)
     stream!(
         lbm.quadrature,
         f_new = lbm.f_stream,
@@ -159,7 +159,7 @@ function stream!(lbm)
     )
 end
 
-function apply_boundary_conditions!(lbm; time = 0.0)
+function apply_boundary_conditions!(lbm::LatticeBoltzmannMethod; time = 0.0)
     apply!(
         lbm.boundary_conditions,
         lbm.quadrature,
@@ -169,7 +169,7 @@ function apply_boundary_conditions!(lbm; time = 0.0)
     )
 end
 
-function process_step!(lbm, t::Int64)
+function process_step!(lbm::LatticeBoltzmannMethod, t::Int64)
     next!(lbm.processing_method, lbm.quadrature, lbm.f_stream, t)
 end
 
