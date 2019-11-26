@@ -10,31 +10,43 @@ using Plots
 let
     # ν = (1.4383 - 0.5) / q.speed_of_sound_squared
     q = D2Q9()
-    stats = DataFrame([Float64[], Float64[]], [:τ, :u_error])
-    for τ = 0.51:0.01:2.0
+    s = []
+    for q in lbm.Quadratures
+    stats = DataFrame([Float64[], Float64[]], [:τ, :error_u])
+    for τ = 0.5:0.01:2.0
         ν = (τ - 0.5) / q.speed_of_sound_squared
 
-        problem = PoiseuilleFlow(ν, 1, static = true)
+        problem = DecayingShearFlow(ν, 1, static = true)
+        # problem = PoiseuilleFlow(ν, 2, static = true)
 
         result = lbm.siumlate(
             problem,
             q,
-            t_end = 100.0,
-            should_process = false
+            t_end = 1.0,
+            should_process = false,
+            collision_model=SRT
         )
-        if (! isnan(result[2].u_error[end]))
-            push!(stats, [τ, result[2].u_error[end]])
+        if (! isnan(result.processing_method.df[end].error_u))
+            push!(stats, [τ, result.processing_method.df[end].error_u])
         end
     end
 
-    plot(stats.τ, stats.u_error, yscale=:log10)
+    # plot(stats.τ, stats.error_u, yscale=:log10)
+    # gui()
+    push!(s, stats)
+    end
+
+    # p = plot()
+    for stats in s_srt
+        @show stats.τ[argmin(stats.error_u)]
+        plot!(stats.τ, stats.error_u, yscale=:log10, linestyle=:dot)
+    end
     gui()
 
-    @show stats.τ[argmin(stats.u_error)]
-# stats.τ[argmin(stats.u_error)] = 1.438
+# stats.τ[argmin(stats.error_u)] = 1.438
 # 1.438
-# julia> @show stats.τ[argmin(stats.u_error)]
-# stats.τ[argmin(stats.u_error)] = 1.76
+# julia> @show stats.τ[argmin(stats.error_u)]
+# stats.τ[argmin(stats.error_u)] = 1.76
 # 1.76
 end
 # @show result[2]
@@ -67,7 +79,7 @@ end
 
     s = stats
     using Plots, LaTeXStrings
-    nu_scale_error = Array{Float64}([s.nu s.scale map(i -> i.u_error[end], s.stats)])
+    nu_scale_error = Array{Float64}([s.nu s.scale map(i -> i.error_u[end], s.stats)])
     plot()
     for nu_idx = 1:length(νs)
         nu = nu_scale_error[nu_idx * length(scales), 1]
