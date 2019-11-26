@@ -20,11 +20,14 @@ CompareWithAnalyticalSolution(problem, should_process, n_steps) = CompareWithAna
             :density, :momentum, :total_energy, :kinetic_energy, :internal_energy,
             :density_a, :momentum_a, :total_energy_a, :kinetic_energy_a, :internal_energy_a,
             :error_u, :error_p,
+            :error_σ_xx, :error_σ_xy, :error_σ_yy, :error_σ_yx,
         ),
         Tuple{
             Float64, Float64, Float64, Float64, Float64,
             Float64, Float64, Float64, Float64, Float64,
-            Float64, Float64
+            Float64, Float64,
+
+            Float64, Float64, Float64, Float64,
         }
     }}()
 )
@@ -309,6 +312,10 @@ function visualize(problem::FluidFlowProblem, quadrature::Quadrature, f_in, time
         # streamline(velocity_field .- ρ .* j),
         plot(getfield.(stats, :error_u), legend=false, title="U_e"),
         plot(getfield.(stats, :error_p), legend=false, title="P_e"),
+        plot(getfield.(stats, :error_σ_xx), legend=false, title="sigma_xx_e"),
+        plot(getfield.(stats, :error_σ_yx), legend=false, title="sigma_yx_e"),
+        plot(getfield.(stats, :error_σ_xy), legend=false, title="sigma_xy_e"),
+        plot(getfield.(stats, :error_σ_yy), legend=false, title="sigma_yy_e"),
         # plot(getfield.(stats, :error_u), legend=false, title="U_e"),
         # plot(getfield.(stats, :error_p), legend=false, title="P_e"),
         # kinetic_energy_profile,

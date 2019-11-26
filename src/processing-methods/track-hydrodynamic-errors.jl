@@ -100,10 +100,10 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         error_ρ = sqrt(error_ρ),
         error_u = sqrt(error_u),
         error_p = sqrt(error_p),
-        error_σ_xx = 1.0,
-        error_σ_xy = 1.0,
-        error_σ_yy = 1.0,
-        error_σ_yx = 1.0,
+        error_σ_xx = error_σ_xx,
+        error_σ_xy = error_σ_xy,
+        error_σ_yy = error_σ_yy,
+        error_σ_yx = error_σ_yx,
     ))
 
     if mod(t, 100) == 0
