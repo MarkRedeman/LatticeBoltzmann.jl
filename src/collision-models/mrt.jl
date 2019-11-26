@@ -10,6 +10,16 @@ struct MRT{Force} <: CollisionModel
     force::Force
 end
 
+function MRT(q::Quadrature, τ, force = nothing)
+    N = round(Int, order(q) / 2)
+    MRT(q, fill(τ, N))
+end
+
+function MRT(q::Quadrature, τ_s, τ_a, force = nothing)
+    N = round(Int, order(q) / 2)
+    MRT(q, repeat([τ_s, τ_a], outer = N)[1:N])
+end
+
 function MRT(q::Quadrature, τs::Vector{Float64}, force = nothing)
     N = round(Int, order(q) / 2)
     Hs = [
