@@ -33,6 +33,16 @@ function next!(process_method::CompareWithAnalyticalSolution, q, f_in, t::Int64)
     if mod(t, 100) == 0
         if (should_stop!(process_method.stop_criteria, q, f_in))
             @info "Stopping after $t steps out of $process_method.n_steps"
+
+            Δt = delta_t(process_method.problem)
+            process!(
+                process_method.problem,
+                q,
+                f_in,
+                t * Δt,
+                process_method.df;
+                should_visualize = false
+            )
             return true
         end
     end
