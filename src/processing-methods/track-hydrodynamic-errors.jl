@@ -37,6 +37,12 @@ TrackHydrodynamicErrors(problem, should_process, n_steps) = TrackHydrodynamicErr
 
 
 function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
+    if (! process_method.should_process)
+        if (t != process_method.n_steps)
+            return false
+        end
+    end
+
     problem = process_method.problem
     nx, ny, nf = size(f_in)
     x_range, y_range = range(problem)
