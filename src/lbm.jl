@@ -69,8 +69,8 @@ struct LatticeBoltzmannMethod{Q<:Quadrature, T, CM <: CollisionModel, PM <: Proc
 end
 function LatticeBoltzmannMethod(
     problem,
-    quadrature,
-    collision_model;
+    quadrature;
+    collision_model = SRT,
     n_steps = 100,
     should_process = false
 )
@@ -112,7 +112,7 @@ function siumlate(
     lbm = LatticeBoltzmannMethod(
         problem,
         q,
-        collision_model,
+        collision_model = collision_model,
         n_steps = n_steps,
         should_process = should_process
     )
