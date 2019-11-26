@@ -62,7 +62,7 @@ function momentum_flux(q::Quadrature, f::Array{Float64}, ρ::Float64, u::Array{F
         ) #- ρ * u[x_idx] * u[y_idx]
     end
 
-    return q.speed_of_sound_squared * P #- I(2) * pressure(q, f, ρ, u)
+    return q.speed_of_sound_squared * P #- I * pressure(q, f, ρ, u)
 
     E = 0.0
     @inbounds for idx = 1:length(f)

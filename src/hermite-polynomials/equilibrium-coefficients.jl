@@ -90,7 +90,7 @@ end
 
 function equilibrium_coefficient(::Type{Val{2}}, q::Quadrature, ρ, u, T)
     cs = 1 / q.speed_of_sound_squared
-    return ρ * (u * u' + cs * (T - 1) * I(2))
+    return ρ * (u * u' + cs * (T - 1) * I)
 end
 function equilibrium_coefficient(::Type{Val{3}}, q::Quadrature, ρ, u, T)
     cs = 1 / q.speed_of_sound_squared
@@ -137,7 +137,7 @@ end
 #     D = dimension(q)
 #     P = Array{Float64}(undef, D, D)
 #     u_f = a_f[1] / ρ_f
-#     P_f = q.speed_of_sound_squared * a_f[2] - ρ_f * (u_f * u_f' - I(2))
+#     P_f = q.speed_of_sound_squared * a_f[2] - ρ_f * (u_f * u_f' - I)
 #     T_f = tr(P_f) / (D * ρ_f)
 
 #     # No need to allocate P

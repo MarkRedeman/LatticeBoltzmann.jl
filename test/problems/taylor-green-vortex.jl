@@ -46,10 +46,10 @@ import LinearAlgebra: I, tr
         ]
 
         @show a_f[2]
-        P = a_f[2] - (a_f[1] * a_f[1]') / ρ - ρ * I(2)
+        P = a_f[2] - (a_f[1] * a_f[1]') / ρ - ρ * I
         P = P * (1 - 1 / (2 * τ))
 
-        σ_lb = (P - I(2) * tr(P) / (D)) / (problem.u_max)
+        σ_lb = (P - I * tr(P) / (D)) / (problem.u_max)
         σ = lbm.deviatoric_tensor(q, problem, x, y, 0.0)
 
         @show σ σ_lb
@@ -103,7 +103,7 @@ import LinearAlgebra: I, tr
         @show lbm.momentum_flux(q, f, ρ, u)
         @show lbm.pressure(q, f, ρ, u)
 
-        @show - (q.speed_of_sound_squared / problem.ν) * (lbm.momentum_flux(q, f, ρ, u) - I(2) * lbm.pressure(q, f, ρ, u)) ./ problem.u_max
+        @show - (q.speed_of_sound_squared / problem.ν) * (lbm.momentum_flux(q, f, ρ, u) - I * lbm.pressure(q, f, ρ, u)) ./ problem.u_max
         @show ρ * u * u'
 
         @show lbm.deviatoric_tensor(q, problem, x, y, 0.0)
@@ -114,7 +114,7 @@ import LinearAlgebra: I, tr
 
 
         @warn "Check deviatoric stress"
-        σ_lb = lbm.momentum_flux(q, f, ρ, u) - I(2) * lbm.pressure(q, f, ρ, u)
+        σ_lb = lbm.momentum_flux(q, f, ρ, u) - I * lbm.pressure(q, f, ρ, u)
         σ = lbm.deviatoric_tensor(q, problem, x, y, 0.0)
         @show σ_lb σ
         @show (1 - 1 / (2 * τ))
