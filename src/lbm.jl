@@ -8,6 +8,7 @@ using Plots
 include("quadratures.jl")
 include("boundary-conditions.jl")
 include("problems/problems.jl")
+include("initial-conditions.jl")
 include("stream.jl")
 include("collision.jl")
 include("analysis.jl")
@@ -72,6 +73,7 @@ function LatticeBoltzmannMethod(
     quadrature;
     collision_model = SRT,
     n_steps = 100,
+    initialization_strategy = InitializationStrategy(problem),
     should_process = false
 )
     f_stream = initialize(quadrature, problem, collision_model)
