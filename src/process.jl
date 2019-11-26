@@ -204,7 +204,8 @@ function process!(problem::FluidFlowProblem, q::Quadrature, f_in, time, stats; s
     if should_visualize
         visualize(problem, q, f_in, time, stats)
     end
-    return
+
+    return false
 end
 
 function visualize(problem::FluidFlowProblem, quadrature::Quadrature, f_in, time, stats)
