@@ -113,5 +113,30 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         end
     end
 
+    if mod(t, 1) == 0
+        should_visualize = false
+        if (process_method.should_process)
+            if t == process_method.n_steps
+                should_visualize = true
+            end
+
+            if mod(t, max(10, round(Int, process_method.n_steps / 5))) == 0
+                should_visualize = true
+            end
+        end
+
+
+        if (should_visualize)
+            Δt = delta_t(process_method.problem)
+            visualize(
+                process_method.problem,
+                q,
+                f_in,
+                time,
+                process_method.df
+            )
+        end
+    end
+
     return false
 end
