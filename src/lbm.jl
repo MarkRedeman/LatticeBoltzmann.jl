@@ -97,7 +97,6 @@ function LatticeBoltzmannMethod(
         )
     )
 end
-
 function siumlate(
     problem::FluidFlowProblem,
     q::Quadrature;
@@ -117,7 +116,13 @@ function siumlate(
         should_process = should_process
     )
 
-    @inbounds for t = 0:n_steps
+    simulate(lbm, 0:n_steps)
+end
+function simulate(lbm::LatticeBoltzmannMethod, time)
+    problem = lbm.processing_method.problem
+    Δt = delta_t(problem)
+
+    @inbounds for t = time
         if process_step!(lbm, t)
             break
         end
