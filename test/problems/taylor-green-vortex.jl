@@ -56,7 +56,6 @@ import LinearAlgebra: I, tr
         @show σ - σ_lb
         @show σ ./ σ_lb
         @show σ_lb ./ σ
-        return
         # return
 
 
