@@ -66,13 +66,13 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
             f[f_idx] = f_in[x_idx, y_idx, f_idx]
         end
 
-        # Adding the forcing term moves the optimal tau for poiseuille flows
-        # F = cm.force(x_idx, y_idx, 0.0)
-        # u += cm.τ * F
-
         ρ = density(q, f)
         velocity!(q, f, ρ, u)
         p = pressure(q, f, ρ, u)
+
+        # Adding the forcing term moves the optimal tau for poiseuille flows
+        # F = cm.force(x_idx, y_idx, 0.0)
+        # u += cm.τ * F
 
         ρ = dimensionless_density(problem, ρ)
         u = dimensionless_velocity(problem, u)
