@@ -1,6 +1,7 @@
 abstract type ProcessingMethod end
 ProcessingMethod(problem, should_process, n_steps) = CompareWithAnalyticalSolution(problem, should_process, n_steps)
 ProcessingMethod(problem::TaylorGreenVortexExample, should_process, n_steps) = TrackHydrodynamicErrors(problem, should_process, n_steps)
+ProcessingMethod(problem::DecayingShearFlow, should_process, n_steps) = TrackHydrodynamicErrors(problem, should_process, n_steps)
 
 include("processing-methods/track-hydrodynamic-errors.jl")
 struct CompareWithAnalyticalSolution{T} <: ProcessingMethod
