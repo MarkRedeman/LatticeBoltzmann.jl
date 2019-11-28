@@ -72,7 +72,8 @@ function collide_mrt!(
 ) where { CM <: CollisionModel }
     @info "Using a special collision operator"
     cs = q.speed_of_sound_squared
-    τs = cm.τs
+
+    τs = collision_model.τs
 
     D = dimension(q)
     N = div(lbm.order(q), 2)

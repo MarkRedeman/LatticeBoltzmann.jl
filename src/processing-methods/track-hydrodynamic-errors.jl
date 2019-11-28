@@ -61,6 +61,22 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
 
     time = t * delta_t(problem)
     Δ = Float64(y_range.step) * Float64(x_range.step)
+
+    τ = q.speed_of_sound_squared * lbm.lattice_viscosity(problem) + 0.5
+    # @show q.speed_of_sound_squared * lbm.lattice_viscosity(problem) + 0.5, problem.ν, 1/problem.ν, viscosity(problem)
+
+    # τ = q.speed_of_sound_squared * lbm.lattice_viscosity(problem)
+    D = dimension(q)
+    N = div(lbm.order(q), 2)
+    N = 2
+    Hs = [
+        [
+            hermite(Val{n}, q.abscissae[:, i], q)
+            for i = 1:length(q.weights)
+        ]
+        for n = 1:N
+    ]
+
     @inbounds for x_idx in 1:nx, y_idx in 1:ny
         @inbounds for f_idx = 1 : size(f_in, 3)
             f[f_idx] = f_in[x_idx, y_idx, f_idx]
@@ -93,17 +109,119 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         error_ρ += Δ * (ρ - expected_ρ)^2
         error_p += Δ * (p - expected_p)^2
         error_u += Δ * ((u[1] - expected_u[1])^2 + (u[2] - expected_u[2])^2)
+
+
+        # if (x_idx == div(nx, 2) && y_idx == 1)
+            a_f = [
+                sum([f[idx] * Hs[n][idx] for idx = 1:length(q.weights)])
+                for n = 1:N
+            ]
+
+            P = a_f[2] - (a_f[1] * a_f[1]') / ρ - ρ * I(2)
+            P = P * (1 - 1 / (2 * τ))
+            # σ_lb = momentum_flux(q, f, ρ, u) - I(2) * p
+            σ_lb = (P - I(2) * tr(P) / (D))
+
+            # Rescale to dimensionless number (TODO check why problem.u_max)
+            σ_lb = σ_lb / (problem.u_max)
+
+            # P = a_f[2] - (a_f[1] * a_f[1]') / ρ - ρ * I(2)
+            P = (1 - 1 / (2 * τ))a_f[2] - (a_f[1] * a_f[1]') / ρ - ρ * I(2)
+            # P = P * (1 - 1 / (2 * τ))
+            # @show P
+
+            σ_lb = (P - I(2) * tr(P) / (D)) / (problem.u_max)
+
+            a_eq_2 = equilibrium_coefficient(Val{2}, q, ρ, a_f[1] ./ ρ, 1.0)
+            σ_a = (a_f[2] - a_eq_2) / (1 - 1 / (2 * τ))
+
+            a_2 = (a_f[2] + (1 / (2 * τ)) * a_eq_2) / (1 + 1 / (2 * τ))
+
+        # Vorige poging
+        # @show "SIGMAS"
+            σ_lb = (a_2 - (a_f[1] * a_f[1]') / ρ) / problem.u_max
+            # @show σ_lb
+
+        # Huidige poging
+            P = a_2 - (a_f[1] * a_f[1]') / ρ - ρ * I
+            σ_lb = (P - (1/D) * tr(P) * I)
+            # @show σ_lb
+            # @show P -(P - (1/D) * tr(P) * I)
+
+            # @show (a_f[1] * a_f[1]') / ρ
+            # @show σ_a
+            # @show (σ_a - (a_f[1] * a_f[1]') / ρ)
+            # @show (σ_a - (a_f[1] * a_f[1]') / ρ) / problem.u_max
+            # @show a_f[2] a_eq_2 σ_a / problem.u_max
+            # @show tr(σ_a)
+
+            factor = 0.9549296889427464
+        # factor = q.speed_of_sound_squared / pi
+            factor = (1.0 / delta_x(problem)) / 16
+            factor = (1.0 / (problem.u_max * delta_x(problem))) / 16
+            σ_lb *= (factor) * 6
+            cs = 1 / (2 * q.speed_of_sound_squared)
+            σ_exact = q.speed_of_sound_squared * deviatoric_tensor(q, problem, x, y, time) * cs
+            # σ_exact /= (problem.domain_size[1] / delta_x(problem)) / 16
+
+        # P = (
+        #     a_f[2] - ρ * (u * u' - I)
+        # )
+        # @show P P /(1 + 1 / (2 * τ)) P / problem.u_max P / (problem.u_max * (1 + 1 / (2 * τ))) σ_lb σ_exact
+
+            σ_err = (σ_exact .- σ_lb)
+        # @show σ_err
+            # @show x y
+            # @show σ_lb σ_exact σ_err
+            # @show σ_exact ./ σ_lb
+            # @show σ_lb ./ σ_exact
+            # @show σ_exact[1,2] σ_lb[1,2]
+        if (x_idx == div(nx, 2) && y_idx == 1)
+            @show factor
+            factor =  σ_exact[1,2] ./ σ_lb[1,2]
+            # factor =  σ_exact[2,2] ./ σ_lb[2,2]
+            # @show τ q.speed_of_sound_squared
+            @show pi * τ, pi * q.speed_of_sound_squared, factor
+            @show (1.0 / delta_x(problem)) / 16
+            # @show factor * q.speed_of_sound_squared
+            # @show factor / q.speed_of_sound_squared
+            # @show factor * pi
+            # @show factor / pi
+            # @show factor * τ
+            # @show factor / τ
+            # @show factor * problem.ν
+            # @show factor / problem.ν
+
+            # factor =  σ_exact[1,2] ./ σ_lb[1,2]
+            factor =  σ_exact[2,2] ./ σ_lb[2,2]
+            @show factor σ_lb σ_exact
+            # @show factor * q.speed_of_sound_squared
+            # @show factor / q.speed_of_sound_squared
+            # @show factor * pi
+            # @show factor / pi
+            # @show factor * τ
+            # @show factor / τ
+            # @show factor * problem.ν
+            # @show factor / problem.ν
+            end
+
+            error_σ_xx += Δ * σ_err[1, 1]^2
+            error_σ_xy += Δ * σ_err[1, 2]^2
+            error_σ_yx += Δ * σ_err[2, 1]^2
+            error_σ_yy += Δ * σ_err[2, 2]^2
+        # end
     end
 
+    # @show error_σ_xy
     push!(process_method.df, (
         timestep = t,
         error_ρ = sqrt(error_ρ),
         error_u = sqrt(error_u),
         error_p = sqrt(error_p),
-        error_σ_xx = error_σ_xx,
-        error_σ_xy = error_σ_xy,
-        error_σ_yy = error_σ_yy,
-        error_σ_yx = error_σ_yx,
+        error_σ_xx = sqrt(error_σ_xx),
+        error_σ_xy = sqrt(error_σ_xy),
+        error_σ_yy = sqrt(error_σ_yy),
+        error_σ_yx = sqrt(error_σ_yx),
     ))
 
     if mod(t, 100) == 0
@@ -128,6 +246,7 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
 
         if (should_visualize)
             Δt = delta_t(process_method.problem)
+            return false
             visualize(
                 process_method.problem,
                 q,

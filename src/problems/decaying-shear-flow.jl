@@ -21,25 +21,28 @@ function DecayingShearFlow(
     # ν_lb = ν_lb * scale
     Re = NX * u_max / ν_lb
     @show Re
+
    
-    return DecayingShearFlow(1.0, u_max, ν_lb, NX, 3, 1.0, domain_size, static, A, B)
+    p = DecayingShearFlow(1.0, u_max, ν_lb, NX, 3, 1.0, domain_size, static, A, B)
+    @show (delta_t(p), 1/delta_t(p))
+    @show (delta_x(p), 1/delta_x(p))
+    @show (p.u_max, 1/p.u_max)
+    @show (p.domain_size[1] / delta_x(p)) / 16
+    return p
 end
 
 function density(q::Quadrature, problem::DecayingShearFlow, x::Float64, y::Float64, time::Float64 = 0.0)
-    return pressure(q, problem, x, y, time)
     return 1.0
+    return pressure(q, problem, x, y, time)
 end
 
 function pressure(q::Quadrature, problem::DecayingShearFlow, x::Float64, y::Float64, time::Float64 = 0.0)
-    # return 1.0
+    return 1.0
     A = problem.A
     B = problem.B
 
     p = 1 + problem.B * (0.025) * q.speed_of_sound_squared * problem.u_max^2 * B * sin(problem.k * (x - A * time))^2 * decay(problem, x, y, time)^2
     return p
-
-    return 1.0 + q.speed_of_sound_squared * problem.u_max^2 * p
-    return 1.0 + p
 end
 function pressure_tensor(q::Quadrature, problem::DecayingShearFlow, x::Float64, y::Float64, time::Float64 = 0.0)
     A = problem.A
@@ -63,35 +66,30 @@ function deviatoric_tensor(q::Quadrature, problem::DecayingShearFlow, x::Float64
         2 * a[1, 1] a[1, 2] + a[2, 1]
         a[1, 2] + a[2, 1] 2 * a[2, 2]
     ]
-
-    A = problem.A
-    B = problem.B
-
-    ρT = pressure(q, problem, x, y, time)
-    ρT = 1.0
-
-    return - ρT * problem.ν * q.speed_of_sound_squared^2 * problem.k * B * sin(problem.k * x - problem.k * A * time) * decay(problem, x, y, time) * [
-        0.0 1.0
-        1.0 0.0
-    ]
 end
 
 function velocity(problem::DecayingShearFlow, x::Float64, y::Float64, time::Float64 = 0.0)
     A = problem.A
     B = problem.B
 
+    k_y = 0.0
+    k_x = problem.k
+
     return [
-        A
-        B * cos(problem.k * (x - A * time)) * decay(problem, x, y, time)
+        A * cos(k_y * y - k_y * B * time) * decay(problem, x, y, time)
+        B * cos(k_x * x - k_x * A * time) * decay(problem, x, y, time)
     ]
 end
 function acceleration(problem::DecayingShearFlow, x::Float64, y::Float64, time::Float64 = 0.0)
     A = problem.A
     B = problem.B
 
+    k_y = 0.0
+    k_x = problem.k
+
     u_x = 0.0
-    u_y = 0.0
-    v_x = B * problem.k * sin(problem.k * (x - A * time))
+    u_y = A * k_y * sin(k_y * (y - B * time))
+    v_x = B * k_x * sin(k_x * (x - A * time))
     v_y = 0.0
 
     return decay(problem, x, y, time) * [u_x v_x; u_y v_y]
@@ -113,9 +111,12 @@ function force(problem::DecayingShearFlow, x::Float64, y::Float64, time::Float64
     A = problem.A
     B = problem.B
 
+    k_y = 0.0
+    k_x = problem.k
+
     return [
         0.0
-        viscosity(problem) * problem.k^2 * B * cos(problem.k * (x - A * time))
+        viscosity(problem) * k_x^2 * B * cos(k_x * x - k_x * A * time)
     ]
 end
 

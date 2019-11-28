@@ -124,13 +124,13 @@ function simulate(lbm::LatticeBoltzmannMethod, time)
     Δt = delta_t(lbm.processing_method.problem)
 
     @inbounds for t = time
-        if process_step!(lbm, t)
-            break
-        end
-
         collide!(lbm, time = t * Δt)
         stream!(lbm)
         apply_boundary_conditions!(lbm, time = t * Δt)
+
+        if process_step!(lbm, t + 1)
+            break
+        end
     end
 
     process_step!(lbm, last(time) + 1)

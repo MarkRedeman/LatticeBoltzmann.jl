@@ -11,12 +11,25 @@ function acceleration(::FluidFlowProblem, x::Float64, y::Float64, timestep::Floa
 end
 
 function initial_equilibrium(quadrature::Quadrature, problem::FluidFlowProblem, x::Float64, y::Float64)
-    return equilibrium(
+    f = equilibrium(
         quadrature,
-        lattice_density(quadrature, problem, x, y),
+        1.0,
+        # lattice_density(quadrature, problem, x, y),
         lattice_velocity(quadrature, problem, x, y),
-        lattice_temperature(quadrature, problem, x, y)
+        # lattice_temperature(quadrature, problem, x, y)
+        1.0
     )
+    # return f
+
+    q = quadrature
+    ρ = sum(f)
+    cs = 1 / q.speed_of_sound_squared
+    d_u = - 0.5 * cs * problem.u_max * lbm.acceleration(problem, x, y, 0.0)
+    τ = q.speed_of_sound_squared * lbm.lattice_viscosity(problem) + 0.5
+    for f_idx = 1:length(f)
+       f[f_idx] += - (q.weights[f_idx] * ρ * τ / cs) * sum(lbm.hermite(Val{2}, q.abscissae[:, f_idx], q) .* d_u)
+    end
+    return f
 end
 
 function initial_condition(q::Quadrature, problem::FluidFlowProblem, x::Float64, y::Float64)

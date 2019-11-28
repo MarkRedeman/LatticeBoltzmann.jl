@@ -200,6 +200,11 @@ function process!(problem::FluidFlowProblem, q::Quadrature, f_in, time, stats; s
         internal_energy_a = expected_total_internal_energy,
         error_u = sqrt(error_u),
         error_p = sqrt(error_p),
+
+        error_σ_xx = 0.0,
+        error_σ_xy = 0.0,
+        error_σ_yy = 0.0,
+        error_σ_yx = 0.0,
     ))
 
     if should_visualize

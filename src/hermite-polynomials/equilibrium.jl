@@ -80,6 +80,10 @@ function _equilibrium(q::Quadrature, ρ, weight, u_dot_xi, u_squared, T, xi_squa
     H_2_temperature = 0.0
 
     a_H_2 = cs^2 * (u_dot_xi .* u_dot_xi) .+ H_2_temperature .+ - cs * u_squared
+    # return ρ .* weight .+ weight * (
+    #     a_H_1 .+
+    #     (1 / 2) * a_H_2
+    # )
     return ρ .* weight .* (
         a_H_0 .+
         a_H_1 .+
