@@ -107,7 +107,8 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         expected_T = expected_p / expected_ρ
 
         error_ρ += Δ * (ρ - expected_ρ)^2
-        error_p += Δ * (p - expected_p)^2
+        @show p expected_p
+        # error_p += Δ * (p - expected_p)^2
         error_u += Δ * ((u[1] - expected_u[1])^2 + (u[2] - expected_u[2])^2)
 
 
@@ -130,6 +131,9 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
             # P = P * (1 - 1 / (2 * τ))
             # @show P
 
+        @show tr(P) / D
+
+        error_p += Δ * ((-tr(P)/D) - expected_p)^2
             σ_lb = (P - I(2) * tr(P) / (D)) / (problem.u_max)
 
             a_eq_2 = equilibrium_coefficient(Val{2}, q, ρ, a_f[1] ./ ρ, 1.0)
@@ -176,6 +180,7 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
             # @show σ_exact ./ σ_lb
             # @show σ_lb ./ σ_exact
             # @show σ_exact[1,2] σ_lb[1,2]
+            # @show Δ *(σ_exact .- σ_lb).^2
         if (x_idx == div(nx, 2) && y_idx == 1)
             @show factor
             factor =  σ_exact[1,2] ./ σ_lb[1,2]
@@ -194,7 +199,7 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
 
             # factor =  σ_exact[1,2] ./ σ_lb[1,2]
             factor =  σ_exact[2,2] ./ σ_lb[2,2]
-            @show factor σ_lb σ_exact
+            @show factor σ_lb σ_exact (σ_exact .- σ_lb).^2
             # @show factor * q.speed_of_sound_squared
             # @show factor / q.speed_of_sound_squared
             # @show factor * pi
@@ -211,6 +216,9 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
             error_σ_yy += Δ * σ_err[2, 2]^2
         # end
     end
+
+    @show error_σ_xy
+    @show sqrt(error_σ_xy)
 
     # @show error_σ_xy
     push!(process_method.df, (
@@ -246,7 +254,6 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
 
         if (should_visualize)
             Δt = delta_t(process_method.problem)
-            return false
             visualize(
                 process_method.problem,
                 q,
