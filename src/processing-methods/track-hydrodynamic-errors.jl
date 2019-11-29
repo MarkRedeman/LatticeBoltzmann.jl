@@ -77,6 +77,7 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         for n = 1:N
     ]
 
+    @show problem.ν * delta_x(problem)^2 / delta_t(problem)
     @inbounds for x_idx in 1:nx, y_idx in 1:ny
         @inbounds for f_idx = 1 : size(f_in, 3)
             f[f_idx] = f_in[x_idx, y_idx, f_idx]
@@ -107,7 +108,7 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         expected_T = expected_p / expected_ρ
 
         error_ρ += Δ * (ρ - expected_ρ)^2
-        @show p expected_p
+        # @show p expected_p
         # error_p += Δ * (p - expected_p)^2
         error_u += Δ * ((u[1] - expected_u[1])^2 + (u[2] - expected_u[2])^2)
 
@@ -131,9 +132,10 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
             # P = P * (1 - 1 / (2 * τ))
             # @show P
 
-        @show tr(P) / D
+        # @show tr(P) / D
 
         error_p += Δ * ((-tr(P)/D) - expected_p)^2
+
             σ_lb = (P - I(2) * tr(P) / (D)) / (problem.u_max)
 
             a_eq_2 = equilibrium_coefficient(Val{2}, q, ρ, a_f[1] ./ ρ, 1.0)
@@ -162,10 +164,13 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
             factor = 0.9549296889427464
         # factor = q.speed_of_sound_squared / pi
             factor = (1.0 / delta_x(problem)) / 16
-            factor = (1.0 / (problem.u_max * delta_x(problem))) / 16
-            σ_lb *= (factor) * 6
-            cs = 1 / (2 * q.speed_of_sound_squared)
-            σ_exact = q.speed_of_sound_squared * deviatoric_tensor(q, problem, x, y, time) * cs
+            factor = (1.0 / (delta_t(problem)))
+        # factor *= 6/8
+        # factor *= 6/8
+        factor *= 3/4
+            σ_lb *= (factor)
+            cs = 1 / (q.speed_of_sound_squared)
+            σ_exact = deviatoric_tensor(q, problem, x, y, time)
             # σ_exact /= (problem.domain_size[1] / delta_x(problem)) / 16
 
         # P = (
@@ -184,10 +189,13 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         if (x_idx == div(nx, 2) && y_idx == 1)
             @show factor
             factor =  σ_exact[1,2] ./ σ_lb[1,2]
-            # factor =  σ_exact[2,2] ./ σ_lb[2,2]
+            @show factor
+            factor =  σ_exact[2,2] ./ σ_lb[2,2]
+            @show factor
+            @show σ_err
             # @show τ q.speed_of_sound_squared
-            @show pi * τ, pi * q.speed_of_sound_squared, factor
-            @show (1.0 / delta_x(problem)) / 16
+            # @show pi * τ, pi * q.speed_of_sound_squared, factor
+            # @show (1.0 / delta_x(problem)) / 16
             # @show factor * q.speed_of_sound_squared
             # @show factor / q.speed_of_sound_squared
             # @show factor * pi
@@ -199,7 +207,7 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
 
             # factor =  σ_exact[1,2] ./ σ_lb[1,2]
             factor =  σ_exact[2,2] ./ σ_lb[2,2]
-            @show factor σ_lb σ_exact (σ_exact .- σ_lb).^2
+            # @show factor σ_lb σ_exact (σ_exact .- σ_lb).^2
             # @show factor * q.speed_of_sound_squared
             # @show factor / q.speed_of_sound_squared
             # @show factor * pi
@@ -217,7 +225,9 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         # end
     end
 
+    @show error_σ_xx
     @show error_σ_xy
+    @show sqrt(error_σ_xx)
     @show sqrt(error_σ_xy)
 
     # @show error_σ_xy
