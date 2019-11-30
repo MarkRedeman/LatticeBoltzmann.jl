@@ -129,7 +129,7 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         P = a_2 - (a_f[1] * a_f[1]') / ρ - ρ * I
         σ_lb = (P - (1/D) * tr(P) * I)
 
-        factor = delta_x(problem)^2 / delta_t(problem)^2 * 3/4
+        factor = 3 / (4 * problem.u_max^2)
         # factor *= 0.964234137002314
         σ_lb *= (factor)
         σ_exact = deviatoric_tensor(q, problem, x, y, time)
