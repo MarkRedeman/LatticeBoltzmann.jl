@@ -94,7 +94,11 @@ function delta_t(problem::FluidFlowProblem)
 end
 
 function delta_x(problem::FluidFlowProblem)
-    return problem.domain_size[1] * (1 / problem.NX)
+    if (problem.NX > problem.NY)
+        return problem.domain_size[1] * (1 / problem.NX)
+    end
+
+    return problem.domain_size[2] * (1 / problem.NY)
 end
 function reynolds(problem::FluidFlowProblem)
     return problem.NY * problem.u_max / problem.ν
