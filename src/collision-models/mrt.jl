@@ -64,13 +64,12 @@ end
 # If it is equal to 1, then we don't need to compute the nth hermite coefficient
 # of f
 function collide_mrt!(
-    collision_model::CM,
+    collision_model::MRT{Force},
     q,
     f_in,
     f_out;
     time = 0.0,
-) where { CM <: CollisionModel }
-    @info "Using a special collision operator"
+) where { Force }
     cs = q.speed_of_sound_squared
 
     τs = collision_model.τs
@@ -79,15 +78,13 @@ function collide_mrt!(
     N = div(lbm.order(q), 2)
 
     # Compute (get!?) the hermite polynomials for this quadrature
-    Hs = [
-        [
-            hermite(Val{n}, q.abscissae[:, i], q)
-            for i = 1:length(q.weights)
-        ]
-        for n = 1:N
-    ]
+    Hs = collision_model.Hs
 
     nx, ny, nf = size(f_in)
+
+    if ! (Force <: Nothing)
+        F = zeros(dimension(q))
+    end
 
     f = Array{Float64}(undef, nf)
     u = zeros(dimension(q))
@@ -106,6 +103,12 @@ function collide_mrt!(
         velocity!(q, f, ρ, u)
         # T = temperature(q, f, ρ, a_f[1], a_f[2])
         T = 1.0
+
+        if ! (Force <: Nothing)
+            F .= collision_model.force(x_idx, y_idx, time)
+
+            u += τs[2] * F
+        end
 
         # NOTE: we don't need to compute the 0th and 1st coefficient as these are equal
         # to a_f[0] and a_f[1]
