@@ -117,6 +117,13 @@ dimensionless_velocity(problem::FluidFlowProblem, u) = u / problem.u_max
 dimensionless_pressure(q, problem::FluidFlowProblem, p) = p# (p - 1.0) / (q.speed_of_sound_squared * problem.u_max^2 )
 dimensionless_temperature(q, problem::FluidFlowProblem, T) = T #* q.speed_of_sound_squared
 dimensionless_force(problem::FluidFlowProblem, F) = F / (problem.u_max * delta_t(problem))
+dimensionless_stress(problem::FluidFlowProblem, σ) = begin
+    # Rescale to dimensionless number (TODO check why problem.u_max)
+    factor = 1 / problem.u_max^2
+    # factor *= 0.964234137002314
+
+    return σ * factor
+end
 
 include("taylor-green-vortex-decay.jl")
 include("decaying-shear-flow.jl")

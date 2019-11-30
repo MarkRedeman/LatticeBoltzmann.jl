@@ -77,6 +77,19 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
 
     # @show problem.ν * delta_x(problem)^2 / delta_t(problem)
     @inbounds for x_idx in 1:nx, y_idx in 1:ny
+        # Analytical
+        x = x_range[x_idx]
+        y = y_range[y_idx]
+
+        # Compute expected marcroscopic variables
+        expected_ρ = lbm.density(q, problem, x, y, time)
+        expected_u = lbm.velocity(problem, x, y, time)
+        expected_p = lbm.pressure(q, problem, x, y, time)
+        expected_ϵ = (dimension(q) / 2) * expected_p / expected_ρ
+        expected_T = expected_p / expected_ρ
+        expected_σ = deviatoric_tensor(q, problem, x, y, time)
+
+        # Compute macroscopic variables
         @inbounds for f_idx = 1 : size(f_in, 3)
             f[f_idx] = f_in[x_idx, y_idx, f_idx]
         end
@@ -89,95 +102,62 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         # F = cm.force(x_idx, y_idx, 0.0)
         # u += cm.τ * F
 
+        # Hermite coefficients of \bar{f}
+        τ = q.speed_of_sound_squared * lbm.lattice_viscosity(problem)
+        a_bar_2 = sum([f[idx] * Hs[2][idx] for idx = 1:length(q.weights)])
+        a_eq_2 = equilibrium_coefficient(Val{2}, q, ρ, u, 1.0)
+       
+        # Determin a^2 of f based on \bar{f} and f^eq
+        a_2 = (a_bar_2 + (1 / (2 * τ)) * a_eq_2) / (1 + 1 / (2 * τ))
+
+        # Second order convergence?
+        # P = (1 - 1 / (2 * τ))a_f[2] - (a_f[1] * a_f[1]') / ρ + ρ * I
+        p = 0.0
+        for x_idx = 1:D
+            p += (1 - 1 / (2 * τ))a_bar_2[x_idx, x_idx] - ρ * (u[x_idx] * u[x_idx] - I)
+        end
+        p /= D
+
+
+
+        # Huidige poging
+        P = a_2 - ρ * (u * u' - I)
+        σ_lb = P - I * tr(P) / D
+        if (x_idx == div(nx, 2) && y_idx == 1)
+            @show (expected_p - p) (expected_p - tr(P)/D)
+        end
+        # Gives 4th order convergence?
+        # p = tr(P) /D
+
+
+        # Determine errors by first scaling from lattice variables to dimensionless
         ρ = dimensionless_density(problem, ρ)
         u = dimensionless_velocity(problem, u)
         p = dimensionless_pressure(q, problem, p)
+        σ_lb = dimensionless_stress(problem, σ_lb)
 
-        # Analytical
-        x = x_range[x_idx]
-        y = y_range[y_idx]
+        # - \mu \rho T \Lambda
+        σ_err = (expected_σ .- σ_lb)
 
-        # Compute statistics
-        expected_ρ = lbm.density(q, problem, x, y, time)
-        expected_u = lbm.velocity(problem, x, y, time)
-
-        expected_p = lbm.pressure(q, problem, x, y, time)
-        expected_ϵ = (dimension(q) / 2) * expected_p / expected_ρ
-        expected_T = expected_p / expected_ρ
-
-        error_ρ += Δ * (ρ - expected_ρ)^2
-        # @show p expected_p
-        # error_p += Δ * (p - expected_p)^2
-        error_u += Δ * ((u[1] - expected_u[1])^2 + (u[2] - expected_u[2])^2)
-
-
-        # if (x_idx == div(nx, 2) && y_idx == 1)
-        a_f = [
-            sum([f[idx] * Hs[n][idx] for idx = 1:length(q.weights)])
-            for n = 1:N
-        ]
-        a_eq_2 = equilibrium_coefficient(Val{2}, q, ρ, a_f[1] ./ ρ, 1.0)
-
-
-        # Rescale to dimensionless number (TODO check why problem.u_max)
-        P = (1 - 1 / (2 * τ))a_f[2] - (a_f[1] * a_f[1]') / ρ - ρ * I
-        error_p += Δ * ((-tr(P)/D) - expected_p)^2
-
-        a_2 = (a_f[2] + (1 / (2 * τ)) * a_eq_2) / (1 + 1 / (2 * τ))
-
-        # Huidige poging
-        P = a_2 - (a_f[1] * a_f[1]') / ρ - ρ * I
-        σ_lb = (P - (1/D) * tr(P) * I)
-
-        factor = 3 / (4 * problem.u_max^2)
-        # factor *= 0.964234137002314
-        σ_lb *= (factor)
-        σ_exact = deviatoric_tensor(q, problem, x, y, time)
-        σ_err = (σ_exact .- σ_lb)
-       
         if (x_idx == div(nx, 2) && y_idx == 1)
-            # @show σ_exact σ_lb σ_err
-            factor =  σ_exact[1,2] ./ σ_lb[1,2]
-            @show  σ_exact[1,2] ./ σ_lb[1,2]
-            factor =  σ_exact[2,2] ./ σ_lb[2,2]
-            # @show  σ_exact[2,2] ./ σ_lb[2,2]
-            # @show τ q.speed_of_sound_squared
-            # @show pi * τ, pi * q.speed_of_sound_squared, factor
-            # @show (1.0 / delta_x(problem)) / 16
-            # @show factor * q.speed_of_sound_squared
-            # @show factor / q.speed_of_sound_squared
-            # @show factor * pi
-            # @show factor / pi
-            # @show factor * τ
-            # @show factor / τ
-            # @show factor * problem.ν
-            # @show factor / problem.ν
-
-            # factor =  σ_exact[1,2] ./ σ_lb[1,2]
-            # factor =  σ_exact[2,2] ./ σ_lb[2,2]
-            # @show factor σ_lb σ_exact (σ_exact .- σ_lb).^2
-            # @show factor * q.speed_of_sound_squared
-            # @show factor / q.speed_of_sound_squared
-            # @show factor * pi
-            # @show factor / pi
-            # @show factor * τ
-            # @show factor / τ
-            # @show factor * problem.ν
-            # @show factor / problem.ν
+            factor =  expected_σ[1,2] ./ σ_lb[1,2]
+            # @show  expected_σ[1,2] ./ σ_lb[1,2]
+            # @show  expected_σ[1,1] ./ σ_lb[1,1]
+            # @show  expected_σ[2,2] ./ σ_lb[2,2]
+            # @show expected_σ σ_lb
+            # @show σ_lb[1, 2]
+            factor =  expected_σ[2,2] ./ σ_lb[2,2]
         end
 
+        error_p += Δ * (p - expected_p)^2
+        error_ρ += Δ * (ρ - expected_ρ)^2
+        error_u += Δ * ((u[1] - expected_u[1])^2 + (u[2] - expected_u[2])^2)
         error_σ_xx += Δ * σ_err[1, 1]^2
         error_σ_xy += Δ * σ_err[1, 2]^2
         error_σ_yx += Δ * σ_err[2, 1]^2
         error_σ_yy += Δ * σ_err[2, 2]^2
     end
 
-    # @show error_σ_xx
-    # @show error_σ_xy
-    # @show sqrt(error_σ_xx)
-    # @show sqrt(error_σ_xy)
-
-    # @show error_σ_xy
     push!(process_method.df, (
         timestep = t,
         error_ρ = sqrt(error_ρ),
@@ -203,7 +183,7 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
                 should_visualize = true
             end
 
-            if mod(t, max(10, round(Int, process_method.n_steps / 5))) == 0
+            if mod(t, max(10, round(Int, process_method.n_steps / 25))) == 0
                 should_visualize = true
             end
         end
