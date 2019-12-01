@@ -2,48 +2,25 @@ struct TRT{Force} <: CollisionModel
     τ_symmetric::Float64
     τ_asymmetric::Float64
     force::Force
-
-    feq::Array{Float64, 1}
-    f::Array{Float64, 1}
-    feq_symmetric::Array{Float64, 1}
-    feq_asymmetric::Array{Float64, 1}
-    f_symmetric::Array{Float64, 1}
-    f_asymmetric::Array{Float64, 1}
 end
 
 function CollisionModel(
     cm::Type{<:TRT},
     q::Quadrature,
-    problem::FluidFlowProblem
+    problem::FluidFlowProblem;
+    Λ = 1 / 4
 )
     τ = q.speed_of_sound_squared * lattice_viscosity(problem) + 0.5
-    Λ = 1 / 6
     τ_ = 0.5 + Λ / (τ - 0.5)
-    @show τ_
+    @show Λ, τ, τ_
 
-    if has_external_force(problem)
-        force_field = (x_idx, y_idx, t) -> lattice_force(problem, x_idx, y_idx, t)
-        return TRT(
-            τ, τ_, force_field,
-            similar(q.weights),
-            similar(q.weights),
-            similar(q.weights),
-            similar(q.weights),
-            similar(q.weights),
-            similar(q.weights)
-        )
-        return TRT(τ, τ_, force_field)
-    else
-        return TRT(
-            τ, τ_, nothing,
-            similar(q.weights),
-            similar(q.weights),
-            similar(q.weights),
-            similar(q.weights),
-            similar(q.weights),
-            similar(q.weights)
-        )
-    end
+    force_field = has_external_force(problem) ?
+        (x_idx, y_idx, t) -> lattice_force(problem, x_idx, y_idx, t) :
+        nothing
+
+    return TRT(
+        τ, τ_, force_field,
+    )
 end
 
 function collide!(collision_model::TRT{Force}, q::Quadrature, f_in, f_out; time = 0.0) where {Force}
