@@ -6,7 +6,7 @@ abstract type InitialValueProblem <: FluidFlowProblem end
 abstract type DoubleDistributionProblem <: FluidFlowProblem end
 
 has_external_force(::FluidFlowProblem) = false
-function acceleration(::FluidFlowProblem, x::Float64, y::Float64, timestep::Float64 = 0.0)
+function velocity_gradient(::FluidFlowProblem, x::Float64, y::Float64, timestep::Float64 = 0.0)
     return zeros(2, 2)
 end
 
@@ -24,7 +24,7 @@ function initial_equilibrium(quadrature::Quadrature, problem::FluidFlowProblem, 
     q = quadrature
     ρ = sum(f)
     cs = 1 / q.speed_of_sound_squared
-    d_u = - 0.5 * cs * problem.u_max * lbm.acceleration(problem, x, y, 0.0)
+    d_u = - 0.5 * cs * problem.u_max * lbm.velocity_gradient(problem, x, y, 0.0)
     τ = q.speed_of_sound_squared * lbm.lattice_viscosity(problem) + 0.5
     for f_idx = 1:length(f)
        f[f_idx] += - (q.weights[f_idx] * ρ * τ / cs) * sum(lbm.hermite(Val{2}, q.abscissae[:, f_idx], q) .* d_u)
@@ -65,7 +65,7 @@ end
 boundary_conditions(problem::FluidFlowProblem) = BoundaryCondition[]
 
 function deviatoric_tensor(q::Quadrature, problem::FluidFlowProblem, x::Float64, y::Float64, time::Float64 = 0.0)
-    a = acceleration(problem, x, y, time)
+    a = velocity_gradient(problem, x, y, time)
     ν = viscosity(problem)
 
     return ν * [

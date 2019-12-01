@@ -54,7 +54,7 @@ function velocity(tgv::TaylorGreenVortex, x::Float64, y::Float64, timestep::Floa
     ]
 end
 
-function acceleration(tgv::TaylorGreenVortex, x::Float64, y::Float64, timestep::Float64 = 0.0)
+function velocity_gradient(tgv::TaylorGreenVortex, x::Float64, y::Float64, timestep::Float64 = 0.0)
     a = 1.0
     A = 1.0
     b = 1.0

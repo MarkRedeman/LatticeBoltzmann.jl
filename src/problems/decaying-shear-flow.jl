@@ -68,7 +68,7 @@ function velocity(problem::DecayingShearFlow, x::Float64, y::Float64, time::Floa
         B * cos(k_x * x - k_x * A * time) * exp(-1.0 * k_x^2 * viscosity(problem) * time )
     ]
 end
-function acceleration(problem::DecayingShearFlow, x::Float64, y::Float64, time::Float64 = 0.0)
+function velocity_gradient(problem::DecayingShearFlow, x::Float64, y::Float64, time::Float64 = 0.0)
     A = problem.A
     B = problem.B
 

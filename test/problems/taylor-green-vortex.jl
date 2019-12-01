@@ -84,7 +84,7 @@ import LinearAlgebra: I, tr
 
         cs = 1 / q.speed_of_sound_squared
         # cs = q.speed_of_sound_squared
-        d_u = problem.u_max * lbm.acceleration(problem, x, y, 0.0)
+        d_u = problem.u_max * lbm.velocity_gradient(problem, x, y, 0.0)
         τ = problem.ν
         @show d_u
         τ = q.speed_of_sound_squared * lbm.lattice_viscosity(problem) + 0.5
