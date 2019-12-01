@@ -1,6 +1,6 @@
 struct TRT{Force} <: CollisionModel
-    τ_symmetric
-    τ_asymmetric
+    τ_symmetric::Float64
+    τ_asymmetric::Float64
     force::Force
 
     feq::Array{Float64, 1}
@@ -50,14 +50,8 @@ function collide!(collision_model::TRT{Force}, q::Quadrature, f_in, f_out; time 
     τ_s = collision_model.τ_symmetric
     τ_a = collision_model.τ_asymmetric
 
-    cm = collision_model
-    feq = cm.feq
-    f = cm.f
-    feq_symmetric = cm.feq_symmetric
-    feq_asymmetric = cm.feq_asymmetric
-    f_symmetric = cm.f_symmetric
-    f_asymmetric = cm.f_asymmetric
-
+    feq = Array{Float64}(undef, size(f_in, 3))
+    f = Array{Float64}(undef, size(f_in, 3))
     u = zeros(dimension(q))
     if ! (Force <: Nothing)
         F = zeros(dimension(q))
@@ -88,16 +82,15 @@ function collide!(collision_model::TRT{Force}, q::Quadrature, f_in, f_out; time 
 
         @inbounds for f_idx = 1 : nf
             opposite_idx = opposite(q, f_idx)
-            feq_symmetric[f_idx] = 0.5 * (feq[f_idx] + feq[opposite_idx])
-            feq_asymmetric[f_idx] = 0.5 * (feq[f_idx] - feq[opposite_idx])
-            f_symmetric[f_idx] = 0.5 * (f[f_idx] + f[opposite_idx])
-            f_asymmetric[f_idx] = 0.5 * (f[f_idx] - f[opposite_idx])
-        end
+            feq_symmetric = 0.5 * (feq[f_idx] + feq[opposite_idx])
+            feq_asymmetric = 0.5 * (feq[f_idx] - feq[opposite_idx])
+            f_symmetric = 0.5 * (f[f_idx] + f[opposite_idx])
+            f_asymmetric = 0.5 * (f[f_idx] - f[opposite_idx])
 
-        @inbounds for f_idx = 1 : nf
+
             f_out[x, y, f_idx] = f[f_idx] + (
-                - (1 / τ_s) * (f_symmetric[f_idx] - feq_symmetric[f_idx])
-                - (1 / τ_a) * (f_asymmetric[f_idx] - feq_asymmetric[f_idx])
+                - (1 / τ_s) * (f_symmetric - feq_symmetric)
+                - (1 / τ_a) * (f_asymmetric - feq_asymmetric)
             )
         end
     end
