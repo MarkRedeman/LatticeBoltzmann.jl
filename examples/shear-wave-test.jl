@@ -1,7 +1,7 @@
 using lbm, Plots, DataFrames
 
-# lbm.analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortexExample(viscosity, scale, static = true), 1.0 / 6.0, 2)
-# lbm.analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortexExample(viscosity, scale, static = false), 1.0 / 6.0, 3)
+# lbm.analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortex(viscosity, scale, static = true), 1.0 / 6.0, 2)
+# lbm.analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortex(viscosity, scale, static = false), 1.0 / 6.0, 3)
 # lbm.analyze_convergence(D2Q9(), (scale, viscosity) -> PoiseuilleFlow(viscosity, scale, static = true), 1.0 / 6.0, 3)
 # lbm.analyze_convergence(D2Q9(), (scale, viscosity) -> DecayingShearFlow(viscosity, scale, static = true), 1.0 / 6.0, 3)
 

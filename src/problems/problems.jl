@@ -143,7 +143,7 @@ dimensionless_stress(problem::FluidFlowProblem, σ) = begin
     return σ * factor
 end
 
-include("taylor-green-vortex-decay.jl")
+include("taylor-green-vortex.jl")
 include("decaying-shear-flow.jl")
 include("poiseuille.jl")
 include("couette-flow.jl")

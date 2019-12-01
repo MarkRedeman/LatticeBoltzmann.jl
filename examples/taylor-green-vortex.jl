@@ -2,8 +2,8 @@ using DataFrames
 using lbm
 using Plots
 
-# lbm.analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortexExample(viscosity, scale, static = true), 1.0 / 6.0, 2)
-# lbm.analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortexExample(viscosity, scale, static = false), 1.0 / 6.0, 3)
+# lbm.analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortex(viscosity, scale, static = true), 1.0 / 6.0, 2)
+# lbm.analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortex(viscosity, scale, static = false), 1.0 / 6.0, 3)
 # lbm.analyze_convergence(D2Q9(), (scale, viscosity) -> PoiseuilleFlow(viscosity, scale, static = true), 1.0 / 6.0, 3)
 # lbm.analyze_convergence(D2Q9(), (scale, viscosity) -> DecayingShearFlow(viscosity, scale, static = true), 1.0 / 6.0, 3)
 
@@ -42,10 +42,10 @@ let
     problem = PoiseuilleFlow(τ, scale, static = true)
     result = lbm.siumlate(problem, q)
 
-    problem = TaylorGreenVortexExample(τ, scale, static = true)
+    problem = TaylorGreenVortex(τ, scale, static = true)
     result = lbm.siumlate(problem, q)
 
-    problem = TaylorGreenVortexExample(τ, scale, static = false)
+    problem = TaylorGreenVortex(τ, scale, static = false)
     result = lbm.siumlate(problem, q)
 
     problem = DecayingShearFlow(τ, scale, static = true)
@@ -70,9 +70,9 @@ end
     for ν in νs, scale in scales
         continue
         
-        # example = TaylorGreenVortexExample(ν, scale, static = false)
+        # example = TaylorGreenVortex(ν, scale, static = false)
         example = DecayingShearFlow(ν, scale, static = true)
-        # example = TaylorGreenVortexExample(τ, scale, static = true)
+        # example = TaylorGreenVortex(τ, scale, static = true)
 
         result = lbm.siumlate(example, quadrature, base = 20);
         # @show result[2]

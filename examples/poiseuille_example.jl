@@ -64,9 +64,9 @@ end
     for ν in νs, scale in scales
         continue
 
-        # example = TaylorGreenVortexExample(ν, scale, static = false)
+        # example = TaylorGreenVortex(ν, scale, static = false)
         example = DecayingShearFlow(ν, scale, static = true)
-        # example = TaylorGreenVortexExample(τ, scale, static = true)
+        # example = TaylorGreenVortex(τ, scale, static = true)
 
         result = lbm.siumlate(example, quadrature, base = 20);
         # @show result[2]

@@ -5,7 +5,7 @@ import LinearAlgebra: I, tr
 
     scale = 1
     ν = 1.0 / 6.0
-    problem = TaylorGreenVortexExample(ν, scale,)
+    problem = TaylorGreenVortex(ν, scale,)
     f = lbm.initialize(q, problem)
 
     ρ = lbm.density(q, f)
@@ -29,7 +29,7 @@ import LinearAlgebra: I, tr
         scale = 1
         ν = 1.0 / 6.0
         problem = DecayingShearFlow(ν, scale, static = false)
-        problem = TaylorGreenVortexExample(ν, scale, static = true)
+        problem = TaylorGreenVortex(ν, scale, static = true)
 
         x = 0.30
         y = 0.30
@@ -73,7 +73,7 @@ import LinearAlgebra: I, tr
     @testset "Pressure component" begin
         scale = 1
         ν = 2.0 / 6.0
-        problem = TaylorGreenVortexExample(ν, scale, static = false)
+        problem = TaylorGreenVortex(ν, scale, static = false)
         problem = DecayingShearFlow(ν, scale, static = false)
 
         x = 0.30

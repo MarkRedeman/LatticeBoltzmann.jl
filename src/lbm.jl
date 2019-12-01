@@ -21,7 +21,7 @@ export analayze_convergence
 # Problems
 export DecayingShearFlow
 export LidDrivenCavityFlow
-export TaylorGreenVortexDecay, TaylorGreenVortexExample
+export TaylorGreenVortex
 export CouetteFlow
 export GenericFluidFlowProblem
 export LinearizedThermalDiffusion, LinearizedTransverseShearWave
