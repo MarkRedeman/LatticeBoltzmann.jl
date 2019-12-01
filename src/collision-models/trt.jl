@@ -23,6 +23,29 @@ function CollisionModel(
     )
 end
 
+"""
+Acts like a factory for the TRT operator where the magic parameter Λ can be set
+
+According to [TODO cite] Λ has the following effect:
+- Λ = 1 / 12 # Cancels third-order spatial error, leading to optimal results for
+  pure advection problems
+- Λ = 1 / 6 # Cancels fourth-order spatial error, providing the most accurate
+  results for the pure diffusion equation.
+- Λ = 3 / 16 # Boundary wall location implemented via bounce-back for the
+  Poiseuille flow exactly in the middle between horizontal walls and fluid nodes.
+- Λ = 1 / 4 # Provides the most stable simulations
+"""
+struct TRT_Λ
+    Λ::Float64
+end
+function CollisionModel(
+    cm::TRT_Λ,
+    q::Quadrature,
+    problem::FluidFlowProblem,
+)
+    CollisionModel(TRT, q, problem, Λ = cm.Λ)
+end
+
 function collide!(collision_model::TRT{Force}, q::Quadrature, f_in, f_out; time = 0.0) where {Force}
     τ_s = collision_model.τ_symmetric
     τ_a = collision_model.τ_asymmetric
