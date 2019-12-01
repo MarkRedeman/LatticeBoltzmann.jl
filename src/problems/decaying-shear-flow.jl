@@ -49,23 +49,6 @@ function pressure(q::Quadrature, problem::DecayingShearFlow, x::Float64, y::Floa
     p = 1 + problem.B * (0.025) * q.speed_of_sound_squared * problem.u_max^2 * B * sin(k_x * (x - A * time))^2 * decay(problem, x, y, time)^2
     return p
 end
-function pressure_tensor(q::Quadrature, problem::DecayingShearFlow, x::Float64, y::Float64, time::Float64 = 0.0)
-    A = problem.A
-    B = problem.B
-
-    p = pressure(q, problem, x, y, time) * [1.0 0.0; 0.0 1.0]
-    return p + deviatoric_tensor(q, problem, x, y, time)
-end
-
-function deviatoric_tensor(q::Quadrature, problem::DecayingShearFlow, x::Float64, y::Float64, time::Float64 = 0.0)
-    a = acceleration(problem, x, y, time)
-    ν = viscosity(problem)
-
-    return ν * [
-        2 * a[1, 1] a[1, 2] + a[2, 1]
-        a[1, 2] + a[2, 1] 2 * a[2, 2]
-    ]
-end
 
 function velocity(problem::DecayingShearFlow, x::Float64, y::Float64, time::Float64 = 0.0)
     A = problem.A
