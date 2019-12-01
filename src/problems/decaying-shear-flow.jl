@@ -19,11 +19,9 @@ function DecayingShearFlow(
     k_x = 1.0,
     k_y = 0.0
 )
-    u_max = 0.0025 / scale
     u_max = 0.02 / scale
-    # ν_lb = ν_lb * scale
     Re = NX * u_max / ν_lb
-    # @show Re
+    @show Re
 
     if (k_y == 0.0)
         NY = 3
@@ -32,13 +30,7 @@ function DecayingShearFlow(
         NX = 3
     end
 
-    p = DecayingShearFlow(1.0, u_max, ν_lb, NX, NY, domain_size, static, A, B, k_x, k_y)
-    # @show p
-    # @show (delta_t(p), 1/delta_t(p))
-    # @show (delta_x(p), 1/delta_x(p))
-    # @show (p.u_max, 1/p.u_max)
-    # @show (p.domain_size[1] / delta_x(p)) / 16
-    return p
+    return DecayingShearFlow(1.0, u_max, ν_lb, NX, NY, domain_size, static, A, B, k_x, k_y)
 end
 
 function density(q::Quadrature, problem::DecayingShearFlow, x::Float64, y::Float64, time::Float64 = 0.0)
