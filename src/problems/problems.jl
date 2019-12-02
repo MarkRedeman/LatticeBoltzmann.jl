@@ -10,23 +10,23 @@ function velocity_gradient(::FluidFlowProblem, x::Float64, y::Float64, timestep:
     return zeros(2, 2)
 end
 
-function initial_equilibrium(quadrature::Quadrature, problem::FluidFlowProblem, x::Float64, y::Float64)
+function initial_condition(q::Quadrature, problem::FluidFlowProblem, x::Float64, y::Float64)
     f = equilibrium(
-        quadrature,
-        lattice_density(quadrature, problem, x, y),
-        lattice_velocity(quadrature, problem, x, y),
-        lattice_temperature(quadrature, problem, x, y)
+        q,
+        lattice_density(q, problem, x, y),
+        lattice_velocity(q, problem, x, y),
+        lattice_temperature(q, problem, x, y)
     )
 
-    q = quadrature
+    q = q
     ρ = sum(f)
     cs = 1 / q.speed_of_sound_squared
     d_u = - 0.5 * cs * problem.u_max * lbm.velocity_gradient(problem, x, y, 0.0)
     τ = q.speed_of_sound_squared * lbm.lattice_viscosity(problem) + 0.5
         N = 2
 
-    u = lattice_velocity(quadrature, problem, x, y)
-    T = lattice_temperature(quadrature, problem, x, y)
+    u = lattice_velocity(q, problem, x, y)
+    T = lattice_temperature(q, problem, x, y)
     a_2_eq = equilibrium_coefficient(Val{2}, q, ρ, u, T)
 
     τ = problem.ν * cs
@@ -41,9 +41,6 @@ function initial_equilibrium(quadrature::Quadrature, problem::FluidFlowProblem, 
         f[f_idx] += q.weights[f_idx] * (cs^2 / factorial(2)) * dot(a_bar_2, hermite(Val{2}, q.abscissae[:, f_idx], q))
     end
     return f
-end
-
-function initial_condition(q::Quadrature, problem::FluidFlowProblem, x::Float64, y::Float64)
     initial_equilibrium(q, problem, x, y)
 end
 
@@ -62,7 +59,7 @@ function initialize(quadrature::Quadrature, problem::FluidFlowProblem, cm = SRT)
 
     x_range, y_range = range(problem)
     for x_idx in 1:problem.NX, y_idx in 1:problem.NY
-        f[x_idx, y_idx, :] = initial_equilibrium(
+        f[x_idx, y_idx, :] = initial_condition(
             quadrature,
             problem,
             x_range[x_idx],

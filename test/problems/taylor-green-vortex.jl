@@ -33,7 +33,7 @@ import LinearAlgebra: I, tr
 
         x = 0.30
         y = 0.30
-        f = lbm.initial_equilibrium(q, problem, x, y)
+        f = lbm.initial_condition(q, problem, x, y)
 
         ρ = sum(f)
 
@@ -78,7 +78,7 @@ import LinearAlgebra: I, tr
 
         x = 0.30
         y = 0.30
-        f = lbm.initial_equilibrium(q, problem, x, y)
+        f = lbm.initial_condition(q, problem, x, y)
 
         ρ = lbm.density(q, f)
 
