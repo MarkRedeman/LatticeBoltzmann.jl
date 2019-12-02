@@ -24,8 +24,8 @@ using Plots
     ν = τ / (2 * q.speed_of_sound_squared)
     # ν = 1.00 / (2 * q.speed_of_sound_squared)
     for scale = scale_range
-        problem = DecayingShearFlow(ν, scale, static = false)
-        # problem = PoiseuilleFlow(ν, scale, static = true)
+        # problem = DecayingShearFlow(ν, scale, static = false)
+        problem = PoiseuilleFlow(ν, scale, static = true)
         stats = DataFrame([
             Float64[], Float64[], Float64[], Any[], Float64[], Float64[], Float64[]
         ], [

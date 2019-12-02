@@ -13,21 +13,32 @@ end
 function initial_equilibrium(quadrature::Quadrature, problem::FluidFlowProblem, x::Float64, y::Float64)
     f = equilibrium(
         quadrature,
-        1.0,
-        # lattice_density(quadrature, problem, x, y),
+        lattice_density(quadrature, problem, x, y),
         lattice_velocity(quadrature, problem, x, y),
-        # lattice_temperature(quadrature, problem, x, y)
-        1.0
+        lattice_temperature(quadrature, problem, x, y)
     )
-    # return f
 
     q = quadrature
     ρ = sum(f)
     cs = 1 / q.speed_of_sound_squared
     d_u = - 0.5 * cs * problem.u_max * lbm.velocity_gradient(problem, x, y, 0.0)
     τ = q.speed_of_sound_squared * lbm.lattice_viscosity(problem) + 0.5
+        N = 2
+
+    u = lattice_velocity(quadrature, problem, x, y)
+    T = lattice_temperature(quadrature, problem, x, y)
+    a_2_eq = equilibrium_coefficient(Val{2}, q, ρ, u, T)
+
+    τ = problem.ν * cs
+    ρT = 1.0
+    # TODO Use deviatoric_stress_tensor instead?
+    a_bar_2 = - (1 + 1/(2*τ)) * τ * ρT * problem.u_max^2 * lbm.velocity_gradient(problem, x, y, 0.0) - (1/(2 * τ)) * a_2_eq
+
+    return f
     for f_idx = 1:length(f)
-       f[f_idx] += - (q.weights[f_idx] * ρ * τ / cs) * sum(lbm.hermite(Val{2}, q.abscissae[:, f_idx], q) .* d_u)
+        # f[f_idx] += - (q.weights[f_idx] * ρ * τ / cs) * dot(lbm.hermite(Val{2}, q.abscissae[:, f_idx], q), d_u)
+        cs = q.speed_of_sound_squared
+        f[f_idx] += q.weights[f_idx] * (cs^2 / factorial(2)) * dot(a_bar_2, hermite(Val{2}, q.abscissae[:, f_idx], q))
     end
     return f
 end

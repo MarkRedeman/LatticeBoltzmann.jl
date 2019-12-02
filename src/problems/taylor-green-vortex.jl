@@ -44,10 +44,26 @@ function pressure(q::Quadrature, tgv::TaylorGreenVortex, x::Float64, y::Float64,
         (tgv.k_x / tgv.k_y) * cos(2.0 * y)
     ) * decay(tgv, x, y, timestep)^2
 
+    a = 1.0
+    A = 1.0
+    b = 1.0
+    B = -1.0
+
+    P = - (1 / 4) * tgv.rho_0 * decay(tgv, x, y, timestep)^2 * (A^2 * cos(2 * a * x) + B^2 * cos(2 * b * y))
+
     return 1.0 + q.speed_of_sound_squared * tgv.u_max^2 * P
 end
 
 function velocity(tgv::TaylorGreenVortex, x::Float64, y::Float64, timestep::Float64 = 0.0)
+    a = 1.0
+    A = 1.0
+    b = 1.0
+    B = -1.0
+    return decay(tgv, x, y, timestep) * [
+        A * cos(a * x) * sin(b * y)
+        B * sin(a * x) * cos(b * y)
+    ]
+
     return decay(tgv, x, y, timestep) * [
       - sqrt(tgv.k_y / tgv.k_x) * cos(x) * sin(y),
         sqrt(tgv.k_x / tgv.k_y) * sin(x) * cos(y)
@@ -69,7 +85,11 @@ function velocity_gradient(tgv::TaylorGreenVortex, x::Float64, y::Float64, times
 end
 
 function decay(tgv::TaylorGreenVortex, x::Float64, y::Float64, timestep::Float64)
-    return tgv.static ? 1.0 : exp(-2.0 * timestep * viscosity(tgv))
+    a = 1.0
+    A = 1.0
+    b = 1.0
+    B = -1.0
+    return tgv.static ? 1.0 : exp(-(a^2 + b^2) * viscosity(tgv) * timestep)
 end
 
 function force(tgv::TaylorGreenVortex, x::Float64, y::Float64, time::Float64 = 0.0)
@@ -78,5 +98,5 @@ end
 
 has_external_force(problem::TaylorGreenVortex) = problem.static
 
-t_c(problem) = 1
-t_c(problem::TaylorGreenVortex) = ln(2) / (problem.ν * (problem.k_x^2 + problem.k_y^2))
+# t_c(problem) = 1
+# t_c(problem::TaylorGreenVortex) = ln(2) / (problem.ν * (problem.k_x^2 + problem.k_y^2))
