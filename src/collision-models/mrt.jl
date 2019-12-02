@@ -3,9 +3,9 @@ struct MRT{Force} <: CollisionModel
 
     # We will be using Hermite polynomials to compute the corresponding coefficients
     H0::Float64
-    Hs::Array{Array{T, 1} where T}
+    Hs::Array{Array{T,1} where T}
     # Keep higher order coefficients allocated
-    As::Array{Array{T, 1} where T}
+    As::Array{Array{T,1} where T}
 
     force::Force
 end
@@ -22,28 +22,12 @@ end
 
 function MRT(q::Quadrature, τs::Vector{Float64}, force = nothing)
     N = round(Int, order(q) / 2)
-    Hs = [
-        [
-            hermite(Val{n}, q.abscissae[:, i], q)
-            for i = 1:length(q.weights)
-        ]
-        for n = 1:N
-    ]
+    Hs = [[hermite(Val{n}, q.abscissae[:, i], q) for i = 1:length(q.weights)] for n = 1:N]
 
-    MRT(
-        τs,
-        1.0,
-        Hs,
-        copy(Hs),
-        force
-    )
+    MRT(τs, 1.0, Hs, copy(Hs), force)
 end
 
-function CollisionModel(
-    cm::Type{<:MRT},
-    q::Quadrature,
-    problem::FluidFlowProblem
-)
+function CollisionModel(cm::Type{<:MRT}, q::Quadrature, problem::FluidFlowProblem)
     τ = q.speed_of_sound_squared * lattice_viscosity(problem) + 0.5
     τs = fill(τ, order(q))
 
@@ -63,13 +47,7 @@ end
 # NOTE: we can do some clever optimizations where we check the value of τ_n
 # If it is equal to 1, then we don't need to compute the nth hermite coefficient
 # of f
-function collide_mrt!(
-    collision_model::MRT{Force},
-    q,
-    f_in,
-    f_out;
-    time = 0.0,
-) where { Force }
+function collide_mrt!(collision_model::MRT{Force}, q, f_in, f_out; time = 0.0) where {Force}
     cs = q.speed_of_sound_squared
 
     τs = collision_model.τs
