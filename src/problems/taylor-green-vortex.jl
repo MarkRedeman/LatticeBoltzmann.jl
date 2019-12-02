@@ -4,8 +4,6 @@ struct TaylorGreenVortex <: lbm.FluidFlowProblem
     ν::Float64
     NX::Int64
     NY::Int64
-    k_x::Float64
-    k_y::Float64
     domain_size::Tuple{Float64, Float64}
     static::Bool
     A::Float64
@@ -20,7 +18,7 @@ function TaylorGreenVortex(ν = 1.0 / 6.0 , scale = 2, NX = 16 * scale, NY = NX,
 
     A, B, a, b = 1, -1, 1, 1
     p = TaylorGreenVortex(
-        1.0, u_max, ν, NX, NY, domain_size[1] / NX, domain_size[2] / NY, domain_size, static,
+        1.0, u_max, ν, NX, NY, domain_size, static,
         A, B, a, b
     )
 
@@ -30,70 +28,59 @@ function TaylorGreenVortex(ν = 1.0 / 6.0 , scale = 2, NX = 16 * scale, NY = NX,
     p
 end
 
-function density(q::Quadrature, tgv::TaylorGreenVortex, x::Float64, y::Float64, timestep::Float64 = 0.0)
-    return pressure(q, tgv, x, y, timestep)
-    
+function density(q::Quadrature, problem::TaylorGreenVortex, x::Float64, y::Float64, timestep::Float64 = 0.0)
+    return pressure(q, problem, x, y, timestep)
+
     # If not athermal
     return 1.0
 end
 
-function pressure(q::Quadrature, tgv::TaylorGreenVortex, x::Float64, y::Float64, timestep::Float64 = 0.0)
+function pressure(q::Quadrature, problem::TaylorGreenVortex, x::Float64, y::Float64, timestep::Float64 = 0.0)
     # return 1.0
-    P = -0.25 * tgv.rho_0 * (
-        (tgv.k_y / tgv.k_x) * cos(2.0 * x) +
-        (tgv.k_x / tgv.k_y) * cos(2.0 * y)
-    ) * decay(tgv, x, y, timestep)^2
+    a = problem.a
+    A = problem.A
+    b = problem.b
+    B = problem.B
 
-    a = 1.0
-    A = 1.0
-    b = 1.0
-    B = -1.0
+    P = - (1 / 4) * problem.rho_0 * decay(problem, x, y, timestep)^2 * (A^2 * cos(2 * a * x) + B^2 * cos(2 * b * y))
 
-    P = - (1 / 4) * tgv.rho_0 * decay(tgv, x, y, timestep)^2 * (A^2 * cos(2 * a * x) + B^2 * cos(2 * b * y))
-
-    return 1.0 + q.speed_of_sound_squared * tgv.u_max^2 * P
+    return 1.0 + q.speed_of_sound_squared * problem.u_max^2 * P
 end
 
-function velocity(tgv::TaylorGreenVortex, x::Float64, y::Float64, timestep::Float64 = 0.0)
-    a = 1.0
-    A = 1.0
-    b = 1.0
-    B = -1.0
-    return decay(tgv, x, y, timestep) * [
+function velocity(problem::TaylorGreenVortex, x::Float64, y::Float64, timestep::Float64 = 0.0)
+    a = problem.a
+    A = problem.A
+    b = problem.b
+    B = problem.B
+    return decay(problem, x, y, timestep) * [
         A * cos(a * x) * sin(b * y)
         B * sin(a * x) * cos(b * y)
     ]
-
-    return decay(tgv, x, y, timestep) * [
-      - sqrt(tgv.k_y / tgv.k_x) * cos(x) * sin(y),
-        sqrt(tgv.k_x / tgv.k_y) * sin(x) * cos(y)
-    ]
 end
 
-function velocity_gradient(tgv::TaylorGreenVortex, x::Float64, y::Float64, timestep::Float64 = 0.0)
-    a = 1.0
-    A = 1.0
-    b = 1.0
-    B = -1.0
+function velocity_gradient(problem::TaylorGreenVortex, x::Float64, y::Float64, timestep::Float64 = 0.0)
+    a = problem.a
+    A = problem.A
+    b = problem.b
+    B = problem.B
 
     u_x = - a * A * sin(x) * sin(y)
     v_y = - b * B * sin(x) * sin(y)
     u_y = b * A * cos(x) * cos(y)
     v_x = a * B * cos(x) * cos(y)
 
-    return decay(tgv, x, y, timestep) * [u_x v_x; u_y v_y]
+    return decay(problem, x, y, timestep) * [u_x v_x; u_y v_y]
 end
 
-function decay(tgv::TaylorGreenVortex, x::Float64, y::Float64, timestep::Float64)
-    a = 1.0
-    A = 1.0
-    b = 1.0
-    B = -1.0
-    return tgv.static ? 1.0 : exp(-(a^2 + b^2) * viscosity(tgv) * timestep)
+function decay(problem::TaylorGreenVortex, x::Float64, y::Float64, timestep::Float64)
+    a = problem.a
+    b = problem.b
+
+    return problem.static ? 1.0 : exp(-(a^2 + b^2) * viscosity(problem) * timestep)
 end
 
-function force(tgv::TaylorGreenVortex, x::Float64, y::Float64, time::Float64 = 0.0)
-    return tgv.static ? 2viscosity(tgv) * velocity(tgv, x, y, 0.0) : [0.0 0.0]
+function force(problem::TaylorGreenVortex, x::Float64, y::Float64, time::Float64 = 0.0)
+    return problem.static ? 2viscosity(problem) * velocity(problem, x, y, 0.0) : [0.0 0.0]
 end
 
 has_external_force(problem::TaylorGreenVortex) = problem.static

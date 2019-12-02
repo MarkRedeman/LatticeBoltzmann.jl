@@ -48,8 +48,8 @@ function range(problem::FluidFlowProblem)
     Δx = problem.domain_size[1] / problem.NX
     Δy = problem.domain_size[2] / problem.NY
 
-    x_range = range(Δx / 2, problem.domain_size[1] - Δx / 2, length = problem.NX)
-    y_range = range(Δy / 2, problem.domain_size[1] - Δy / 2, length = problem.NY)
+    x_range = range(Δx / 2, stop = problem.domain_size[1] - Δx / 2, length = problem.NX)
+    y_range = range(Δy / 2, stop = problem.domain_size[1] - Δy / 2, length = problem.NY)
 
     return x_range, y_range
 end
