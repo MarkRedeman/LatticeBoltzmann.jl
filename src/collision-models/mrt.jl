@@ -60,29 +60,26 @@ function collide_mrt!(collision_model::MRT{Force}, q, f_in, f_out; time = 0.0) w
 
     nx, ny, nf = size(f_in)
 
-    if ! (Force <: Nothing)
+    if !(Force <: Nothing)
         F = zeros(dimension(q))
     end
 
     f = Array{Float64}(undef, nf)
     u = zeros(dimension(q))
-    @inbounds for x_idx = 1 : nx, y_idx = 1 : ny
-        @inbounds for f_idx = 1 : nf
+    @inbounds for x_idx = 1:nx, y_idx = 1:ny
+        @inbounds for f_idx = 1:nf
             f[f_idx] = f_in[x_idx, y_idx, f_idx]
         end
 
         # NOTE: we could optimize this by only computing upto n = 2 when τ = 1.0
-        a_f = [
-            sum([f[idx] * Hs[n][idx] for idx = 1:length(q.weights)])
-            for n = 1:N
-        ]
+        a_f = [sum([f[idx] * Hs[n][idx] for idx = 1:length(q.weights)]) for n = 1:N]
 
         ρ = density(q, f)
         velocity!(q, f, ρ, u)
         # T = temperature(q, f, ρ, a_f[1], a_f[2])
         T = 1.0
 
-        if ! (Force <: Nothing)
+        if !(Force <: Nothing)
             F .= collision_model.force(x_idx, y_idx, time)
 
             u += τs[2] * F
@@ -90,25 +87,17 @@ function collide_mrt!(collision_model::MRT{Force}, q, f_in, f_out; time = 0.0) w
 
         # NOTE: we don't need to compute the 0th and 1st coefficient as these are equal
         # to a_f[0] and a_f[1]
-        a_eq = [
-            equilibrium_coefficient(Val{n}, q, ρ, u, T)
-            for n = 1:N
-        ]
+        a_eq = [equilibrium_coefficient(Val{n}, q, ρ, u, T) for n = 1:N]
 
-        a_coll = [
-            (1 - 1 / τs[n]) .* a_f[n] .+ (1 / τs[n]) .* a_eq[n]
-            for n = 1:N
-        ]
+        a_coll = [(1 - 1 / τs[n]) .* a_f[n] .+ (1 / τs[n]) .* a_eq[n] for n = 1:N]
 
-        @inbounds for f_idx = 1 : nf
-            f_out[x_idx, y_idx, f_idx] = q.weights[f_idx] * (
-                ρ +
-                cs * ρ * sum(u .* Hs[1][f_idx]) +
-                sum([
-                    cs^n * dot(a_coll[n], Hs[n][f_idx]) / (factorial(n))
-                    for n = 2:N
-                ])
-            )
+        @inbounds for f_idx = 1:nf
+            f_out[x_idx, y_idx, f_idx] =
+                q.weights[f_idx] * (
+                    ρ +
+                    cs * ρ * sum(u .* Hs[1][f_idx]) +
+                    sum([cs^n * dot(a_coll[n], Hs[n][f_idx]) / (factorial(n)) for n = 2:N])
+                )
         end
     end
     return

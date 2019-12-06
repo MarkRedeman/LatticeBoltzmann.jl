@@ -6,7 +6,12 @@ abstract type InitialValueProblem <: FluidFlowProblem end
 abstract type DoubleDistributionProblem <: FluidFlowProblem end
 
 has_external_force(::FluidFlowProblem) = false
-function velocity_gradient(::FluidFlowProblem, x::Float64, y::Float64, timestep::Float64 = 0.0)
+function velocity_gradient(
+    ::FluidFlowProblem,
+    x::Float64,
+    y::Float64,
+    timestep::Float64 = 0.0,
+)
     return zeros(2, 2)
 end
 
@@ -15,15 +20,15 @@ function initial_condition(q::Quadrature, problem::FluidFlowProblem, x::Float64,
         q,
         lattice_density(q, problem, x, y),
         lattice_velocity(q, problem, x, y),
-        lattice_temperature(q, problem, x, y)
+        lattice_temperature(q, problem, x, y),
     )
 
     q = q
     ρ = sum(f)
     cs = 1 / q.speed_of_sound_squared
-    d_u = - 0.5 * cs * problem.u_max * lbm.velocity_gradient(problem, x, y, 0.0)
+    d_u = -0.5 * cs * problem.u_max * lbm.velocity_gradient(problem, x, y, 0.0)
     τ = q.speed_of_sound_squared * lbm.lattice_viscosity(problem) + 0.5
-        N = 2
+    N = 2
 
     u = lattice_velocity(q, problem, x, y)
     T = lattice_temperature(q, problem, x, y)
@@ -32,13 +37,21 @@ function initial_condition(q::Quadrature, problem::FluidFlowProblem, x::Float64,
     τ = problem.ν * cs
     ρT = 1.0
     # TODO Use deviatoric_stress_tensor instead?
-    a_bar_2 = - (1 + 1/(2*τ)) * τ * ρT * problem.u_max^2 * lbm.velocity_gradient(problem, x, y, 0.0) - (1/(2 * τ)) * a_2_eq
+    a_bar_2 =
+        -(1 + 1 / (2 * τ)) *
+        τ *
+        ρT *
+        problem.u_max^2 *
+        lbm.velocity_gradient(problem, x, y, 0.0) - (1 / (2 * τ)) * a_2_eq
 
     return f
     for f_idx = 1:length(f)
         # f[f_idx] += - (q.weights[f_idx] * ρ * τ / cs) * dot(lbm.hermite(Val{2}, q.abscissae[:, f_idx], q), d_u)
         cs = q.speed_of_sound_squared
-        f[f_idx] += q.weights[f_idx] * (cs^2 / factorial(2)) * dot(a_bar_2, hermite(Val{2}, q.abscissae[:, f_idx], q))
+        f[f_idx] +=
+            q.weights[f_idx] *
+            (cs^2 / factorial(2)) *
+            dot(a_bar_2, hermite(Val{2}, q.abscissae[:, f_idx], q))
     end
     return f
     initial_equilibrium(q, problem, x, y)
@@ -58,13 +71,9 @@ function initialize(quadrature::Quadrature, problem::FluidFlowProblem, cm = SRT)
     f = Array{Float64}(undef, problem.NX, problem.NY, length(quadrature.weights))
 
     x_range, y_range = range(problem)
-    for x_idx in 1:problem.NX, y_idx in 1:problem.NY
-        f[x_idx, y_idx, :] = initial_condition(
-            quadrature,
-            problem,
-            x_range[x_idx],
-            y_range[y_idx]
-        )
+    for x_idx = 1:problem.NX, y_idx = 1:problem.NY
+        f[x_idx, y_idx, :] =
+            initial_condition(quadrature, problem, x_range[x_idx], y_range[y_idx])
     end
 
     return f
@@ -72,7 +81,13 @@ end
 
 boundary_conditions(problem::FluidFlowProblem) = BoundaryCondition[]
 
-function deviatoric_tensor(q::Quadrature, problem::FluidFlowProblem, x::Float64, y::Float64, time::Float64 = 0.0)
+function deviatoric_tensor(
+    q::Quadrature,
+    problem::FluidFlowProblem,
+    x::Float64,
+    y::Float64,
+    time::Float64 = 0.0,
+)
     a = velocity_gradient(problem, x, y, time)
     ν = viscosity(problem)
 
@@ -82,7 +97,13 @@ function deviatoric_tensor(q::Quadrature, problem::FluidFlowProblem, x::Float64,
     ]
 end
 
-function pressure_tensor(q::Quadrature, problem::FluidFlowProblem, x::Float64, y::Float64, time::Float64 = 0.0)
+function pressure_tensor(
+    q::Quadrature,
+    problem::FluidFlowProblem,
+    x::Float64,
+    y::Float64,
+    time::Float64 = 0.0,
+)
     A = problem.A
     B = problem.B
 
@@ -103,7 +124,7 @@ function is_steady_state(problem::FluidFlowProblem)
     return problem.static
 end
 function is_time_dependant(problem::FluidFlowProblem)
-    return ! problem.static
+    return !problem.static
 end
 
 # Dimensionless
@@ -132,10 +153,14 @@ end
 
 lattice_viscosity(problem) = problem.ν #::FluidFlowProblem)
 lattice_density(q, problem::FluidFlowProblem, x, y, t = 0.0) = density(q, problem, x, y, t)
-lattice_velocity(q, problem::FluidFlowProblem, x, y, t = 0.0) = problem.u_max * velocity(problem, x, y, t)
-lattice_pressure(q, problem::FluidFlowProblem, x, y, t = 0.0) = problem.u_max^2 * pressure(q, problem, x, y, t)
-lattice_force(problem::FluidFlowProblem, x, y, t = 0.0) = problem.u_max * delta_t(problem) * force(problem, x, y, t)
-lattice_temperature(q, problem::FluidFlowProblem, x, y, t = 0.0) = pressure(q, problem, x, y) / density(q, problem, x, y)
+lattice_velocity(q, problem::FluidFlowProblem, x, y, t = 0.0) =
+    problem.u_max * velocity(problem, x, y, t)
+lattice_pressure(q, problem::FluidFlowProblem, x, y, t = 0.0) =
+    problem.u_max^2 * pressure(q, problem, x, y, t)
+lattice_force(problem::FluidFlowProblem, x, y, t = 0.0) =
+    problem.u_max * delta_t(problem) * force(problem, x, y, t)
+lattice_temperature(q, problem::FluidFlowProblem, x, y, t = 0.0) =
+    pressure(q, problem, x, y) / density(q, problem, x, y)
 
 dimensionless_viscosity(problem) = problem.ν * delta_x(problem)^2 / delta_t(problem)
 dimensionless_density(problem::FluidFlowProblem, ρ) = ρ

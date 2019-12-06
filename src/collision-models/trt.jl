@@ -8,19 +8,16 @@ function CollisionModel(
     cm::Type{<:TRT},
     q::Quadrature,
     problem::FluidFlowProblem;
-    Λ = 1 / 4
+    Λ = 1 / 4,
 )
     τ = q.speed_of_sound_squared * lattice_viscosity(problem) + 0.5
     τ_ = 0.5 + Λ / (τ - 0.5)
     @show Λ, τ, τ_
 
     force_field = has_external_force(problem) ?
-        (x_idx, y_idx, t) -> lattice_force(problem, x_idx, y_idx, t) :
-        nothing
+        (x_idx, y_idx, t) -> lattice_force(problem, x_idx, y_idx, t) : nothing
 
-    return TRT(
-        τ, τ_, force_field,
-    )
+    return TRT(τ, τ_, force_field)
 end
 
 """
@@ -38,28 +35,30 @@ According to [TODO cite] Λ has the following effect:
 struct TRT_Λ
     Λ::Float64
 end
-function CollisionModel(
-    cm::TRT_Λ,
-    q::Quadrature,
-    problem::FluidFlowProblem,
-)
+function CollisionModel(cm::TRT_Λ, q::Quadrature, problem::FluidFlowProblem)
     CollisionModel(TRT, q, problem, Λ = cm.Λ)
 end
 
-function collide!(collision_model::TRT{Force}, q::Quadrature, f_in, f_out; time = 0.0) where {Force}
+function collide!(
+    collision_model::TRT{Force},
+    q::Quadrature,
+    f_in,
+    f_out;
+    time = 0.0,
+) where {Force}
     τ_s = collision_model.τ_symmetric
     τ_a = collision_model.τ_asymmetric
 
     feq = Array{Float64}(undef, size(f_in, 3))
     f = Array{Float64}(undef, size(f_in, 3))
     u = zeros(dimension(q))
-    if ! (Force <: Nothing)
+    if !(Force <: Nothing)
         F = zeros(dimension(q))
     end
 
     nx, ny, nf = size(f_in)
-    @inbounds for x = 1 : nx, y = 1 : ny
-        @inbounds for f_idx = 1 : nf
+    @inbounds for x = 1:nx, y = 1:ny
+        @inbounds for f_idx = 1:nf
             f[f_idx] = f_in[x, y, f_idx]
         end
 
@@ -73,14 +72,14 @@ function collide!(collision_model::TRT{Force}, q::Quadrature, f_in, f_out; time 
         T = 1.0
 
         if Force <: Nothing
-            equilibrium!(q, ρ, u, T, feq);
+            equilibrium!(q, ρ, u, T, feq)
         else
             F .= collision_model.force(x, y, time)
 
-            equilibrium!(q, ρ, u + τ_s * F, T, feq);
+            equilibrium!(q, ρ, u + τ_s * F, T, feq)
         end
 
-        @inbounds for f_idx = 1 : nf
+        @inbounds for f_idx = 1:nf
             opposite_idx = opposite(q, f_idx)
             feq_symmetric = 0.5 * (feq[f_idx] + feq[opposite_idx])
             feq_asymmetric = 0.5 * (feq[f_idx] - feq[opposite_idx])
@@ -88,10 +87,11 @@ function collide!(collision_model::TRT{Force}, q::Quadrature, f_in, f_out; time 
             f_asymmetric = 0.5 * (f[f_idx] - f[opposite_idx])
 
 
-            f_out[x, y, f_idx] = f[f_idx] + (
-                - (1 / τ_s) * (f_symmetric - feq_symmetric)
-                - (1 / τ_a) * (f_asymmetric - feq_asymmetric)
-            )
+            f_out[x, y, f_idx] =
+                f[f_idx] + (
+                    -(1 / τ_s) * (f_symmetric - feq_symmetric) -
+                    (1 / τ_a) * (f_asymmetric - feq_asymmetric)
+                )
         end
     end
     return

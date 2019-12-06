@@ -10,34 +10,36 @@ TrackHydrodynamicErrors(problem, should_process, n_steps) = TrackHydrodynamicErr
     should_process,
     n_steps,
     StopCriteria(problem),
-    Vector{NamedTuple{
-        (
-            :timestep,
-            :error_ρ,
-            :error_u,
-            :error_p,
-            :error_σ_xx,
-            :error_σ_xy,
-            :error_σ_yy,
-            :error_σ_yx,
-        ),
-        Tuple{
-            Int64,
-            Float64,
-            Float64,
-            Float64,
+    Vector{
+        NamedTuple{
+            (
+                :timestep,
+                :error_ρ,
+                :error_u,
+                :error_p,
+                :error_σ_xx,
+                :error_σ_xy,
+                :error_σ_yy,
+                :error_σ_yx,
+            ),
+            Tuple{
+                Int64,
+                Float64,
+                Float64,
+                Float64,
 
-            Float64,
-            Float64,
-            Float64,
-            Float64,
-        }
-    }}()
+                Float64,
+                Float64,
+                Float64,
+                Float64,
+            },
+        },
+    }(),
 )
 
 
 function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
-    if (! process_method.should_process)
+    if (!process_method.should_process)
         if (t != process_method.n_steps)
             return false
         end
@@ -67,16 +69,10 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
     D = dimension(q)
     N = div(lbm.order(q), 2)
     N = 2
-    Hs = [
-        [
-            hermite(Val{n}, q.abscissae[:, i], q)
-            for i = 1:length(q.weights)
-        ]
-        for n = 1:N
-    ]
+    Hs = [[hermite(Val{n}, q.abscissae[:, i], q) for i = 1:length(q.weights)] for n = 1:N]
 
     # @show problem.ν * delta_x(problem)^2 / delta_t(problem)
-    @inbounds for x_idx in 1:nx, y_idx in 1:ny
+    @inbounds for x_idx = 1:nx, y_idx = 1:ny
         # Analytical
         x = x_range[x_idx]
         y = y_range[y_idx]
@@ -90,7 +86,7 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         expected_σ = deviatoric_tensor(q, problem, x, y, time)
 
         # Compute macroscopic variables
-        @inbounds for f_idx = 1 : size(f_in, 3)
+        @inbounds for f_idx = 1:size(f_in, 3)
             f[f_idx] = f_in[x_idx, y_idx, f_idx]
         end
 
@@ -106,7 +102,7 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         τ = q.speed_of_sound_squared * lbm.lattice_viscosity(problem)
         a_bar_2 = sum([f[idx] * Hs[2][idx] for idx = 1:length(q.weights)])
         a_eq_2 = equilibrium_coefficient(Val{2}, q, ρ, u, 1.0)
-       
+
         # Determin a^2 of f based on \bar{f} and f^eq
         a_2 = (a_bar_2 + (1 / (2 * τ)) * a_eq_2) / (1 + 1 / (2 * τ))
 
@@ -114,7 +110,7 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         # P = (1 - 1 / (2 * τ))a_f[2] - (a_f[1] * a_f[1]') / ρ + ρ * I
         p = 0.0
         for x_idx = 1:D
-            p += (1 - 1 / (2 * τ))a_bar_2[x_idx, x_idx] - ρ * (u[x_idx] * u[x_idx] - I)
+            p += (1 - 1 / (2 * τ)) * a_bar_2[x_idx, x_idx] - ρ * (u[x_idx] * u[x_idx] - I)
         end
         p /= D
 
@@ -124,7 +120,7 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         P = a_2 - ρ * (u * u' - I)
         σ_lb = P - I * tr(P) / D
         if (x_idx == div(nx, 2) && y_idx == 1)
-            @show (expected_p - p) (expected_p - tr(P)/D)
+            @show (expected_p - p) (expected_p - tr(P) / D)
         end
         # Gives 4th order convergence?
         # p = tr(P) /D
@@ -140,13 +136,13 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         σ_err = (expected_σ .- σ_lb)
 
         if (x_idx == div(nx, 2) && y_idx == 1)
-            factor =  expected_σ[1,2] ./ σ_lb[1,2]
+            factor = expected_σ[1, 2] ./ σ_lb[1, 2]
             # @show  expected_σ[1,2] ./ σ_lb[1,2]
             # @show  expected_σ[1,1] ./ σ_lb[1,1]
             # @show  expected_σ[2,2] ./ σ_lb[2,2]
             # @show expected_σ σ_lb
             # @show σ_lb[1, 2]
-            factor =  expected_σ[2,2] ./ σ_lb[2,2]
+            factor = expected_σ[2, 2] ./ σ_lb[2, 2]
         end
 
         error_p += Δ * (p - expected_p)^2
@@ -158,16 +154,19 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         error_σ_yy += Δ * σ_err[2, 2]^2
     end
 
-    push!(process_method.df, (
-        timestep = t,
-        error_ρ = sqrt(error_ρ),
-        error_u = sqrt(error_u),
-        error_p = sqrt(error_p),
-        error_σ_xx = sqrt(error_σ_xx),
-        error_σ_xy = sqrt(error_σ_xy),
-        error_σ_yy = sqrt(error_σ_yy),
-        error_σ_yx = sqrt(error_σ_yx),
-    ))
+    push!(
+        process_method.df,
+        (
+            timestep = t,
+            error_ρ = sqrt(error_ρ),
+            error_u = sqrt(error_u),
+            error_p = sqrt(error_p),
+            error_σ_xx = sqrt(error_σ_xx),
+            error_σ_xy = sqrt(error_σ_xy),
+            error_σ_yy = sqrt(error_σ_yy),
+            error_σ_yx = sqrt(error_σ_yx),
+        ),
+    )
 
     if mod(t, 100) == 0
         if (should_stop!(process_method.stop_criteria, q, f_in))
@@ -191,13 +190,7 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
 
         if (should_visualize)
             Δt = delta_t(process_method.problem)
-            visualize(
-                process_method.problem,
-                q,
-                f_in,
-                time,
-                process_method.df
-            )
+            visualize(process_method.problem, q, f_in, time, process_method.df)
         end
     end
 

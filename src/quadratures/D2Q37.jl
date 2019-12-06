@@ -1,14 +1,14 @@
 struct D2Q37 <: Quadrature
-    abscissae::Array{Int64, 2}
-    weights::Array{Float64, 1}
+    abscissae::Array{Int64,2}
+    weights::Array{Float64,1}
     speed_of_sound_squared::Float64
 end
 
 D2Q37() = D2Q37(
     [
         #  # group 2   # group 3   # group 4   # group 5               # group 6   # group 7   # group 8
-        0  1 -1  0  0  1 -1  1 -1  2 -2  0  0  2 -2 -2  2  1 -1  1 -1  2 -2  2 -2  3 -3  0  0  3 -3  3 -3  1 -1 -1  1
-        0  0  0  1 -1  1 -1 -1  1  0  0  2 -2  1 -1  1 -1  2 -2 -2  2  2 -2 -2  2  0  0  3 -3  1 -1 -1  1  3 -3  3 -3
+        0 1 -1 0 0 1 -1 1 -1 2 -2 0 0 2 -2 -2 2 1 -1 1 -1 2 -2 2 -2 3 -3 0 0 3 -3 3 -3 1 -1 -1 1
+        0 0 0 1 -1 1 -1 -1 1 0 0 2 -2 1 -1 1 -1 2 -2 -2 2 2 -2 -2 2 0 0 3 -3 1 -1 -1 1 3 -3 3 -3
     ],
     [
         0.23315066913235250228650
@@ -64,8 +64,8 @@ D2Q37() = D2Q37(
         0.00028341425299419821740
     ],
     # r =
-    1.19697977039307435897239^2
+    1.19697977039307435897239^2,
 )
 
 order(q::D2Q37) = 9
-Base.show(io::IO, q::D2Q37)= show(io, "D2Q37")
+Base.show(io::IO, q::D2Q37) = show(io, "D2Q37")
