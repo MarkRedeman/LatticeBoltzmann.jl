@@ -14,24 +14,8 @@ function equilibrium(
 end
 
 function equilibrium(q::Quadrature, ρ::Float64, u::Array{Float64,1}, T::Float64)
-    u_squared = sum(u .^ 2)
     f = zeros(length(q.weights))
     hermite_based_equilibrium!(q, ρ, u, T, f)
-    return f
-
-    for idx = 1:length(q.weights)
-        cs = q.abscissae[1, idx] .* u[1] .+ q.abscissae[2, idx] .* u[2]
-
-        f[idx] = _equilibrium(
-            q,
-            ρ,
-            q.weights[idx],
-            cs,
-            u_squared,
-            T,
-            q.abscissae[1, idx]^2 + q.abscissae[2, idx]^2,
-        )
-    end
     return f
 end
 
