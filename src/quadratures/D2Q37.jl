@@ -69,3 +69,57 @@ D2Q37() = D2Q37(
 
 order(q::D2Q37) = 9
 Base.show(io::IO, q::D2Q37) = show(io, "D2Q37")
+function equilibrium!(q::D2Q37, ρ::Float64, u::Array{Float64,1}, T::Float64, f)
+    u_squared = 0.0
+    u_fourth = 0.0
+    for d = 1:dimension(q)
+        u_squared += u[d] .^ 2
+        u_fourth += u[d] .^ 4
+    end
+
+    for idx = 1:length(q.weights)
+        u_dot_xi = q.abscissae[1, idx] .* u[1] .+ q.abscissae[2, idx] .* u[2]
+
+        f[idx] = _equilibrium(
+            q,
+            ρ,
+            q.weights[idx],
+            u_dot_xi,
+            u_squared,
+            u_fourth,
+            T,
+            q.abscissae[1, idx]^2 + q.abscissae[2, idx]^2,
+        )
+    end
+
+    return
+end
+
+function _equilibrium(q::D2Q37, ρ, weight, u_dot_xi, u_squared, u_fourth, T, xi_squared)
+    cs = q.speed_of_sound_squared
+    D = dimension(q)
+    # H_2_temperature = (cs * T .- 1) .* (cs * xi_squared - D)
+    # H_3_temperature = 3.0 * (cs * T .- 1) * (cs * xi_squared - 2 - D)
+    H_2_temperature = 0.0
+    H_3_temperature = 0.0
+
+    a_H_0 = 1.0
+    a_H_1 = cs * u_dot_xi
+    a_H_2 = cs^2 * (u_dot_xi .* u_dot_xi) .+ H_2_temperature .+ - cs * u_squared
+    a_H_3 = cs * u_dot_xi .* (
+        cs^2 * (u_dot_xi .* u_dot_xi) -  3 * cs * u_squared .+ H_3_temperature
+    )
+
+    # H_4_temperature = 0.0
+    a_H_4 =  (
+        cs^4 * u_dot_xi^4 - 6 * cs^3 * u_squared * u_dot_xi^2 + 3 * cs^2 * u_squared^2
+    )
+
+    return ρ .* weight .* (
+        a_H_0 .+
+        a_H_1 .+
+        (1 / 2) * a_H_2 .+
+        (1 / 6) * a_H_3 .+
+        (1 / 24) * a_H_4
+    )
+end

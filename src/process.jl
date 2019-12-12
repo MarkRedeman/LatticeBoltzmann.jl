@@ -5,6 +5,10 @@ ProcessingMethod(problem::TaylorGreenVortex, should_process, n_steps) =
     TrackHydrodynamicErrors(problem, should_process, n_steps)
 ProcessingMethod(problem::DecayingShearFlow, should_process, n_steps) =
     TrackHydrodynamicErrors(problem, should_process, n_steps)
+ProcessingMethod(problem::TGV, should_process, n_steps) =
+    TrackHydrodynamicErrors(problem, should_process, n_steps)
+# ProcessingMethod(problem::TGV, should_process, n_steps) =
+#     TrackHydrodynamicErrors(problem, should_process, n_steps)
 
 include("processing-methods/track-hydrodynamic-errors.jl")
 struct CompareWithAnalyticalSolution{T} <: ProcessingMethod
@@ -418,7 +422,7 @@ function streamline(
     s = (1000, 500)
     velocity_field = contour(
         (j[:, :, 1] .^ 2 .+ j[:, :, 2] .^ 2)',
-        cbar = true,
+        # cbar = true,
         fill = true,
         title = "Momentum",
     )

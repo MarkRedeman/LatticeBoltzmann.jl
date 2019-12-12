@@ -1,3 +1,5 @@
+import LinearAlgebra: norm
+
 struct TrackHydrodynamicErrors{T} <: ProcessingMethod
     problem::FluidFlowProblem
     should_process::Bool
@@ -45,6 +47,7 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         end
     end
 
+
     problem = process_method.problem
     nx, ny, nf = size(f_in)
     x_range, y_range = range(problem)
@@ -63,6 +66,7 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
 
     time = t * delta_t(problem)
     Δ = Float64(y_range.step) * Float64(x_range.step)
+    Δ = 1.0
 
     τ = q.speed_of_sound_squared * lbm.lattice_viscosity(problem) + 0.5
 
@@ -70,6 +74,13 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
     N = div(lbm.order(q), 2)
     N = 2
     Hs = [[hermite(Val{n}, q.abscissae[:, i], q) for i = 1:length(q.weights)] for n = 1:N]
+
+    total_expected_u_squared = 0.0
+    total_expected_σ_xx_squared = 0.0
+    total_expected_σ_yy_squared = 0.0
+    total_expected_σ_xy_squared = 0.0
+    total_expected_σ_yx_squared = 0.0
+    total_expected_p_squared = 0.0
 
     # @show problem.ν * delta_x(problem)^2 / delta_t(problem)
     @inbounds for x_idx = 1:nx, y_idx = 1:ny
@@ -84,6 +95,13 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         expected_ϵ = (dimension(q) / 2) * expected_p / expected_ρ
         expected_T = expected_p / expected_ρ
         expected_σ = deviatoric_tensor(q, problem, x, y, time)
+
+        total_expected_u_squared += norm(expected_u, 2)
+        total_expected_σ_xx_squared += expected_σ[1, 1]^2
+        total_expected_σ_yy_squared += expected_σ[2, 2]^2
+        total_expected_σ_xy_squared += expected_σ[1, 2]^2
+        total_expected_σ_yx_squared += expected_σ[2, 1]^2
+        total_expected_p_squared += expected_p^2
 
         # Compute macroscopic variables
         @inbounds for f_idx = 1:size(f_in, 3)
@@ -109,10 +127,19 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         # Second order convergence?
         # P = (1 - 1 / (2 * τ))a_f[2] - (a_f[1] * a_f[1]') / ρ + ρ * I
         p = 0.0
+        cs = 1 / q.speed_of_sound_squared
         for x_idx = 1:D
-            p += (1 - 1 / (2 * τ)) * a_bar_2[x_idx, x_idx] - ρ * (u[x_idx] * u[x_idx] - I)
+            # NOTE the (1 - 1/2τ) term probably comes from
+            # σ = - (1 - 1/2τ) ∑ f^(1)_i c_i c_i
+            # p += (1 - 1 / (2 * τ)) * a_bar_2[x_idx, x_idx] - ρ * (u[x_idx] * u[x_idx] - I)
+
+            # Should be identical / better ?
+            p += a_bar_2[x_idx, x_idx] - ρ * (u[x_idx] * u[x_idx] - I)
+            # p += a_bar_2[x_idx, x_idx] - ρ * u[x_idx] * u[x_idx] + D * ρ * (1 + (1 - cs) / (2 * τ))
         end
         p /= D
+        p1 = p
+        # p = tr(a_bar_2 - ρ * (u * u' - I) ) / D
 
 
 
@@ -120,10 +147,12 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         P = a_2 - ρ * (u * u' - I)
         σ_lb = P - I * tr(P) / D
         if (x_idx == div(nx, 2) && y_idx == 1)
-            @show (expected_p - p) (expected_p - tr(P) / D)
+            # @show (expected_p - p) (expected_p - tr(P) / D)
+            # @show (expected_p - p1)
+            # @show expected_p p tr(P) / D p1
         end
         # Gives 4th order convergence?
-        # p = tr(P) /D
+        p = tr(P) /D
 
 
         # Determine errors by first scaling from lattice variables to dimensionless
@@ -137,9 +166,10 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
 
         if (x_idx == div(nx, 2) && y_idx == 1)
             factor = expected_σ[1, 2] ./ σ_lb[1, 2]
-            # @show  expected_σ[1,2] ./ σ_lb[1,2]
-            # @show  expected_σ[1,1] ./ σ_lb[1,1]
-            # @show  expected_σ[2,2] ./ σ_lb[2,2]
+            # @show expected_σ[2,2] ./ σ_lb[2,2]
+            # @show expected_σ[1,2] ./ σ_lb[1,2]
+            # @show ((u[1] - expected_u[1])^2 + (u[2] - expected_u[2])^2)
+
             # @show expected_σ σ_lb
             # @show σ_lb[1, 2]
             factor = expected_σ[2, 2] ./ σ_lb[2, 2]
@@ -154,17 +184,26 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         error_σ_yy += Δ * σ_err[2, 2]^2
     end
 
+#     @show error_σ_xx
+#     @show error_σ_xy
+#     @show error_σ_yx
+#     @show error_σ_yy
+#     @show total_expected_σ_xx_squared
+#     @show total_expected_σ_yy_squared
+# @show total_expected_σ_yx_squared
+# @show total_expected_σ_xy_squared
+
     push!(
         process_method.df,
         (
             timestep = t,
             error_ρ = sqrt(error_ρ),
-            error_u = sqrt(error_u),
-            error_p = sqrt(error_p),
-            error_σ_xx = sqrt(error_σ_xx),
-            error_σ_xy = sqrt(error_σ_xy),
-            error_σ_yy = sqrt(error_σ_yy),
-            error_σ_yx = sqrt(error_σ_yx),
+            error_u = sqrt(error_u / total_expected_u_squared),
+            error_p = sqrt(error_p /total_expected_p_squared),
+            error_σ_xx = sqrt(error_σ_xx / total_expected_σ_xx_squared),
+            error_σ_xy = sqrt(error_σ_xy/ total_expected_σ_xy_squared),
+            error_σ_yy = sqrt(error_σ_yy / total_expected_σ_yy_squared),
+            error_σ_yx = sqrt(error_σ_yx / total_expected_σ_yx_squared),
         ),
     )
 
@@ -186,7 +225,6 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
                 should_visualize = true
             end
         end
-
 
         if (should_visualize)
             Δt = delta_t(process_method.problem)

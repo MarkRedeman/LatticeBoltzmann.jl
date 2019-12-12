@@ -66,3 +66,27 @@ end
 
 order(q::D2Q21) = 7
 Base.show(io::IO, q::D2Q21) = show(io, "D2Q21")
+
+
+function _equilibrium(q::D2Q21, ρ, weight, u_dot_xi, u_squared, T, xi_squared)
+    # Truncated upto order 2
+    cs = q.speed_of_sound_squared
+    D = dimension(q)
+    # H_2_temperature = (cs * T .- 1) .* (cs * xi_squared - D)
+    # H_3_temperature = 3.0 * (cs * T .- 1) * (cs * xi_squared - 2 - D)
+    H_2_temperature = 0.0
+    H_3_temperature = 0.0
+
+    a_H_0 = 1.0
+    a_H_1 = cs * u_dot_xi
+    a_H_2 = cs^2 * (u_dot_xi .* u_dot_xi) .+ H_2_temperature .+ - cs * u_squared
+    a_H_3 = cs * u_dot_xi .* (
+        cs^2 * (u_dot_xi .* u_dot_xi) -  3 * cs * u_squared .+ H_3_temperature
+    )
+    return ρ .* weight .* (
+        a_H_0 .+
+        a_H_1 .+
+        (1 / 2) * a_H_2 .+
+        (1 / 6) * a_H_3
+    )
+end

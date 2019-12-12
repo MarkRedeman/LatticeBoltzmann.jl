@@ -100,20 +100,17 @@ function velocity_gradient(
 )
     A = problem.A
     B = problem.B
-
     k_y = problem.k_y
     k_x = problem.k_x
 
     u_x = 0.0
-    u_y =
-        A * k_y * sin(k_y * (y - B * time)) * exp(-1.0 * k_y^2 * viscosity(problem) * time)
-    v_x =
-        B * k_x * sin(k_x * (x - A * time)) * exp(-1.0 * k_x^2 * viscosity(problem) * time)
+    u_y = - A * k_y * sin(k_y * (y - B * time))
+    v_x = - B * k_x * sin(k_x * (x - A * time))
     v_y = 0.0
 
-    if problem.static
-        u_y = A * k_y * sin(k_y * (y - B * time))
-        v_x = B * k_x * sin(k_x * (x - A * time))
+    if ! problem.static
+        u_y *= exp(-1.0 * k_y^2 * viscosity(problem) * time)
+        v_x *= exp(-1.0 * k_x^2 * viscosity(problem) * time)
     end
 
     return [u_x v_x; u_y v_y]

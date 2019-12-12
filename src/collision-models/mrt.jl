@@ -71,9 +71,6 @@ function collide_mrt!(collision_model::MRT{Force}, q, f_in, f_out; time = 0.0) w
             f[f_idx] = f_in[x_idx, y_idx, f_idx]
         end
 
-        # NOTE: we could optimize this by only computing upto n = 2 when τ = 1.0
-        a_f = [sum([f[idx] * Hs[n][idx] for idx = 1:length(q.weights)]) for n = 1:N]
-
         ρ = density(q, f)
         velocity!(q, f, ρ, u)
         # T = temperature(q, f, ρ, a_f[1], a_f[2])
@@ -88,6 +85,9 @@ function collide_mrt!(collision_model::MRT{Force}, q, f_in, f_out; time = 0.0) w
         # NOTE: we don't need to compute the 0th and 1st coefficient as these are equal
         # to a_f[0] and a_f[1]
         a_eq = [equilibrium_coefficient(Val{n}, q, ρ, u, T) for n = 1:N]
+
+        # NOTE: we could optimize this by only computing upto n = 2 when τ = 1.0
+        a_f = [sum([f[idx] * Hs[n][idx] for idx = 1:length(q.weights)]) for n = 1:N]
 
         a_coll = [(1 - 1 / τs[n]) .* a_f[n] .+ (1 / τs[n]) .* a_eq[n] for n = 1:N]
 

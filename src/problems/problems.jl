@@ -22,6 +22,7 @@ function initial_condition(q::Quadrature, problem::FluidFlowProblem, x::Float64,
         lattice_velocity(q, problem, x, y),
         lattice_temperature(q, problem, x, y),
     )
+    return f
 
     q = q
     ρ = sum(f)
@@ -91,7 +92,7 @@ function deviatoric_tensor(
     a = velocity_gradient(problem, x, y, time)
     ν = viscosity(problem)
 
-    return ν * [
+    return - ν * [
         2 * a[1, 1] a[1, 2] + a[2, 1]
         a[1, 2] + a[2, 1] 2 * a[2, 2]
     ]
@@ -182,5 +183,6 @@ include("poiseuille.jl")
 include("couette-flow.jl")
 include("lid-driven-cavity.jl")
 include("linear-hydrodynamics-modes.jl")
+include("second-order-convergence.jl")
 
 # error(::Val{:density}, node, solution) = density(node) - density(solution)

@@ -5,6 +5,8 @@ using Test
 using lbm
 
 quadratures = [D2Q4(), D2Q5(), D2Q9(), D2Q13(), D2Q17(), D2Q21(), D2Q37()]
+quadratures = lbm.Quadratures
+quadratures = [D2Q37()]
 
 include("problems/taylor-green-vortex.jl")
 include("problems/poiseuille.jl")
