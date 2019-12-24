@@ -153,9 +153,9 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         # σ_lb = deviatoric_tensor(q, problem.τ * q.speed_of_sound_squared, f, ρ, u)
 
         if (x_idx == div(nx, 2) && y_idx == 1)
-            @show τ, problem.τ * q.speed_of_sound_squared
+            # @show τ, problem.τ * q.speed_of_sound_squared
             @show σ_lb
-            @show deviatoric_tensor(q, problem.τ * q.speed_of_sound_squared, f, ρ, u)
+            # @show deviatoric_tensor(q, problem.τ * q.speed_of_sound_squared, f, ρ, u)
             @show expected_σ
             # @show (expected_p - p) (expected_p - tr(P) / D)
             # @show (expected_p - p1)
