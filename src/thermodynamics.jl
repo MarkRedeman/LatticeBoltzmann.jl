@@ -153,3 +153,17 @@ end
 function temperature(q::Quadrature, f::Vector{Float64}, ρ::Float64, u::Vector{Float64})
     return pressure(q, f, ρ, u) ./ ρ
 end
+
+"""
+Computes the deviatoric tensor σ
+
+τ is the relaxation time such that ν = cs^2 τ
+"""
+function deviatoric_tensor(q::Quadrature, τ, f::Vector{Float64}, ρ::Float64, u::Vector{Float64})
+    D = dimension(q)
+
+    a_bar_2 = sum([f[idx] * hermite(Val{2}, q.abscissae[:, idx], q) for idx = 1:length(q.weights)])
+    a_eq_2 = equilibrium_coefficient(Val{2}, q, ρ, u, 1.0)
+    σ = (a_bar_2 - a_eq_2) / (1 + 1 / (2 * τ))
+    return σ - I * tr(σ) / D
+end
