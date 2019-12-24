@@ -8,10 +8,6 @@ import LinearAlgebra: I, tr
     problem = TaylorGreenVortex(ν, scale)
     f = lbm.initialize(AnalyticalEquilibrium(), q, problem)
 
-    ρ = lbm.density(q, f)
-    j = lbm.momentum(q, f)
-    T = lbm.temperature(q, f, ρ, j ./ ρ)
-
     # TODO: when an a thermal model is considered, the density fluctuates
     # TODO: when a thermal model is considerd we have constant density
     @testset "Hermite Pressure component" begin

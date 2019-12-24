@@ -142,7 +142,6 @@ function streamline(
     s = (1000, 500)
     velocity_field = contour(
         (j[:, :, 1] .^ 2 .+ j[:, :, 2] .^ 2)',
-        # cbar = true,
         fill = true,
         title = "Momentum",
     )
@@ -155,7 +154,6 @@ function streamline(
         j
         for i in range(2, size(j, 1), step = step), j in range(1, size(j, 2), step = step)
     ]
-    # @show "process: ", u, v,
 
     quiver!(
         velocity_field,
