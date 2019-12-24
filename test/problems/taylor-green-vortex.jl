@@ -6,7 +6,7 @@ import LinearAlgebra: I, tr
     scale = 1
     ν = 1.0 / 6.0
     problem = TaylorGreenVortex(ν, scale)
-    f = lbm.initialize(q, problem)
+    f = lbm.initialize(AnalyticalEquilibrium(), q, problem)
 
     ρ = lbm.density(q, f)
     j = lbm.momentum(q, f)
@@ -29,7 +29,7 @@ import LinearAlgebra: I, tr
 
         x = 0.30
         y = 0.30
-        f = lbm.initial_condition(q, problem, x, y)
+        f = lbm.initial_condition(AnalyticalEquilibrium(), q, problem, x, y)
 
         ρ = sum(f)
 
@@ -71,7 +71,7 @@ import LinearAlgebra: I, tr
 
         x = 0.30
         y = 0.30
-        f = lbm.initial_condition(q, problem, x, y)
+        f = lbm.initial_condition(AnalyticalEquilibrium(), q, problem, x, y)
 
         ρ = lbm.density(q, f)
 

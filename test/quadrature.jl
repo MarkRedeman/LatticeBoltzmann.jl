@@ -19,10 +19,9 @@
 end
 
 @testset "moments of the equilibrium distribution of the $q lattice" for q in quadratures
-    N = 1
-    ρ = fill(1.0, N, N)
-    u = fill(0.001, N, N, lbm.dimension(q))
-    T = fill(1.0, N, N)
+    ρ = 1.0
+    u = fill(0.001, lbm.dimension(q))
+    T = 1.0
 
     @testset "equilibira" begin
         f = lbm.equilibrium(q, ρ, u, T)
@@ -36,10 +35,9 @@ end
     end
 
     @testset "temperature" begin
-        N = 1
-        ρ = fill(1.0, N, N)
-        u = fill(0.0, N, N, lbm.dimension(q))
-        T = fill(1.0, N, N)
+        ρ = 1.0
+        u = zeros(lbm.dimension(q))
+        T = 1.0
         f = lbm.equilibrium(q, ρ, u, T)
         # @show lbm.temperature(q, f, ρ, u) * q.speed_of_sound_squared
         @test all(lbm.temperature(q, f, ρ, u) .≈ T)
@@ -64,46 +62,42 @@ end
 
     @testset "SRT collision operator" begin
         N = 1
-        ρ = fill(1.0, N, N)
-        u = fill(0.01, N, N, lbm.dimension(q))
-        T = fill(1.05, N, N)
+        ρ = 1.0
+        u = fill(0.1, lbm.dimension(q))
+        T = 1.0
 
         f = lbm.equilibrium(q, ρ, u, T)
+        f = reshape(f, 1, 1, length(q.weights))
         f_out = copy(f)
-        # @show q.speed_of_sound_squared
-        # @show 1 / q.speed_of_sound_squared
-        # @show ρ_1 = lbm.density(q, f)
-        # @show j_1 = lbm.momentum(q, f)[:]
-        # @show lbm.temperature(q, f, ρ_1, j_1 ./ ρ_1)
+        f_in = copy(f)
 
-        # @show "COLLIDE"
         # When τ = 1.0 we immediatly get the equilibrium distribution
-        lbm.collide!(SRT(1.0), q, f_old = f, f_new = f_out, time = 0.0)
-        # @show ρ = lbm.density(q, f)
-        # @show j = lbm.momentum(q, f)
-        # @show lbm.temperature(q, f, ρ, j ./ ρ)
+        lbm.collide!(SRT(1.0), q, f_old = f_in, f_new = f_out, time = 0.0)
 
         f_ = f_out[1, 1, :]
         u_ = [0.0, 0.0]
         ρ_ = lbm.density(q, f_)
         lbm.velocity!(q, f_, ρ_, u_)
         T_ = lbm.temperature(q, f_, ρ_, u_)
-        @test all(isapprox(f, f_out, atol = 1e-4))
+        @test all(isapprox(f_in, f_out, atol = 1e-4))
 
         @inferred lbm.equilibrium(q, ρ, u, T)
         @inferred lbm.equilibrium(q, ρ, u, 1.0)
         # @code_warntype lbm.equilibrium(q, ρ, u, 1.0);
         # @code_warntype collide(collision_model, q, f)
-        @inferred lbm.collide!(SRT(1.0), q, f_old = f, f_new = f_out, time = 0.0)
+        @inferred lbm.collide!(SRT(1.0), q, f_old = f_in, f_new = f_out, time = 0.0)
     end
 
     @testset "Stream and collide" begin
         N = 1
-        ρ = fill(1.0, N, N)
-        u = fill(0.1, N, N, lbm.dimension(q))
-        T = fill(1.0, N, N)
+        ρ = 1.0
+        u = fill(0.1, lbm.dimension(q))
+        T = 1.0
 
         f = lbm.equilibrium(q, ρ, u, T)
+        f = reshape(f, 1, 1, length(q.weights))
+        f_out = copy(f)
+        f_in = copy(f)
 
         f_inn = copy(f)
         f_out = copy(f)
@@ -134,9 +128,6 @@ end
 @testset "Streaming quadratures with multispeeds" for q in quadratures
     q = D2Q13()
     N = 1
-    ρ = fill(1.0, N, N)
-    u = fill(0.1, N, N, lbm.dimension(q))
-    T = fill(1.0, N, N)
 
     feq = lbm.equilibrium(q, 1.0, [0.0, 0.0], 1.0)
     f = Array{Float64}(undef, 1, 1, length(q.weights))

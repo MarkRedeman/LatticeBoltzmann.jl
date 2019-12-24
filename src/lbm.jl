@@ -28,7 +28,6 @@ export LinearizedThermalDiffusion, LinearizedTransverseShearWave
 export PoiseuilleFlow
 
 export process!,
-    initialize,
     apply_boundary_conditions!,
     density,
     velocity,
@@ -36,12 +35,15 @@ export process!,
     temperature,
     decay,
     force,
-    initialize,
     FluidFlowProblem,
     viscosity,
     delta_t
 export Lattice,
     initialize,
+    AnalyticalEquilibriumAndOffEquilibrium,
+    AnalyticalEquilibrium,
+    AnalyticalVelocity,
+    IterativeInitialization,
     # Thermodynamics
     density,
     momentum,

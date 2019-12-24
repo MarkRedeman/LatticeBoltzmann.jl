@@ -4,7 +4,7 @@
     scale = 1
     ν = 1.0 / 6.0
     problem = PoiseuilleFlow(ν, scale, static = true)
-    f_in = lbm.initialize(q, problem)
+    f_in = lbm.initialize(AnalyticalEquilibrium(), q, problem)
     f_out = copy(f_in)
     collision_operator = CollisionModel(SRT, q, problem)
 
