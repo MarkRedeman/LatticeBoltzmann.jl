@@ -54,7 +54,7 @@ function pressure_tensor(
     B = problem.B
 
     p = pressure(q, problem, x, y, time) * I
-    return p + deviatoric_tensor(q, problem, x, y, time)
+    return p - deviatoric_tensor(q, problem, x, y, time)
 end
 
 function force(problem::FluidFlowProblem, x_idx::Int64, y_idx::Int64, time::Float64 = 0.0)
