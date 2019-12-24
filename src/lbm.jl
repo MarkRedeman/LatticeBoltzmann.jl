@@ -97,6 +97,7 @@ function siumlate(
     q::Quadrature;
     process_method = nothing,
     should_process = true,
+    initialization_strategy = InitializationStrategy(problem),
     t_end = 1.0,
     collision_model = SRT,
 )
@@ -107,6 +108,7 @@ function siumlate(
         problem,
         q,
         collision_model = collision_model,
+        initialization_strategy = initialization_strategy,
         n_steps = n_steps,
         should_process = should_process,
     )
