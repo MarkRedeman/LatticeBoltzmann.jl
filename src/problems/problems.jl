@@ -66,21 +66,13 @@ function force(problem::FluidFlowProblem, x_idx::Int64, y_idx::Int64, time::Floa
     return force(problem, x, y, time)
 end
 
-function is_steady_state(problem::FluidFlowProblem)
-    return problem.static
-end
-function is_time_dependant(problem::FluidFlowProblem)
-    return !problem.static
-end
+is_steady_state(problem::FluidFlowProblem) = problem.static
+is_time_dependant(problem::FluidFlowProblem) = !problem.static
 
 # Dimensionless
-function viscosity(problem) #::FluidFlowProblem)
-    return problem.ν * delta_x(problem)^2 / delta_t(problem)
-end
-
-function heat_diffusion(problem) #::FluidFlowProblem)
-    return problem.κ * delta_x(problem)^2 / delta_t(problem)
-end
+viscosity(problem::FluidFlowProblem) = problem.ν * delta_x(problem)^2 / delta_t(problem)
+heat_diffusion(problem::FluidFlowProblem) = problem.κ * delta_x(problem)^2 / delta_t(problem)
+reynolds(problem::FluidFlowProblem) = problem.NY * problem.u_max / problem.ν
 
 function delta_t(problem::FluidFlowProblem)
     return delta_x(problem) * problem.u_max
@@ -92,9 +84,6 @@ function delta_x(problem::FluidFlowProblem)
     end
 
     return problem.domain_size[2] * (1 / problem.NY)
-end
-function reynolds(problem::FluidFlowProblem)
-    return problem.NY * problem.u_max / problem.ν
 end
 
 lattice_viscosity(problem) = problem.ν #::FluidFlowProblem)

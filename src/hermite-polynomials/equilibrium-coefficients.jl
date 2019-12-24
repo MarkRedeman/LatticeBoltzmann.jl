@@ -1,5 +1,4 @@
 # Use F.2 to generate them
-
 function hermite_based_equilibrium(q, f)
     ρ = sum(f)
     u = velocity(q, f)
@@ -7,25 +6,6 @@ function hermite_based_equilibrium(q, f)
 
     hermite_based_equilibrium(q, ρ, u, T)
 end
-function hermite_based_equilibrium(q, ρ, u, T)
-    @warn "HUH"
-    N = div(lbm.order(q), 2)
-    cs = 1 / q.speed_of_sound_squared
-    D = dimension(q)
-
-    # Compute (get!?) the hermite polynomials for this quadrature
-    Hs = [[hermite(Val{n}, q.abscissae[:, i], q) for i = 1:length(q.weights)] for n = 1:N]
-
-    as = [equilibrium_coefficient(Val{n}, q::Quadrature, ρ, u, T) for n = 1:N]
-
-    return [
-        q.weights[f_idx] * (ρ + sum([
-            sum(as[n] .* Hs[n][f_idx]) / (factorial(n) * cs^n) for n = 1:N
-        ]))
-        for f_idx = 1:length(q.weights)
-    ]
-end
-
 
 function hermite_based_equilibrium!(q::Q, ρ, u, T, f) where {Q<:Quadrature}
     N = div(lbm.order(q), 2)

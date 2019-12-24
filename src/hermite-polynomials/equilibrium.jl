@@ -1,18 +1,3 @@
-function equilibrium(
-    q::Quadrature,
-    ρ,#::Array{Float64, 2},
-    u,#::Array{Float64, 3},
-    T,#::Array{Float64, 2}
-)
-    fs = zeros(size(ρ, 1), size(ρ, 2), length(q.weights))
-    f = zeros(length(q.weights))
-    for x_idx = 1:size(ρ, 1), y_idx = 1:size(ρ, 2)
-        equilibrium!(q, ρ[x_idx, y_idx], u[x_idx, y_idx, :], T[x_idx, y_idx], f)
-        fs[x_idx, y_idx, :] .= f
-    end
-    return fs
-end
-
 function equilibrium(q::Quadrature, ρ::Float64, u::Array{Float64,1}, T::Float64)
     f = zeros(length(q.weights))
     hermite_based_equilibrium!(q, ρ, u, T, f)

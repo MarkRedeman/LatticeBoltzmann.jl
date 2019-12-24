@@ -14,9 +14,5 @@ function CollisionModel(
 )
     return CollisionModel(SRT, q, problem)
 end
-function CollisionModel(cm::CollisionModel, q::Quadrature, problem::FluidFlowProblem)
-    return cm
-end
-function collide!(c, q::Quadrature; time, f_new, f_old)
-    collide!(c, q, f_old, f_new, time = time)
-end
+CollisionModel(cm::CollisionModel, ::Quadrature, ::FluidFlowProblem) = cm
+collide!(cm, q::Quadrature; time, f_new, f_old) = collide!(cm, q, f_old, f_new, time = time)

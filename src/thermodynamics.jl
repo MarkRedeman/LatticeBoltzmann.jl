@@ -1,4 +1,3 @@
-
 density(q::Quadrature, f::Array{Float64,N}) where {N} = sum(f, dims = N)
 density(q::Quadrature, f::Array{Float64,1}) = sum(f)
 
