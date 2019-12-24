@@ -68,130 +68,42 @@ function visualize(problem::FluidFlowProblem, quadrature::Quadrature, f_in, time
         x_pos = round(Int, problem.NX / 2)
         domain = y_range[1:Ny]
 
-        velocity_profile_x = plot(
-            domain,
-            u[x_pos, 1:(problem.NY), 1],
-            label = "solution",
-            title = "u_x",
-            legend = nothing,
-        )
-        plot!(
-            velocity_profile_x,
-            domain,
-            velocity_field[x_pos, 1:(problem.NY), 1],
-            label = "exact",
-        )
+        velocity_profile_x = plot(domain, u[x_pos, :, 1], label = "solution", title = "u_x")
+        plot!(velocity_profile_x, domain, velocity_field[x_pos, :, 1], label = "exact")
 
-        velocity_profile_y = plot(
-            u[x_pos, 1:(problem.NY), 2],
-            domain,
-            label = "solution",
-            title = "u_y",
-            legend = nothing,
-        )
-        plot!(
-            velocity_profile_y,
-            velocity_field[x_pos, 1:(problem.NY), 2],
-            domain,
-            label = "exact",
-        )
+        velocity_profile_y = plot(u[x_pos, 1:(problem.NY), 2], domain, label = "solution", title = "u_y")
+        plot!(velocity_profile_y, velocity_field[x_pos, 1:(problem.NY), 2], domain, label = "exact")
 
-        pressure_profile = plot(
-            domain,
-            p[x_pos, 1:(problem.NY)],
-            label = "solution",
-            title = "p",
-            legend = nothing,
-        )
-        plot!(
-            pressure_profile,
-            domain,
-            pressure_field[x_pos, 1:(problem.NY)],
-            label = "exact",
-        )
+        pressure_profile = plot(domain, p[x_pos, 1:(problem.NY)], label = "solution", title = "p")
+        plot!(pressure_profile, domain, pressure_field[x_pos, 1:(problem.NY)], label = "exact")
 
-        temperature_profile = plot(
-            domain,
-            T[x_pos, 1:(problem.NY), 1],
-            label = "solution",
-            title = "T",
-            legend = nothing,
-        )
-        # plot!(temperature_profile, domain, temperature_field[x_pos, 1:(problem.NY), 1], label="exact")
+        temperature_profile = plot(domain, T[x_pos, 1:(problem.NY), 1], label = "solution", title = "T")
 
-        sigma_xx_profile = plot(
-            domain,
-            σ_xx[x_pos, 1:(problem.NY)],
-            label = "solution",
-            title = "sigma_xx",
-            legend = nothing,
-        )
-        plot!(
-            sigma_xx_profile,
-            domain,
-            σ_xx_field[x_pos, 1:(problem.NY)],
-            label = "exact",
-        )
+        sigma_xx_profile = plot(domain, σ_xx[x_pos, 1:(problem.NY)], label = "solution", title = "sigma_xx")
+        plot!(sigma_xx_profile, domain, σ_xx_field[x_pos, 1:(problem.NY)], label = "exact")
 
-        sigma_xy_profile = plot(
-            domain,
-            σ_xy[x_pos, 1:(problem.NY)],
-            label = "solution",
-            title = "sigma_xy",
-            legend = nothing,
-        )
-        plot!(
-            sigma_xy_profile,
-            domain,
-            σ_xy_field[x_pos, 1:(problem.NY)],
-            label = "exact",
-        )
+        sigma_xy_profile = plot(domain, σ_xy[x_pos, 1:(problem.NY)], label = "solution", title = "sigma_xy")
+        plot!(sigma_xy_profile, domain, σ_xy_field[x_pos, 1:(problem.NY)], label = "exact")
     else
         y_pos = round(Int, problem.NY / 2)
         domain = x_range[1:Nx]
 
-        velocity_profile_x =
-            plot(domain, u[:, y_pos, 1], label = "solution", title = "u_x")
+        velocity_profile_x = plot(domain, u[:, y_pos, 1], label = "solution", title = "u_x")
         plot!(velocity_profile_x, domain, velocity_field[:, y_pos, 1], label = "exact")
 
-        velocity_profile_y =
-            plot(u[:, y_pos, 2], domain, label = "solution", title = "u_y")
+        velocity_profile_y = plot(u[:, y_pos, 2], domain, label = "solution", title = "u_y")
         plot!(velocity_profile_y, velocity_field[:, y_pos, 2], domain, label = "exact")
 
-        pressure_profile =
-            plot(domain, p[:, y_pos], label = "solution", title = "p", legend = nothing)
+        pressure_profile = plot(domain, p[:, y_pos], label = "solution", title = "p")
         plot!(pressure_profile, domain, pressure_field[:, y_pos], label = "exact")
 
-        temperature_profile =
-            plot(domain, T[:, y_pos], label = "solution", title = "T", legend = nothing)
+        temperature_profile = plot(domain, T[:, y_pos], label = "solution", title = "T")
 
-        sigma_xx_profile = plot(
-            domain,
-            σ_xx[:, y_pos],
-            label = "solution",
-            title = "sigma_xx",
-            legend = nothing,
-        )
-        plot!(
-            sigma_xx_profile,
-            domain,
-            σ_xx_field[:, y_pos],
-            label = "exact",
-        )
+        sigma_xx_profile = plot(domain, σ_xx[:, y_pos], label = "solution", title = "sigma_xx")
+        plot!(sigma_xx_profile, domain, σ_xx_field[:, y_pos], label = "exact")
 
-        sigma_xy_profile = plot(
-            domain,
-            σ_xy[:, y_pos],
-            label = "solution",
-            title = "sigma_xy",
-            legend = nothing,
-        )
-        plot!(
-            sigma_xy_profile,
-            domain,
-            σ_xy_field[:, y_pos],
-            label = "exact",
-        )
+        sigma_xy_profile = plot(domain, σ_xy[:, y_pos], label = "solution", title = "sigma_xy")
+        plot!(sigma_xy_profile, domain, σ_xy_field[:, y_pos], label = "exact")
     end
 
     plot(
@@ -217,6 +129,7 @@ function visualize(problem::FluidFlowProblem, quadrature::Quadrature, f_in, time
         sigma_xx_profile,
         sigma_xy_profile,
         size = (1000, 600),
+        legend = nothing,
     )
     gui()
 end
