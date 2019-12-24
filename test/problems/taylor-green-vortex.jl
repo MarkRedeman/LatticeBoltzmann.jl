@@ -88,8 +88,8 @@ import LinearAlgebra: I, tr
         @show 1 / viscosity(problem)
 
 
-        j = lbm.momentum(q, f)
-        u = j ./ ρ
+        u = zeros(lbm.dimension(q))
+        lbm.velocity!(q, f, ρ, u)
         T = lbm.temperature(q, f, ρ, u)
         @show lbm.momentum_flux(q, f, ρ, u)
         @show lbm.pressure(q, f, ρ, u)

@@ -28,7 +28,9 @@ end
 
         @test all(lbm.density(q, f) .≈ ρ)
 
-        @test all(lbm.momentum(q, f) ./ ρ .≈ u)
+        v = zeros(lbm.dimension(q))
+        lbm.velocity!(q, f, ρ, v)
+        @test all(v .≈ u)
         @test all(isapprox.(lbm.temperature(q, f, ρ, u), T, atol = 1e-5))
         # @code_warntype lbm.equilibrium(q, ρ, u, T)
         @inferred lbm.equilibrium(q, ρ, u, T)
@@ -50,14 +52,13 @@ end
         f = lbm.equilibrium(q, ρ, u, T)
 
         @test lbm.density(q, f) ≈ ρ
-        @test all(lbm.momentum(q, f) ./ ρ .≈ u)
+
+        v = zeros(lbm.dimension(q))
+        lbm.velocity!(q, f, ρ, v)
+        @test all(v .≈ u)
 
         @inferred lbm.density(q, f)
-        @inferred lbm.momentum(q, f)
-
-        j = [0.0, 0.0]
-        lbm.momentum!(q, f, j)
-        @test all(j .≈ u)
+        @inferred lbm.velocity!(q, f, ρ, v)
     end
 
     @testset "SRT collision operator" begin

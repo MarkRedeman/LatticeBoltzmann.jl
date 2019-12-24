@@ -1,23 +1,6 @@
 density(q::Quadrature, f::Array{Float64,N}) where {N} = sum(f, dims = N)
 density(q::Quadrature, f::Array{Float64,1}) = sum(f)
 
-function momentum(q::Quadrature, f::Array{Float64,1})::Array{Float64,1}
-    @warn "Using inefficient momentum"
-    j = zeros(dimension(q))
-    momentum!(q, f, j)
-    return j
-end
-
-function momentum!(q::Quadrature, f::Array{Float64,1}, j::Array{Float64,1})
-    @inbounds for d = 1:dimension(q)
-        j[d] = 0.0
-        for idx = 1:length(f)
-            j[d] += f[idx] * q.abscissae[d, idx]
-        end
-    end
-    return
-end
-
 function velocity!(q::Quadrature, f::Array{Float64,1}, ρ::Float64, u::Array{Float64,1})
     @inbounds for d = 1:dimension(q)
         u[d] = 0.0

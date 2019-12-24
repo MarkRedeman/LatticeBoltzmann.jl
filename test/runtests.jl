@@ -59,7 +59,10 @@ include("problems/poiseuille.jl")
         f = lbm.equilibrium(q, 1.0, zeros(lbm.dimension(q)), 1.0)
 
         @test lbm.density(q, f) ≈ 1.0
-        @test isapprox(lbm.momentum(q, f), zeros(lbm.dimension(q)), atol = 1e-16)
+
+        v = zeros(lbm.dimension(q))
+        lbm.velocity!(q, f, 1.0, v)
+        @test isapprox(v, zeros(lbm.dimension(q)), atol = 1e-16)
 
         equilibrium(ρ, u) = begin
             T = 1.0
@@ -86,7 +89,11 @@ include("problems/poiseuille.jl")
             return f
         end
         density(ρ, u) = lbm.density(q, equilibrium(ρ, u))
-        momentum(ρ, u) = lbm.momentum(q, equilibrium(ρ, u))
+        momentum(ρ, u) = begin
+            v = zeros(lbm.dimension(q))
+            lbm.velocity!(q, equilibrium(ρ, u), 1.0, v)
+            return v
+        end
 
         pressure(ρ, u) = LBM.pressure(equilibrium(ρ, u))
 
