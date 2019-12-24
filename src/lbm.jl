@@ -78,10 +78,10 @@ function LatticeBoltzmannMethod(
     initialization_strategy = InitializationStrategy(problem),
     should_process = false,
 )
-    f_stream = initialize(quadrature, problem, collision_model)
-    f_collision = similar(f_stream)
+    f_stream = initialize(initialization_strategy, quadrature, problem, collision_model)
+    f_collision = copy(f_stream)
 
-    processing_method = return LatticeBoltzmannMethod(
+    LatticeBoltzmannMethod(
         f_stream,
         f_collision,
         quadrature,

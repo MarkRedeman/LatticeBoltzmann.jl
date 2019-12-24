@@ -139,27 +139,3 @@ has_external_force(problem::TGV) = problem.static
 viscosity(problem::TGV) = (problem.τ - 0.5) / (problem.q.speed_of_sound_squared)
 delta_x(problem::TGV) = 1.0
 delta_t(problem::TGV) = 1.0
-
-function initial_condition(q::Quadrature, problem::TGV, x::Float64, y::Float64)
-    f = equilibrium(
-        q,
-        lattice_density(q, problem, x, y),
-        lattice_velocity(q, problem, x, y),
-        lattice_temperature(q, problem, x, y),
-    )
-    f_prev = copy(f)
-    # return f
-
-    cs = problem.q.speed_of_sound_squared
-    τ = problem.τ
-    ν = (τ - 0.5) / (cs)
-
-    σ = deviatoric_tensor(q, problem, x, y, 0.0)
-    for f_idx = 1:length(f)
-        Q = hermite(Val{2}, q.abscissae[:, f_idx], q)
-        f[f_idx] += - q.weights[f_idx] * τ * cs / (ν * factorial(2)) *
-            dot(Q, σ)
-    end
-    @show f_prev f
-    return f
-end
