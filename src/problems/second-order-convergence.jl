@@ -12,7 +12,7 @@ struct TGV <: lbm.FluidFlowProblem
 end
 function TGV(
     q::Quadrature,
-    τ,
+    τ, # Effective relaxation time
     scale = 2,
     NX = 16 * scale,
     NY = NX,
@@ -39,7 +39,7 @@ function density(
     x *= problem.NX
     y *= problem.NY
 
-    ν = (problem.τ - 0.5) / (problem.q.speed_of_sound_squared)
+    ν = problem.ν
     t_d = 1 / (ν * (k_x^2 + k_y^2))
 
     return problem.ρ_0  * (
@@ -63,7 +63,7 @@ function pressure(
     x *= problem.NX
     y *= problem.NY
 
-    ν = (problem.τ - 0.5) / (problem.q.speed_of_sound_squared)
+    ν = problem.ν
     t_d = 1 / (ν * (k_x^2 + k_y^2))
 
     p_0 = 1.0
@@ -88,7 +88,7 @@ function velocity(
     x *= problem.NX
     y *= problem.NY
 
-    ν = (problem.τ - 0.5) / (problem.q.speed_of_sound_squared)
+    ν = problem.ν
     t_d = 1 / (ν * (k_x^2 + k_y^2))
 
     return problem.u_0 * exp(-t / t_d) * [
@@ -109,7 +109,7 @@ function velocity_gradient(
     x *= problem.NX
     y *= problem.NY
 
-    ν = (problem.τ - 0.5) / (problem.q.speed_of_sound_squared)
+    ν = problem.ν
     t_d = 1 / (ν * (k_x^2 + k_y^2))
 
     u_x = sqrt(k_y * k_x) * sin(k_x * x) * sin(k_y * y)
@@ -122,20 +122,20 @@ function velocity_gradient(
 end
 
 function decay(problem::TGV, x::Float64, y::Float64, t::Float64)
-    ν = (problem.τ - 0.5) / (problem.q.speed_of_sound_squared)
+    ν = problem.ν
     t_d = 1 / (ν * (k_x^2 + k_y^2))
 
     return problem.static ? 1.0 : exp(-t / t_d)
 end
 
 function force(problem::TGV, x::Float64, y::Float64, t::Float64 = 0.0)
-    ν = (problem.τ - 0.5) / (problem.q.speed_of_sound_squared)
+    ν = problem.ν
 
     return problem.static ? 2 * ν * velocity(problem, x, y, 0.0) : [0.0 0.0]
 end
 
 has_external_force(problem::TGV) = problem.static
 
-viscosity(problem::TGV) = (problem.τ - 0.5) / (problem.q.speed_of_sound_squared)
+viscosity(problem::TGV) = problem.ν # (problem.τ - 0.5) / (problem.q.speed_of_sound_squared)
 delta_x(problem::TGV) = 1.0
 delta_t(problem::TGV) = 1.0
