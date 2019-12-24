@@ -1,8 +1,9 @@
 function visualize(problem::FluidFlowProblem, quadrature::Quadrature, f_in, time, stats)
     q = quadrature
-    # Density
-    ρ = lbm.density(quadrature, f_in)
+
+    # Pre-allocate Macroscopic Variables
     ρ = Array{Float64}(undef, size(f_in, 1), size(f_in, 2))
+    u = Array{Float64}(undef, size(f_in, 1), size(f_in, 2), dimension(q))
     p = Array{Float64}(undef, size(f_in, 1), size(f_in, 2))
     T = Array{Float64}(undef, size(f_in, 1), size(f_in, 2))
     σ_xx = Array{Float64}(undef, size(f_in, 1), size(f_in, 2))
@@ -11,26 +12,21 @@ function visualize(problem::FluidFlowProblem, quadrature::Quadrature, f_in, time
     Nx = size(f_in, 1)
     Ny = size(f_in, 2)
 
-    # Momentum
-    j = lbm.momentum(quadrature, f_in)
-    E = lbm.total_energy(quadrature, f_in)
-    E_k = lbm.kinetic_energy(quadrature, f_in, ρ, j ./ ρ)
-    ϵ = 1.0 #lbm.internal_energy(quadrature, f_in, ρ, j ./ ρ)
-
-    density_field = fill(0.0, Nx, Ny)
-    pressure_field = fill(0.0, Nx, Ny)
-    velocity_field = fill(0.0, Nx, Ny, lbm.dimension(quadrature))
-    σ_xx_field = fill(0.0, Nx, Ny)
-    σ_xy_field = fill(0.0, Nx, Ny)
+    density_field = Array{Float64}(undef, size(f_in, 1), size(f_in, 2))
+    velocity_field = Array{Float64}(undef, size(f_in, 1), size(f_in, 2), dimension(q))
+    pressure_field = Array{Float64}(undef, size(f_in, 1), size(f_in, 2))
+    σ_xx_field = Array{Float64}(undef, size(f_in, 1), size(f_in, 2))
+    σ_xy_field = Array{Float64}(undef, size(f_in, 1), size(f_in, 2))
 
     x_range, y_range = range(problem)
 
     f = Array{Float64}(undef, size(f_in, 3))
-    u = zeros(dimension(q))
+    u_ = zeros(dimension(q))
     @inbounds for x_idx = 1:Nx, y_idx = 1:Ny
         @inbounds for f_idx = 1:size(f_in, 3)
             f[f_idx] = f_in[x_idx, y_idx, f_idx]
         end
+
         x = x_range[x_idx]
         y = y_range[y_idx]
 
@@ -41,24 +37,27 @@ function visualize(problem::FluidFlowProblem, quadrature::Quadrature, f_in, time
         σ_xx_field[x_idx, y_idx] = σ_exact[1, 1]
         σ_xy_field[x_idx, y_idx] = σ_exact[1, 2]
 
-        ρ[x_idx, y_idx] = density(q, f)
-        p[x_idx, y_idx] =
-            pressure(q, f, ρ[x_idx, y_idx], j[x_idx, y_idx, :] ./ ρ[x_idx, y_idx])
-        T[x_idx, y_idx] =
-            temperature(q, f, ρ[x_idx, y_idx], j[x_idx, y_idx, :] ./ ρ[x_idx, y_idx])
 
+        ρ_ = density(q, f)
+        velocity!(q, f, ρ_, u_)
+        T_ = temperature(q, f, ρ_, u_)
+        p_ = pressure(q, f, ρ_, u_)
 
         τ = q.speed_of_sound_squared * lbm.lattice_viscosity(problem)
-        σ = deviatoric_tensor(q, τ, f, ρ[x_idx, y_idx], j[x_idx, y_idx, :] ./ ρ[x_idx, y_idx])
-        σ = dimensionless_stress(problem, σ)
-        σ_xx[x_idx, y_idx] = σ[1, 1]
-        σ_xy[x_idx, y_idx] = σ[1, 2]
+        σ_ = deviatoric_tensor(q, τ, f, ρ_, u_)
 
-        ρ[x_idx, y_idx] = dimensionless_density(problem, ρ[x_idx, y_idx])
-        p[x_idx, y_idx] = dimensionless_pressure(q, problem, p[x_idx, y_idx])
-        T[x_idx, y_idx] = dimensionless_temperature(q, problem, T[x_idx, y_idx])
-        j[x_idx, y_idx, :] =
-            dimensionless_velocity(problem, j[x_idx, y_idx, :] ./ ρ[x_idx, y_idx])
+        ρ_ = dimensionless_density(problem, ρ_)
+        u_ = dimensionless_velocity(problem, u_)
+        T_ = dimensionless_temperature(q, problem, T_)
+        p_ = dimensionless_pressure(q, problem, p_)
+        ρ[x_idx, y_idx] = ρ_
+        u[x_idx, y_idx, :] = u_
+        p[x_idx, y_idx] = p_
+        T[x_idx, y_idx] = T_
+
+        σ_ = dimensionless_stress(problem, σ_)
+        σ_xx[x_idx, y_idx] = σ_[1, 1]
+        σ_xy[x_idx, y_idx] = σ_[1, 2]
     end
 
     s = (1000, 500)
@@ -71,7 +70,7 @@ function visualize(problem::FluidFlowProblem, quadrature::Quadrature, f_in, time
 
         velocity_profile_x = plot(
             domain,
-            j[x_pos, 1:(problem.NY), 1],
+            u[x_pos, 1:(problem.NY), 1],
             label = "solution",
             title = "u_x",
             legend = nothing,
@@ -83,12 +82,8 @@ function visualize(problem::FluidFlowProblem, quadrature::Quadrature, f_in, time
             label = "exact",
         )
 
-        # @show j[x_pos, 1:(problem.NY), 1] velocity_field[x_pos, 1:(problem.NY), 1]
-        # velocity_profile_x = plot(domain, j[x_pos, 1:(problem.NY), 1] - velocity_field[x_pos, 1:(problem.NY), 1], label="solution", title="u_x", legend=nothing)
-        # scatter!(velocity_profile_x, domain, j[x_pos, 1:(problem.NY), 1] - velocity_field[x_pos, 1:(problem.NY), 1], label="solution", title="u_x", legend=nothing)
-
         velocity_profile_y = plot(
-            j[x_pos, 1:(problem.NY), 2],
+            u[x_pos, 1:(problem.NY), 2],
             domain,
             label = "solution",
             title = "u_y",
@@ -156,13 +151,12 @@ function visualize(problem::FluidFlowProblem, quadrature::Quadrature, f_in, time
         domain = x_range[1:Nx]
 
         velocity_profile_x =
-            plot(domain, j[:, y_pos, 1] ./ ρ[:, y_pos], label = "solution", title = "u_x")
+            plot(domain, u[:, y_pos, 1], label = "solution", title = "u_x")
         plot!(velocity_profile_x, domain, velocity_field[:, y_pos, 1], label = "exact")
 
         velocity_profile_y =
-            plot(j[:, y_pos, 2] ./ ρ[:, y_pos], domain, label = "solution", title = "u_y")
+            plot(u[:, y_pos, 2], domain, label = "solution", title = "u_y")
         plot!(velocity_profile_y, velocity_field[:, y_pos, 2], domain, label = "exact")
-        # velocity_profile_y = plot(j[:, y_pos, 2] ./ ρ[:, y_pos] - velocity_field[:, y_pos, 2], domain, label="solution", title="u_y")
 
         pressure_profile =
             plot(domain, p[:, y_pos], label = "solution", title = "p", legend = nothing)
@@ -200,21 +194,13 @@ function visualize(problem::FluidFlowProblem, quadrature::Quadrature, f_in, time
         )
     end
 
-
-    # kinetic_energy_profile = plot(getfield.(stats, :kinetic_energy), legend=false, title="Kinetic energy")
-
     plot(
         contour(ρ, title = "Density", fill = true, cbar = true),
         contour(p, title = "Pressure", fill = true),
         contour(T, title = "Temperature", fill = true),
         # contour(pressure_field', title="pressure analytical", fill=true),
-        plot!(streamline(j), title = "Computed"),
+        plot!(streamline(u), title = "Computed"),
         plot!(streamline(velocity_field), title = "exact"),
-        # heatmap(j[:, :, 1]', fill=true),
-        # heatmap(j[:, 2:(problem.NY-1), 2]', fill=true),
-        # heatmap(velocity_field[:, :, 1]', fill=true),
-        # heatmap(velocity_field[:, :, 2]', fill=true),
-        # streamline(velocity_field .- ρ .* j),
         plot(getfield.(stats, :error_u), legend = false, title = "U_e"),
         plot(getfield.(stats, :error_p), legend = false, title = "P_e"),
         plot(getfield.(stats, :error_σ_xx), legend = false, title = "sigma_xx_e"),
