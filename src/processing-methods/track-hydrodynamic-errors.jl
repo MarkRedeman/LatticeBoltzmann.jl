@@ -82,6 +82,7 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
     total_expected_σ_yx_squared = 0.0
     total_expected_p_squared = 0.0
 
+    @info "Processing"
     # @show problem.ν * delta_x(problem)^2 / delta_t(problem)
     @inbounds for x_idx = 1:nx, y_idx = 1:ny
         # Analytical
@@ -146,7 +147,16 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         # Huidige poging
         P = a_2 - ρ * (u * u' - I)
         σ_lb = P - I * tr(P) / D
+
+        τ = q.speed_of_sound_squared * lbm.lattice_viscosity(problem)
+        σ_lb = deviatoric_tensor(q, τ, f, ρ, u)
+        # σ_lb = deviatoric_tensor(q, problem.τ * q.speed_of_sound_squared, f, ρ, u)
+
         if (x_idx == div(nx, 2) && y_idx == 1)
+            @show τ, problem.τ * q.speed_of_sound_squared
+            @show σ_lb
+            @show deviatoric_tensor(q, problem.τ * q.speed_of_sound_squared, f, ρ, u)
+            @show expected_σ
             # @show (expected_p - p) (expected_p - tr(P) / D)
             # @show (expected_p - p1)
             # @show expected_p p tr(P) / D p1
@@ -164,10 +174,10 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         # - \mu \rho T \Lambda
         σ_err = (expected_σ .- σ_lb)
 
+            @show expected_σ[2,2] ./ σ_lb[2,2]
         if (x_idx == div(nx, 2) && y_idx == 1)
             factor = expected_σ[1, 2] ./ σ_lb[1, 2]
-            # @show expected_σ[2,2] ./ σ_lb[2,2]
-            # @show expected_σ[1,2] ./ σ_lb[1,2]
+            @show expected_σ[1,2] ./ σ_lb[1,2]
             # @show ((u[1] - expected_u[1])^2 + (u[2] - expected_u[2])^2)
 
             # @show expected_σ σ_lb
@@ -178,10 +188,10 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         error_p += Δ * (p - expected_p)^2
         error_ρ += Δ * (ρ - expected_ρ)^2
         error_u += Δ * ((u[1] - expected_u[1])^2 + (u[2] - expected_u[2])^2)
-        error_σ_xx += Δ * σ_err[1, 1]^2
-        error_σ_xy += Δ * σ_err[1, 2]^2
-        error_σ_yx += Δ * σ_err[2, 1]^2
-        error_σ_yy += Δ * σ_err[2, 2]^2
+        error_σ_xx += Δ * (expected_σ[1,1] .- σ_lb[1,1])^2
+        error_σ_xy += Δ * (expected_σ[1,2] .- σ_lb[1,2])^2
+        error_σ_yx += Δ * (expected_σ[2,1] .- σ_lb[2,1])^2
+        error_σ_yy += Δ * (expected_σ[2,2] .- σ_lb[2,2])^2
     end
 
 #     @show error_σ_xx
