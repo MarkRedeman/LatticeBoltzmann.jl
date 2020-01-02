@@ -92,7 +92,7 @@ function LatticeBoltzmannMethod(
         ProcessingMethod(problem, should_process, n_steps),
     )
 end
-function siumlate(
+function simulate(
     problem::FluidFlowProblem,
     q::Quadrature;
     process_method = nothing,

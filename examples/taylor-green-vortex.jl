@@ -26,33 +26,33 @@ using Plots
 let
     using lbm, Plots, DataFrames, StaticArrays
     q = D2Q9()
-    τ = 1.0 / 6.0
+    τ = 1.0 / (2 * q.speed_of_sound_squared)
     scale = 1
     problem = CouetteFlow(τ, scale)
-    result = lbm.siumlate(problem, q)
+    result = lbm.simulate(problem, q)
 
     problem = LidDrivenCavityFlow(τ, scale)
-    result = lbm.siumlate(problem, q)
+    result = lbm.simulate(problem, q)
 
     for q in quadratures
     problem = CouetteFlow(τ, scale)
-    result = lbm.siumlate(problem, q)
+    result = lbm.simulate(problem, q)
         end
 
     problem = PoiseuilleFlow(τ, scale, static = true)
-    result = lbm.siumlate(problem, q)
+    result = lbm.simulate(problem, q)
 
     problem = TaylorGreenVortex(τ, scale, static = true)
-    result = lbm.siumlate(problem, q)
+    result = lbm.simulate(problem, q)
 
     problem = TaylorGreenVortex(τ, scale, static = false)
-    result = lbm.siumlate(problem, q)
+    result = lbm.simulate(problem, q)
 
     problem = DecayingShearFlow(τ, scale, static = true)
-    result = lbm.siumlate(problem, q)
+    result = lbm.simulate(problem, q)
 
     problem = DecayingShearFlow(τ, scale, static = false)
-    result = lbm.siumlate(problem, q)
+    result = lbm.simulate(problem, q)
 
 end
 # @show result[2]
@@ -74,7 +74,7 @@ end
         example = DecayingShearFlow(ν, scale, static = true)
         # example = TaylorGreenVortex(τ, scale, static = true)
 
-        result = lbm.siumlate(example, quadrature, base = 20);
+        result = lbm.simulate(example, quadrature, base = 20);
         # @show result[2]
         push!(stats, [ν, scale, result[2]])
     end

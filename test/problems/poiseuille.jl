@@ -103,7 +103,7 @@
     end
 
     # @show "Simulate"
-    # result = lbm.siumlate(problem, q, base = 200, should_process=false)
+    # result = lbm.simulate(problem, q, base = 200, should_process=false)
     # @show "DONE"
 
     # TODO: when an a thermal model is considered, the density fluctuates

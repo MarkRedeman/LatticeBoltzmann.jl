@@ -15,16 +15,16 @@ let
     scale = 1
 
     problem = DecayingShearFlow(τ, scale, static = true)
-    result = lbm.siumlate(problem, q)
+    result = lbm.simulate(problem, q)
 
     problem = DecayingShearFlow(τ, scale, static = false)
-    result = lbm.siumlate(problem, q)
+    result = lbm.simulate(problem, q)
 end
 
 scales = 1:8
 x = map(
     scale -> begin
-    result = lbm.siumlate(
+    result = lbm.simulate(
         DecayingShearFlow(τ, scale, static = true),
         D2Q9(),
         t_end = .5,

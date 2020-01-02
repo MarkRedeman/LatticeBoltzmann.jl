@@ -5,7 +5,7 @@ function analyze_convergence(q::Quadrature, p, viscosity::Float64, N = 2, t_end 
 
     for scale = 0:N
         problem = p(2^scale, viscosity)
-        result = siumlate(problem, q, should_process = false, t_end = t_end)
+        result = simulate(problem, q, should_process = false, t_end = t_end)
 
         push!(
             stats,

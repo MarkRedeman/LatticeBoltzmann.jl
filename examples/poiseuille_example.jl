@@ -19,7 +19,7 @@ let
         problem = DecayingShearFlow(ν, 1, static = true)
         # problem = PoiseuilleFlow(ν, 2, static = true)
 
-        result = lbm.siumlate(
+        result = lbm.simulate(
             problem,
             q,
             t_end = 1.0,
@@ -68,7 +68,7 @@ end
         example = DecayingShearFlow(ν, scale, static = true)
         # example = TaylorGreenVortex(τ, scale, static = true)
 
-        result = lbm.siumlate(example, quadrature, base = 20);
+        result = lbm.simulate(example, quadrature, base = 20);
         # @show result[2]
         push!(stats, [ν, scale, result[2]])
     end

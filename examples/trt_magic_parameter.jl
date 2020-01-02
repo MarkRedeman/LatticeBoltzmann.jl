@@ -33,7 +33,7 @@ using Plots
         ])
 
         for Λ = Λ_range
-            result = lbm.siumlate(
+            result = lbm.simulate(
                 problem,
                 q,
                 t_end = 0.15,
