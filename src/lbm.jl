@@ -13,6 +13,7 @@ include("stream.jl")
 include("collision.jl")
 include("analysis.jl")
 include("process.jl")
+include("initial-conditions/mei-et-al.jl")
 
 export CollisionModel, SRT, TRT, MRT
 export Quadrature, D2Q4, D2Q5, D2Q9, D2Q13, D2Q17, D2Q21, D2Q37, opposite

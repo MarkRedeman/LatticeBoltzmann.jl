@@ -7,11 +7,16 @@ struct TrackHydrodynamicErrors{T} <: ProcessingMethod
     stop_criteria::StopCriteria
     df::T
 end
-TrackHydrodynamicErrors(problem, should_process, n_steps) = TrackHydrodynamicErrors(
+TrackHydrodynamicErrors(
     problem,
     should_process,
     n_steps,
-    StopCriteria(problem),
+    stop_criteria = StopCriteria(problem)
+) = TrackHydrodynamicErrors(
+    problem,
+    should_process,
+    n_steps,
+    stop_criteria,
     Vector{
         NamedTuple{
             (

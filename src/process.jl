@@ -1,12 +1,12 @@
 abstract type ProcessingMethod end
-ProcessingMethod(problem, should_process, n_steps) =
-    CompareWithAnalyticalSolution(problem, should_process, n_steps)
-ProcessingMethod(problem::TaylorGreenVortex, should_process, n_steps) =
-    TrackHydrodynamicErrors(problem, should_process, n_steps)
-ProcessingMethod(problem::DecayingShearFlow, should_process, n_steps) =
-    TrackHydrodynamicErrors(problem, should_process, n_steps)
-ProcessingMethod(problem::TGV, should_process, n_steps) =
-    TrackHydrodynamicErrors(problem, should_process, n_steps)
+ProcessingMethod(problem, should_process, n_steps, stop_criteria = StopCriteria(problem)) =
+    CompareWithAnalyticalSolution(problem, should_process, n_steps, stop_criteria)
+ProcessingMethod(problem::TaylorGreenVortex, should_process, n_steps, stop_criteria = StopCriteria(problem)) =
+    TrackHydrodynamicErrors(problem, should_process, n_steps, stop_criteria)
+ProcessingMethod(problem::DecayingShearFlow, should_process, n_steps, stop_criteria = StopCriteria(problem)) =
+    TrackHydrodynamicErrors(problem, should_process, n_steps, stop_criteria)
+ProcessingMethod(problem::TGV, should_process, n_steps, stop_criteria = StopCriteria(problem)) =
+    TrackHydrodynamicErrors(problem, should_process, n_steps, stop_criteria)
 # ProcessingMethod(problem::TGV, should_process, n_steps) =
 #     TrackHydrodynamicErrors(problem, should_process, n_steps)
 
@@ -19,12 +19,16 @@ struct CompareWithAnalyticalSolution{T} <: ProcessingMethod
     stop_criteria::StopCriteria
     df::T
 end
-CompareWithAnalyticalSolution(problem, should_process, n_steps) =
-    CompareWithAnalyticalSolution(
+CompareWithAnalyticalSolution(
+    problem,
+    should_process,
+    n_steps,
+    stop_criteria = StopCriteria(problem)
+) = CompareWithAnalyticalSolution(
         problem,
         should_process,
         n_steps,
-        StopCriteria(problem),
+        stop_criteria,
         Vector{
             NamedTuple{
                 (
