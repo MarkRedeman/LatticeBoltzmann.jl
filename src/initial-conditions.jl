@@ -27,6 +27,7 @@ initial_condition(
     y
 ) = initial_condition(q, problem, x, y)
 
+include("initial-conditions/constant-density.jl")
 include("initial-conditions/analytical-equilibrium.jl")
 include("initial-conditions/analytical-offequilibrium.jl")
 include("initial-conditions/analytical-velocity.jl")
