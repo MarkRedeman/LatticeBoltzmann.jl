@@ -37,10 +37,12 @@ function deviatoric_tensor(
     a = velocity_gradient(problem, x, y, time)
     ν = viscosity(problem)
 
-    return - ν * [
+    σ = - ν * [
         2 * a[1, 1] a[1, 2] + a[2, 1]
         a[1, 2] + a[2, 1] 2 * a[2, 2]
     ]
+
+    return σ
 end
 
 function pressure_tensor(
