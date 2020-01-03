@@ -87,11 +87,7 @@ function next!(process_method::ProcessIterativeInitialization3{T}, q, f_in, t) w
 end
 
 
-struct ItirativeInitializationCollisionModel <: CollisionModel
-    τ::Float64
-    u::Array{Float64, 3}
-end
-struct ItirativeInitializationCollisionModel4 <: CollisionModel
+struct ItirativeInitializationCollisionModel{UT <: AbstractArray{Float64, 3}} <: CollisionModel
     τ::Float64
 
     # The incompressible equilibrium funciton can be split in a linear and a nonlinear component
@@ -99,7 +95,7 @@ struct ItirativeInitializationCollisionModel4 <: CollisionModel
     # on the local velocity.
     # Since this collision operator keeps a constant velocity for each lattice node we can
     # precompute the nonlinear term for some performance improvements
-    nonlinear_term::Array{Float64, 3}
+    nonlinear_term::UT
 end
 function ItirativeInitializationCollisionModel(q::Quadrature, τ,  problem)
     nx, ny, nf = problem.NX, problem.NY, length(q.weights)
@@ -123,10 +119,10 @@ function ItirativeInitializationCollisionModel(q::Quadrature, τ,  problem)
         end
     end
 
-    return ItirativeInitializationCollisionModel4(τ, nonlinear_term)
+    return ItirativeInitializationCollisionModel(τ, nonlinear_term)
 end
 function collide!(
-    collision_model::ItirativeInitializationCollisionModel4,
+    collision_model::ItirativeInitializationCollisionModel,
     q::Quadrature,
     f_in,
     f_out;

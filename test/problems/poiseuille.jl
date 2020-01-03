@@ -109,12 +109,3 @@
     # TODO: when an a thermal model is considered, the density fluctuates
     # TODO: when a thermal model is considerd we have constant density
 end
-
-# struct LatticeNode{Q, T}
-#     distributions::Array{Q.d}
-#     ρ::Float64
-#     u::Vector{Float64}
-#     T::Float64
-
-
-# end

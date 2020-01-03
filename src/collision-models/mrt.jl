@@ -1,11 +1,16 @@
-struct MRT{Force} <: CollisionModel
-    τs::Vector{Float64}
+struct MRT{
+    Force,
+    VT <: AbstractVector{Float64},
+    HST <: AbstractVector{Array{T,1} where T},
+    AST <: AbstractVector{Array{T,1} where T}
+} <: CollisionModel
+    τs::VT
 
     # We will be using Hermite polynomials to compute the corresponding coefficients
     H0::Float64
-    Hs::Array{Array{T,1} where T}
+    Hs::HST
     # Keep higher order coefficients allocated
-    As::Array{Array{T,1} where T}
+    As::AST
 
     force::Force
 end
@@ -20,7 +25,7 @@ function MRT(q::Quadrature, τ_s::Float64, τ_a::Float64, force = nothing)
     MRT(q, repeat([τ_s, τ_a], outer = N)[1:N])
 end
 
-function MRT(q::Quadrature, τs::Vector{Float64}, force = nothing)
+function MRT(q::Quadrature, τs::VT, force = nothing) where { VT <: AbstractVector{Float64} }
     N = round(Int, order(q) / 2)
     Hs = [[hermite(Val{n}, q.abscissae[:, i], q) for i = 1:length(q.weights)] for n = 1:N]
 

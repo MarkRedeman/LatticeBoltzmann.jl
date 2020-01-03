@@ -65,12 +65,12 @@ export Lattice,
     collide!,
     simulate
 
-struct LatticeBoltzmannMethod{Q<:Quadrature,T,CM<:CollisionModel,PM<:ProcessingMethod}
+struct LatticeBoltzmannMethod{Q<:Quadrature,T,CM<:CollisionModel,PM<:ProcessingMethod,BCs <: AbstractVector{<:BoundaryCondition}}
     f_stream::T
     f_collision::T
     quadrature::Q
     collision_model::CM
-    boundary_conditions::Vector{<:BoundaryCondition}
+    boundary_conditions::BCs
     processing_method::PM
 end
 function LatticeBoltzmannMethod(

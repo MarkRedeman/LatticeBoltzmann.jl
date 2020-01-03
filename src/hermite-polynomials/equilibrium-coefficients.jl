@@ -78,32 +78,6 @@ function equilibrium_coefficient(::Type{Val{4}}, q::Quadrature, ρ, u, T)
     ]
 end
 
-
-# function temperature(q::Quadrature, f::Vector{Float64}, ρ::Float64, u::Vector{Float64})
-#     return pressure(q, f, ρ, u) ./ ρ
-
-
-#     Hs = [[hermite(n, q.abscissae[:, i], q) for i = 1:length(q.weights)] for n = 1:2]
-#     ρ_f = sum(f)
-#     a_f = [sum([f[idx] * Hs[n][idx] for idx = 1:length(q.weights)]) for n = 1:2]
-
-#     D = dimension(q)
-#     P = Array{Float64}(undef, D, D)
-#     u_f = a_f[1] / ρ_f
-#     P_f = q.speed_of_sound_squared * a_f[2] - ρ_f * (u_f * u_f' - I)
-#     T_f = tr(P_f) / (D * ρ_f)
-
-#     # No need to allocate P
-#     T_2 = (
-#         q.speed_of_sound_squared * (a_f[2][1, 1] + a_f[2][2, 2])
-#         - ρ_f * (u_f[1]^2 + u_f[2]^2 - D)
-#     ) / (D * ρ_f)
-
-#     @show T T_f T_2
-
-#     return T_f
-# end
-
 """
 Compute the temperature from hermite coefficients
 """

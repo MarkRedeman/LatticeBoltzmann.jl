@@ -4,12 +4,12 @@ abstract type BoundaryCondition end
 Apply a group of boundary conditions after streaming
 """
 function apply!(
-    boundary_conditions::Vector{<:BoundaryCondition},
+    boundary_conditions::BCs,
     q::Quadrature,
     f_new,
     f_old;
     time = 0.0,
-)
+) where {BCs <: AbstractVector{<:BoundaryCondition}}
     for boundary_condition in boundary_conditions
         apply!(boundary_condition, q, f_new, f_old, time = time)
     end

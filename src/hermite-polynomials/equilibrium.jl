@@ -1,10 +1,10 @@
-function equilibrium(q::Quadrature, ρ::Float64, u::Array{Float64,1}, T::Float64)
+function equilibrium(q::Quadrature, ρ::Float64, u::VT, T::Float64) where { VT <: AbstractVector{Float64} }
     f = zeros(length(q.weights))
     hermite_based_equilibrium!(q, ρ, u, T, f)
     return f
 end
 
-function equilibrium!(q::Quadrature, ρ::Float64, u::Array{Float64,1}, T::Float64, f)
+function equilibrium!(q::Quadrature, ρ::Float64, u::VT, T::Float64, f) where { VT <: AbstractVector{Float64} }
     u_squared = 0.0
     for d = 1:dimension(q)
         u_squared += u[d] .^ 2

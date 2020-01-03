@@ -149,7 +149,6 @@ end
 # Some thoughs: hide the storage of the distributions f inside of an interface
 # so that we can do:
 # for x in xs, y in ys, z in zs
-#  f = fs[x, y ,z]::Vector
 #
 # the interface could hide it by returning
 # return @view f_internal[x, y, z, :]

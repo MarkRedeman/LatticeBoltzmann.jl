@@ -2,11 +2,11 @@
 The MovingWall boundary condition applies a bounce back rule and adds a velocity
 to each distribution that is bounced back
 """
-struct MovingWall{D<:Direction,Ints} <: BoundaryCondition
+struct MovingWall{D<:Direction,Ints, VT <: AbstractVector{Float64}} <: BoundaryCondition
     direction::D
     xs::Ints
     ys::Ints
-    u::Vector{Float64}
+    u::VT
     ρ::Float64
     T::Float64
 end

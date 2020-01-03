@@ -127,12 +127,3 @@ import LinearAlgebra: I, tr
 
     end
 end
-
-# struct LatticeNode{Q, T}
-#     distributions::Array{Q.d}
-#     ρ::Float64
-#     u::Vector{Float64}
-#     T::Float64
-
-
-# end
