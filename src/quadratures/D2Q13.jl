@@ -1,8 +1,10 @@
-struct D2Q13 <: Quadrature
-    abscissae::Array{Int64,2}
-    weights::Array{Float64,1}
+struct D2Q13{
+    Abscissaes <: AbstractMatrix{Int64},
+    Weights <: AbstractVector{Float64}
+} <: Quadrature
+    abscissae::Abscissaes
+    weights::Weights
     speed_of_sound_squared::Float64
-
 end
 function D2Q13()
     # High Knudsen Number Thermal Flows with the D2Q13 Lattice Boltzmann Model
@@ -11,7 +13,7 @@ function D2Q13()
     w_1 = 1 / 12
     w_2 = 1 / 16
     w_3 = 1 / 96
-    cs = 2
+    cs = 2.0
 
     return D2Q13(
         [   #A #B          #C          #D

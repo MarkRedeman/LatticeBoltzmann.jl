@@ -8,9 +8,12 @@
 # D2Q9
 # const original_order = [1, 7, 9, 3, 5, 8, 2, 4, 6]
 
-struct D2Q9 <: Quadrature
-    abscissae::Array{Int64,2}
-    weights::Array{Float64,1}
+struct D2Q9{
+    Abscissaes <: AbstractMatrix{Int64},
+    Weights <: AbstractVector{Float64}
+} <: Quadrature
+    abscissae::Abscissaes
+    weights::Weights
     speed_of_sound_squared::Float64
 end
 D2Q9() = D2Q9(

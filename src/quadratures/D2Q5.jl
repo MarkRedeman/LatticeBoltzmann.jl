@@ -4,9 +4,12 @@
 # const original_order = [1, 2 ,3, 4]
 
 # From: E3,1,5
-struct D2Q5 <: Quadrature
-    abscissae::Array{Int64,2}
-    weights::Array{Float64,1}
+struct D2Q5{
+    Abscissaes <: AbstractMatrix{Int64},
+    Weights <: AbstractVector{Float64}
+} <: Quadrature
+    abscissae::Abscissaes
+    weights::Weights
     speed_of_sound_squared::Float64
 end
 

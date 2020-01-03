@@ -3,9 +3,12 @@
 
 # Same as D2Q17, but vertical and horizontal vectors are extended by one
 
-struct D2Q21 <: Quadrature
-    abscissae::Array{Int64,2}
-    weights::Array{Float64,1}
+struct D2Q21{
+    Abscissaes <: AbstractMatrix{Int64},
+    Weights <: AbstractVector{Float64}
+} <: Quadrature
+    abscissae::Abscissaes
+    weights::Weights
     speed_of_sound_squared::Float64
 end
 function D2Q21()
