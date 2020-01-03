@@ -178,17 +178,6 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         # - \mu \rho T \Lambda
         σ_err = (expected_σ .- σ_lb)
 
-            @show expected_σ[2,2] ./ σ_lb[2,2]
-        if (x_idx == div(nx, 2) && y_idx == 1)
-            factor = expected_σ[1, 2] ./ σ_lb[1, 2]
-            @show expected_σ[1,2] ./ σ_lb[1,2]
-            # @show ((u[1] - expected_u[1])^2 + (u[2] - expected_u[2])^2)
-
-            # @show expected_σ σ_lb
-            # @show σ_lb[1, 2]
-            factor = expected_σ[2, 2] ./ σ_lb[2, 2]
-        end
-
         error_p += Δ * (p - expected_p)^2
         error_ρ += Δ * (ρ - expected_ρ)^2
         error_u += Δ * ((u[1] - expected_u[1])^2 + (u[2] - expected_u[2])^2)
