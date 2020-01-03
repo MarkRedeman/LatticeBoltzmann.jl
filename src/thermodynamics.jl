@@ -89,9 +89,7 @@ function kinetic_energy(q::Quadrature, f, ρ, u)
     ]
 end
 
-function dimension(q::Quadrature)::Int
-    return size(q.abscissae, 1)
-end
+dimension(q::Q) where { Q <: Quadrature } = 2
 
 function temperature(q::Quadrature, f, ρ, u)
     return pressure(q, f, ρ[:, :, 1], u) ./ ρ
