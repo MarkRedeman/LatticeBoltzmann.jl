@@ -1,7 +1,7 @@
-density(q::Quadrature, f::Array{Float64,N}) where {N} = sum(f, dims = N)
-density(q::Quadrature, f::Array{Float64,1}) = sum(f)
+density(q::Quadrature, fs::VT) where { N <: Int, VT <: AbstractArray{Float64, N} } = sum(fs, dims = N)
+density(q::Quadrature, f::VT) where { VT <: AbstractVector{Float64}} = sum(f)
 
-function velocity!(q::Quadrature, f::Array{Float64,1}, ρ::Float64, u::Array{Float64,1})
+function velocity!(q::Quadrature, f::VT, ρ::Float64, u::VT) where { VT <: AbstractVector{Float64}}
     @inbounds for d = 1:dimension(q)
         u[d] = 0.0
         for idx = 1:length(f)
@@ -14,10 +14,10 @@ end
 
 function pressure(
     q::Quadrature,
-    f::Array{Float64},
+    f::VT,
     ρ::Float64,
-    u::Array{Float64,1},
-)::Float64
+    u::VT,
+)::Float64 where { VT <: AbstractVector{Float64}}
     a_2 = sum(f[idx] * hermite(Val{2}, q.abscissae[:, idx], q) for idx = 1:length(q.weights))
     D = dimension(q)
 
@@ -38,7 +38,7 @@ function pressure(
 
     return p
 end
-function momentum_flux(q::Quadrature, f::Array{Float64}, ρ::Float64, u::Array{Float64,1})
+function momentum_flux(q::Quadrature, f::VT, ρ::Float64, u::VT) where { VT <: AbstractVector{Float64}}
     D = dimension(q)
     P = zeros(D, D)
     @inbounds for x_idx = 1:D, y_idx = 1:D
@@ -93,10 +93,9 @@ dimension(q::Q) where { Q <: Quadrature } = 2
 
 function temperature(q::Quadrature, f, ρ, u)
     return pressure(q, f, ρ[:, :, 1], u) ./ ρ
-    # return internal_energy(q, f, ρ, u) * (2 / dimension(q))
 end
 
-function temperature(q::Quadrature, f::Vector{Float64}, ρ::Float64, u::Vector{Float64})
+function temperature(q::Quadrature, f::VT, ρ::Float64, u::VT) where { VT <: AbstractVector{Float64} }
     return pressure(q, f, ρ, u) ./ ρ
 end
 
@@ -105,7 +104,7 @@ Computes the deviatoric tensor σ
 
 τ is the relaxation time such that ν = cs^2 τ
 """
-function deviatoric_tensor(q::Quadrature, τ, f::Vector{Float64}, ρ::Float64, u::Vector{Float64})
+function deviatoric_tensor(q::Quadrature, τ, f::VT, ρ::Float64, u::VT) where { VT <: AbstractVector{Float64} }
     D = dimension(q)
 
     a_bar_2 = sum([f[idx] * hermite(Val{2}, q.abscissae[:, idx], q) for idx = 1:length(q.weights)])
