@@ -117,7 +117,7 @@ function simulate(
     simulate(lbm, 0:n_steps)
 end
 function simulate(lbm::LatticeBoltzmannMethod, time)
-    Δt = delta_t(lbm.processing_method.problem)
+    Δt = isdefined(lbm.processing_method, :problem) ? delta_t(lbm.processing_method.problem) : 0.0
 
     @inbounds for t in time
         collide!(lbm, time = t * Δt)
