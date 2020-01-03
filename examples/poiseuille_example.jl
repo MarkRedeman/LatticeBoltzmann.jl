@@ -2,6 +2,41 @@ using DataFrames
 using lbm
 using Plots
 
+let
+    s = []
+    # for q in (D2Q9 = D2Q9(), D2Q13 = D2Q13(), D2Q17 = D2Q17(), D2Q21 = D2Q21(), D2Q37 = D2Q37())
+    for q in lbm.Quadratures
+        stats = DataFrame([Float64[], Float64[], Float64[], Quadrature[]], [:τ, :ν, :error_u, :q])
+        for τ = 0.5:0.01:5.0
+            ν = (τ - 0.5) / q.speed_of_sound_squared
+
+            problem = DecayingShearFlow(ν, 1, static = true)
+            # problem = PoiseuilleFlow(ν, 2, static = true)
+
+            result = lbm.simulate(
+                problem,
+                q,
+                t_end = 1.0,
+                should_process = false,
+                collision_model=SRT
+            )
+            if (! isnan(result.processing_method.df[end].error_u))
+                push!(stats, [τ, ν, result.processing_method.df[end].error_u, q])
+            end
+        end
+
+        push!(s, stats)
+    end
+
+    p1 = plot()
+    for stats in ss
+        @show stats.τ[argmin(stats.error_u)]
+        plot!(p1, stats.ν, stats.error_u, yscale=:log10, linestyle=:dot)
+    end
+    gui()
+    return p, s
+end
+p4, s4 = ans
 
 # relaxation time (BGK model) (tau=sqrt(3/16)+0.5 gives exact solution)
 # tau=sqrt(3/16)+0.5;
