@@ -108,7 +108,6 @@ dimensionless_force(problem::FluidFlowProblem, F) = F / (problem.u_max * delta_t
 dimensionless_stress(problem::FluidFlowProblem, σ) = begin
     # Rescale to dimensionless number (TODO check why problem.u_max)
     factor = 1 / problem.u_max^2
-    # factor *= 0.964234137002314
 
     return σ * factor
 end
