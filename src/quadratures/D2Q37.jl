@@ -72,7 +72,7 @@ D2Q37() = D2Q37(
 
 order(q::D2Q37) = 9
 Base.show(io::IO, q::D2Q37) = show(io, "D2Q37")
-function equilibrium!(q::D2Q37, ρ::Float64, u::Array{Float64,1}, T::Float64, f)
+function equilibrium!(q::D2Q37, ρ::Float64, u::VT, T::Float64, f::VT) where { VT <: AbstractVector{Float64} }
     u_squared = 0.0
     u_fourth = 0.0
     for d = 1:dimension(q)
