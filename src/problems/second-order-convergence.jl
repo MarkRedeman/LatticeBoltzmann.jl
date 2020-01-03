@@ -66,11 +66,10 @@ function pressure(
     ν = problem.ν
     t_d = 1 / (ν * (k_x^2 + k_y^2))
 
-    p_0 = 1.0
+    p_0 = problem.ρ_0
     ρ = 1.0
 
-
-    return p_0 - ρ * (problem.u_0^2 / 4) * (
+    return p_0 - q.speed_of_sound_squared * ρ * (problem.u_0^2 / 4) * (
         (k_y / k_x) * cos(2 * k_x * x) +
         (k_x / k_y) * cos(2 * k_y * y)
     ) * exp(-2 * t / t_d)
