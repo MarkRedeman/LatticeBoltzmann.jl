@@ -38,12 +38,12 @@ function initialize(
     return lbm.f_stream
 end
 
-struct DensityConvergence3{T} <: StopCriteria
+struct DensityConvergence{T} <: StopCriteria
     ϵ::T
     ρ_old::Matrix{T}
     ρ::Matrix{T}
 end
-function should_stop!(stop_criteria::DensityConvergence3, q, f_in)
+function should_stop!(stop_criteria::DensityConvergence, q, f_in)
     nx, ny = size(stop_criteria.ρ_old)
     for x_idx = nx, y_idx = ny
         stop_criteria.ρ_old[x_idx, y_idx] = stop_criteria.ρ[x_idx, y_idx]
@@ -68,7 +68,7 @@ function ProcessIterativeInitialization(ϵ, problem, process_method)
     ρ_old = zeros(nx, ny)
 
     ProcessIterativeInitialization3(
-        DensityConvergence3(ϵ, ρ, ρ_old),
+        DensityConvergence(ϵ, ρ, ρ_old),
         process_method,
         100
     )
