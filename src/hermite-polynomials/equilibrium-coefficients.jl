@@ -107,13 +107,12 @@ end
 """
 Compute the temperature from hermite coefficients
 """
-function temperature(
-    q::Quadrature,
-    f::Vector{Float64},
-    a_0::Float64,
-    a_1::Vector{Float64},
-    a_2::Matrix{Float64},
-)
+function temperature(q::Q, f::VT, a_0::FT, a_1::VT, a_2::MT) where {
+    Q <: Quadrature,
+    FT <: Real,
+    VT <: AbstractVector{FT},
+    MT <: AbstractMatrix{FT}
+}
     D = dimension(q)
     P = Array{Float64}(undef, D, D)
     ρ = a_0
