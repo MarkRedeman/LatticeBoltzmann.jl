@@ -43,7 +43,7 @@ end
 Base.show(io::IO, q::D2Q5) = show(io, "D2Q5")
 
 # The D2Q5 lattice is unable to include temperature
-pressure(q::D2Q5, f::Array{Float64}, ρ::Float64, u::Array{Float64,1}) = 1.0
+pressure(q::D2Q5, f::VT, ρ::Float64, u::VT) where { VT <: AbstractVector{Float64}} = 1.0
 
 function _equilibrium(q::D2Q5, ρ, weight, u_dot_xi, u_squared, T, xi_squared)
     cs = q.speed_of_sound_squared
