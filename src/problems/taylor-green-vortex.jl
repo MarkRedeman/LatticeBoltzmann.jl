@@ -95,10 +95,10 @@ function velocity_gradient(
     b = problem.b
     B = problem.B
 
-    u_x = -a * A * sin(x) * sin(y)
-    v_y = -b * B * sin(x) * sin(y)
-    u_y = b * A * cos(x) * cos(y)
-    v_x = a * B * cos(x) * cos(y)
+    u_x = -a * A * sin(a * x) * sin(b * y)
+    v_y = -b * B * sin(a * x) * sin(b * y)
+    u_y = b * A * cos(a * x) * cos(b * y)
+    v_x = a * B * cos(a * x) * cos(b * y)
 
     return decay(problem, x, y, timestep) * [u_x v_x; u_y v_y]
 end
