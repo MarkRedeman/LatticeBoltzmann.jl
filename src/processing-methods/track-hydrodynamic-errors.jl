@@ -44,7 +44,6 @@ TrackHydrodynamicErrors(
     }(),
 )
 
-
 function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
     if (!process_method.should_process)
         if (t != process_method.n_steps)
@@ -224,7 +223,7 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
 
     if mod(t, 100) == 0
         if (should_stop!(process_method.stop_criteria, q, f_in))
-            @info "Stopping after $t steps out of $process_method.n_steps"
+            @info "Stopping after $t iterations"
             return true
         end
     end
