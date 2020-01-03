@@ -38,10 +38,10 @@ function initialize(
     return lbm.f_stream
 end
 
-struct DensityConvergence{T} <: StopCriteria
-    ϵ::T
-    ρ_old::Matrix{T}
-    ρ::Matrix{T}
+struct DensityConvergence{FT <: Real, MT <: AbstractMatrix{FT}} <: StopCriteria
+    ϵ::FT
+    ρ_old::MT
+    ρ::MT
 end
 function should_stop!(stop_criteria::DensityConvergence, q, f_in)
     nx, ny = size(stop_criteria.ρ_old)
