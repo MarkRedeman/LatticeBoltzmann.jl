@@ -75,7 +75,7 @@ CompareWithAnalyticalSolution(
 function next!(process_method::CompareWithAnalyticalSolution, q, f_in, t::Int64)
     if mod(t, 100) == 0
         if (should_stop!(process_method.stop_criteria, q, f_in))
-            @info "Stopping after $t steps out of $process_method.n_steps"
+            @info "Stopping after $t steps "
 
             Δt = delta_t(process_method.problem)
             process!(
