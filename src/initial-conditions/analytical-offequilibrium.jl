@@ -13,14 +13,39 @@ function initial_condition(::AnalyticalEquilibriumAndOffEquilibrium, q::Quadratu
     T = lattice_temperature(q, problem, x, y)
     f = equilibrium(q, ρ, u, T)
 
-    σ = deviatoric_tensor(q, problem, x, y, 0.0)
+    σ = problem.u_max^2 * deviatoric_tensor(q, problem, x, y, 0.0)
+    ∇u = problem.u_max^2 * velocity_gradient(problem, x, y, 0.0)
+    τ = q.speed_of_sound_squared * lbm.lattice_viscosity(problem)
 
     cs = q.speed_of_sound_squared
+    # @show σ ./ deviatoric_tensor(q, τ, f, density(q, f), velocity(q, f))
+
+    # HMM..
+    factor = (problem.domain_size[1] * problem.domain_size[2])
+
+    # For Taylor Green Vortex...
+    factor = 2 * (problem.domain_size[1] * problem.domain_size[2])
 
     for f_idx = 1:length(f)
         Q = hermite(Val{2}, q.abscissae[:, f_idx], q)
-        f[f_idx] += q.weights[f_idx] * (cs^2 /factorial(2)) * dot(Q, σ)
+
+        # TODO: Check if we are using the correct viscosity here (we aren't...),
+        # since we are setting the off equilibrium components of the shifted distribution funcitons
+        f[f_idx] += - factor * q.weights[f_idx] * 0.5 * ((τ + 0.5) * cs) * dot(Q, ∇u + ∇u') #/ 0.785398163397454
+        # f[f_idx] += q.weights[f_idx] * (cs^2 /factorial(2)) * dot(Q, σ)
     end
+
+    # @show density(q, f) - ρ_old
+    # @show velocity(q, f) - v_old
+    velocity(q, f) = begin
+        v = zeros(2)
+        velocity!(q, f, density(q, f), v)
+        v
+    end
+    @show σ ./ deviatoric_tensor(q, τ, f, density(q, f), velocity(q, f))
+    # @show momentum_flux(q, f, density(q, f), velocity(q, f))
+    σ = problem.u_max^2 * deviatoric_tensor(q, problem, x, y, 0.0)
+
     return f
 end
 function initial_condition(::AnalyticalEquilibriumAndOffEquilibrium, q::Quadrature, problem::TGV, x::Float64, y::Float64)
