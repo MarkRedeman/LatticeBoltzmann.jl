@@ -1,5 +1,7 @@
 abstract type Quadrature end
 
+const Population = AbstractVector{Float64}
+
 """
 Get the index of the abscissae pointing in the opposite direction of the given index
 

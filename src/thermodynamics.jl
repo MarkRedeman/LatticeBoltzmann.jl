@@ -1,10 +1,10 @@
 density(q::Quadrature, fs::VT) where { N <: Int, VT <: AbstractArray{Float64, N} } = sum(fs, dims = N)
 density(q::Quadrature, f::VT) where { VT <: AbstractVector{Float64}} = sum(f)
 
-function velocity!(q::Quadrature, f::VT, ρ::Float64, u::VT) where { VT <: AbstractVector{Float64}}
+function velocity!(q::Quadrature, f::P, ρ::Float64, u::VT) where {VT <: AbstractVector{Float64}, P <: Population }
     @inbounds for d = 1:dimension(q)
         u[d] = 0.0
-        for idx = 1:length(f)
+        for idx = 1:length(q.weights)
             u[d] += f[idx] * q.abscissae[d, idx]
         end
         u[d] / ρ
