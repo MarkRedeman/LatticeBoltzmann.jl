@@ -22,6 +22,7 @@ function plot_quadrature(q::Quadrature, color_each_group_separatly = false)
         xlims = (-limit, limit),
         ylims = (-limit, limit),
         gridstyle = :dash,
+        axis = false,
     )
 
     for f_idx = 1:length(q.weights)
@@ -47,7 +48,7 @@ function plot_quadrature(q::Quadrature, color_each_group_separatly = false)
             p,
             [(q.abscissae[1, f_idx], q.abscissae[2, f_idx])],
             # color=colors[color_idx],
-            color = color_each_group_separatly ? colors[color_idx] : :gray,
+            color = color_each_group_separatly ? colors[color_idx] : :white,
             foreground_color_border = :black,
             markersize = 2,
         )

@@ -55,6 +55,7 @@ end
 
 order(q::D2Q17) = 7
 Base.show(io::IO, q::D2Q17) = show(io, "D2Q17")
+Base.string(q::D2Q17) = "D2Q17"
 
 function _equilibrium(q::D2Q17, ρ, weight, u_dot_xi, u_squared, T, xi_squared)
     # Truncated upto order 2

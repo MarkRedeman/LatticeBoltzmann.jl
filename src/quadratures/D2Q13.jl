@@ -27,3 +27,4 @@ end
 
 order(q::D2Q13) = 5
 Base.show(io::IO, q::D2Q13) = show(io, "D2Q13")
+Base.string(q::D2Q13) = "D2Q13"

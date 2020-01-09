@@ -41,6 +41,7 @@ function opposite(q::D2Q5, idx::Int64)
 end
 
 Base.show(io::IO, q::D2Q5) = show(io, "D2Q5")
+Base.string(q::D2Q5) = "D2Q5"
 
 # The D2Q5 lattice is unable to include temperature
 pressure(q::D2Q5, f::VT, ρ::Float64, u::VT) where { VT <: AbstractVector{Float64}} = 1.0

@@ -37,3 +37,4 @@ function opposite(q::D2Q9, idx::Int64)
 end
 
 Base.show(io::IO, q::D2Q9) = show(io, "D2Q9")
+Base.string(q::D2Q9) = "D2Q9"
