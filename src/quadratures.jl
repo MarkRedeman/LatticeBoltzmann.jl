@@ -1,5 +1,7 @@
 abstract type Quadrature end
 
+dimension(q::Q) where { Q <: Quadrature } = 2
+
 const Population = AbstractVector{Float64}
 
 """
