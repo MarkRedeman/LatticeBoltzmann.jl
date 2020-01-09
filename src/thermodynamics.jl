@@ -7,7 +7,7 @@ function velocity!(q::Quadrature, f::P, ρ::Float64, u::VT) where {VT <: Abstrac
         for idx = 1:length(q.weights)
             u[d] += f[idx] * q.abscissae[d, idx]
         end
-        u[d] / ρ
+        u[d] /= ρ
     end
     return
 end
