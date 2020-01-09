@@ -127,7 +127,6 @@ end
 # period boundary when using a multispeed quadrature that had a speed exceeding
 # the amount of distributions in the x or y direction
 @testset "Streaming quadratures with multispeeds" for q in quadratures
-    q = D2Q13()
     N = 1
 
     feq = lbm.equilibrium(q, 1.0, [0.0, 0.0], 1.0)
