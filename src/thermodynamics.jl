@@ -23,21 +23,8 @@ function pressure(
 
     p = (tr(a_2) - ρ * (u[1]^2 + u[2]^2 - D)) / D
     return p
-
-    a_eq_2 = equilibrium_coefficient(Val{2}, q, ρ, u, 1.0)
-    P = tr(a_eq_2) - ρ * (u[1]^2 + u[2]^2)
-
-    D = dimension(q)
-    E = 0.0
-    @inbounds for idx = 1:length(f)
-        E += f[idx] * (q.abscissae[1, idx]^2 + q.abscissae[2, idx]^2)
-    end
-
-    @show p q.speed_of_sound_squared * (E - ρ * (u[1]^2 + u[2]^2)) / D
-    p = q.speed_of_sound_squared * (E - ρ * (u[1]^2 + u[2]^2)) / D
-
-    return p
 end
+
 function momentum_flux(q::Quadrature, f::VT, ρ::Float64, u::VT) where { VT <: AbstractVector{Float64}}
     D = dimension(q)
     P = zeros(D, D)
@@ -87,10 +74,6 @@ function kinetic_energy(q::Quadrature, f, ρ, u)
         ρ[x, y] * (u[x, y, 1] .^ 2 + u[x, y, 2] .^ 2)
         for x = 1:size(f, 1), y = 1:size(f, 2)
     ]
-end
-
-function temperature(q::Quadrature, f, ρ, u)
-    return pressure(q, f, ρ[:, :, 1], u) ./ ρ
 end
 
 function temperature(q::Quadrature, f::VT, ρ::Float64, u::VT) where { VT <: AbstractVector{Float64} }
