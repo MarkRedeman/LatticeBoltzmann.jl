@@ -77,9 +77,8 @@ function LatticeBoltzmannMethod(
     problem,
     quadrature;
     collision_model = SRT,
-    n_steps = 100,
     initialization_strategy = InitializationStrategy(problem),
-    should_process = false,
+    process_method
 )
     f_stream = initialize(initialization_strategy, quadrature, problem, collision_model)
     f_collision = copy(f_stream)
@@ -90,7 +89,7 @@ function LatticeBoltzmannMethod(
         quadrature,
         CollisionModel(collision_model, quadrature, problem),
         boundary_conditions(problem),
-        ProcessingMethod(problem, should_process, n_steps),
+        process_method,
     )
 end
 function simulate(
@@ -105,13 +104,16 @@ function simulate(
     Δt = delta_t(problem)
     n_steps = round(Int, t_end / Δt)
 
+    if isnothing(process_method)
+        process_method = ProcessingMethod(problem, should_process, n_steps)
+    end
+
     lbm = LatticeBoltzmannMethod(
         problem,
         q,
         collision_model = collision_model,
         initialization_strategy = initialization_strategy,
-        n_steps = n_steps,
-        should_process = should_process,
+        process_method = process_method,
     )
 
     simulate(lbm, 0:n_steps)
