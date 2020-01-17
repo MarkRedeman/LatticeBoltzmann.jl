@@ -251,3 +251,54 @@ function process!(
 
     return false
 end
+
+struct ShowVelocityError <: ProcessingMethod
+    problem::FluidFlowProblem
+    plot_every::Int
+    l2_norms::Vector{Float64}
+end
+function next!(process_method::ShowVelocityError, q, f, t::Int64)
+    # if mod(t, process_method.plot_every) != 1
+    #     return false
+    # end
+
+    problem = process_method.problem
+    analytical_velocity = (y) -> velocity(problem, 1.0, y)[1]
+    x_domain = (0.0, problem.domain_size[1])
+    y_domain = (0.0, problem.domain_size[2])
+
+    x_idx = 1
+
+    v_y = zeros(problem.NY)
+    v_e = zeros(problem.NY)
+    v_a = zeros(problem.NY)
+    u = zeros(dimension(q))
+    x_range, y_range = range(problem)
+    for y_idx = 1 : problem.NY
+        ρ = density(q, f[x_idx, y_idx, :])
+        velocity!(q, f[x_idx, y_idx, :], ρ, u)
+        u = dimensionless_velocity(problem, u)
+        v_e[y_idx] = abs(u[1] - analytical_velocity(y_range[y_idx]))
+        v_y[y_idx] = u[1]
+        v_a[y_idx] = analytical_velocity(y_range[y_idx])
+    end
+    push!(process_method.l2_norms, norm(v_e))
+    # return false
+    if mod(t, process_method.plot_every) != 1
+        return false
+    end
+
+    @show sum(f)
+
+    velocity_plot = plot(y_range, v_y, label = "Numerical solution", legend=:topleft, title = string(q))
+    plot!(velocity_plot, y_range, v_a, label = "Exact solution")
+
+    plot(
+        scatter(y_range, v_e, title = "Abs. Error", legend=:bottomleft),
+        velocity_plot
+    )
+    gui()
+
+
+    return false
+end
