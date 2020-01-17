@@ -31,3 +31,20 @@ include("initial-conditions/constant-density.jl")
 include("initial-conditions/analytical-equilibrium.jl")
 include("initial-conditions/analytical-offequilibrium.jl")
 include("initial-conditions/analytical-velocity.jl")
+
+"""
+f₀(x) = f_eq(ρ₀, u₀, p₀)
+ρ₀ = 1.0
+u₀ = 0.0
+p₀ = 1.0
+"""
+struct ZeroVelocityInitialCondition <: InitializationStrategy end
+function initial_condition(
+    ::ZeroVelocityInitialCondition,
+    q::Quadrature,
+    problem::FluidFlowProblem,
+    x::Float64,
+    y::Float64
+)
+    copy(q.weights)
+end
