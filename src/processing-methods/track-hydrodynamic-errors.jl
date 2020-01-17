@@ -70,7 +70,15 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
 
     time = t * delta_t(problem)
     Δ = Float64(y_range.step) * Float64(x_range.step)
-    Δ = 1.0
+    if (nx == 1)
+        Δ = Float64(y_range.step)
+        if (ny == 1)
+            Δ = 1.0
+        end
+        elseif ny == 1
+        Δ = Float64(x_range.step)
+    end
+    # Δ = 1.0
 
     τ = q.speed_of_sound_squared * lbm.lattice_viscosity(problem) + 0.5
 
