@@ -127,7 +127,7 @@ function simulate(lbm::LatticeBoltzmannMethod, time)
         apply_boundary_conditions!(lbm, time = t * Δt)
 
         if process_step!(lbm, t + 1)
-            break
+            return lbm
         end
     end
 
