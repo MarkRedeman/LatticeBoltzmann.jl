@@ -48,6 +48,19 @@ function velocity(problem::CouetteFlow, x::Float64, y::Float64, timestep::Float6
         0.0
     ]
 end
+function velocity_gradient(
+    problem::CouetteFlow,
+    x::Float64,
+    y::Float64,
+    timestep::Float64 = 0.0,
+)
+    u_x = 0.0
+    v_y = 0.0
+    u_y = 1.0
+    v_x = 0.0
+
+    return [u_x v_x; u_y v_y]
+end
 function force(problem::CouetteFlow, x::Float64, y::Float64, time::Float64 = 0.0)
     return [
         0.0
