@@ -16,8 +16,8 @@ function CouetteFlow(
 )
     # # Since our velocity profile is constant over x it is sufficient to only take
     # # 3 nodes in the x direction
-    NX = 5
-    u_max = 0.1 / scale
+    NX = 1
+    u_max = 0.01 / scale
 
     return CouetteFlow(1.0, u_max, ν, NX, NY, domain_size)
 end
