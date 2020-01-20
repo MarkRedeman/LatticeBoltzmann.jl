@@ -4,6 +4,10 @@ authors = ["Mark Redeman <markredeman@gmail.com>"]
 version = "0.1.0"
 
 [deps]
+Contour = "d38c429a-6771-53c6-b99e-75d170b6e991"
+ElectronDisplay = "d872a56f-244b-5cc9-b574-2017b5b909a8"
+JLD = "4138dd39-2aa7-5051-a626-17a0bb65d9c8"
+JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
 LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 PGFPlots = "3b7a836e-365b-5785-a47d-02c71176b4aa"
