@@ -231,18 +231,21 @@ function plot_convergence(results, s = :error_u)
     xs = 5 * results[1].scales
 
     if s == :error_u
-        plot!(p, xs, x -> 1E0 * x.^(-0.5), label=L"\mathcal{O}(x^{-0.5})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
-        plot!(p, xs, x -> 3E-1 * x.^(-1.5), label=L"\mathcal{O}(x^{-1.5})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
-        plot!(p, xs, x -> 1E-1 * x.^(-3), label=L"\mathcal{O}(x^{-3})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
+        # plot!(p, xs, x -> 1E0 * x.^(-0.5), label=L"\mathcal{O}(x^{-0.5})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
+        # plot!(p, xs, x -> 3E-1 * x.^(-1.5), label=L"\mathcal{O}(x^{-1.5})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
+        # plot!(p, xs, x -> 1E-1 * x.^(-3), label=L"\mathcal{O}(x^{-3})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
 
-        plot!(p, xs, x -> 1E-1 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :blue, linealpha = 0.2, linestyle = :dash)
-        plot!(p, xs, x -> 1E-1 * x.^(-1), label=L"\mathcal{O}(x^{-1})", linecolor = :red, linealpha = 0.2, linestyle = :dash)
-        plot!(p, xs, x -> 1E-1 * x.^(-0), label=L"\mathcal{O}(x^{-0})", linecolor = :orange, linealpha = 0.2, linestyle = :dash)
+        plot!(p, xs, x -> 1E-1 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
+        plot!(p, xs, x -> 1E-1 * x.^(-1), label=L"\mathcal{O}(x^{-1})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
+        plot!(p, xs, x -> 1E-1 * x.^(-0), label=L"\mathcal{O}(x^{-0})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
     end
 
     if s == :error_p
-        plot!(p, xs, x -> 5E-2 * x.^(-2.5), label=L"\mathcal{O}(x^{-2.5})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
-        plot!(p, xs, x -> 5E-4 * x.^(-5), label=L"\mathcal{O}(x^{-5})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
+        # plot!(p, xs, x -> 5E-2 * x.^(-2.5), label=L"\mathcal{O}(x^{-2.5})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
+        # plot!(p, xs, x -> 5E-4 * x.^(-5), label=L"\mathcal{O}(x^{-5})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
+
+        plot!(p, xs, x -> 1E-1 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
+        plot!(p, xs, x -> 1E-3 * x.^(-4), label=L"\mathcal{O}(x^{-4})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
     end
 
     plot!(
