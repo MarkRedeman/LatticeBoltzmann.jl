@@ -75,10 +75,10 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         if (ny == 1)
             Δ = 1.0
         end
-        elseif ny == 1
+    elseif ny == 1
         Δ = Float64(x_range.step)
     end
-    # Δ = 1.0
+    Δ = 1.0
 
     τ = q.speed_of_sound_squared * lbm.lattice_viscosity(problem) + 0.5
 
@@ -176,7 +176,6 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         # Gives 4th order convergence?
         p = tr(P) /D
 
-
         # Determine errors by first scaling from lattice variables to dimensionless
         ρ = dimensionless_density(problem, ρ)
         u = dimensionless_velocity(problem, u)
@@ -210,6 +209,7 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
             timestep = t,
             error_ρ = sqrt(error_ρ),
             error_u = sqrt(error_u / total_expected_u_squared),
+            # error_u = sqrt(error_u),# / total_expected_u_squared),
             error_p = sqrt(error_p /total_expected_p_squared),
             error_σ_xx = sqrt(error_σ_xx / total_expected_σ_xx_squared),
             error_σ_xy = sqrt(error_σ_xy/ total_expected_σ_xy_squared),
