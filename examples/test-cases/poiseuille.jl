@@ -234,6 +234,10 @@ function plot_convergence(results, s = :error_u)
         plot!(p, xs, x -> 1E0 * x.^(-0.5), label=L"\mathcal{O}(x^{-0.5})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
         plot!(p, xs, x -> 3E-1 * x.^(-1.5), label=L"\mathcal{O}(x^{-1.5})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
         plot!(p, xs, x -> 1E-1 * x.^(-3), label=L"\mathcal{O}(x^{-3})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
+
+        plot!(p, xs, x -> 1E-1 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :blue, linealpha = 0.2, linestyle = :dash)
+        plot!(p, xs, x -> 1E-1 * x.^(-1), label=L"\mathcal{O}(x^{-1})", linecolor = :red, linealpha = 0.2, linestyle = :dash)
+        plot!(p, xs, x -> 1E-1 * x.^(-0), label=L"\mathcal{O}(x^{-0})", linecolor = :orange, linealpha = 0.2, linestyle = :dash)
     end
 
     if s == :error_p
@@ -324,6 +328,7 @@ function main(τ = 1.0, scale = 2)
     # scales = [1, 2, 4, 8, 16, 32, 64]
 
     scales = [1, 2, 4, 8, 16]
+    scales = [1, 2, 4]
 
     iteration_strategies = [
         ZeroVelocityInitialCondition(),
@@ -341,30 +346,34 @@ function main(τ = 1.0, scale = 2)
         )
     end
 
-    convergence_results_iterative = map(quadratures) do q
-        poiseuille_convergence_analysis(
-            q,
-            iteration_strategies[2],
-            τ,
-            scales = scales
-        )
-    end
-    convergence_results_equilibrium = map(quadratures) do q
-        poiseuille_convergence_analysis(
-            q,
-            iteration_strategies[3],
-            τ,
-            scales = scales
-        )
-    end
-    convergence_results_offequilibrium = map(quadratures) do q
-        poiseuille_convergence_analysis(
-            q,
-            iteration_strategies[4],
-            τ,
-            scales = scales
-        )
-    end
+        convergence_results_iterative = convergence_results
+        convergence_results_equilibrium = convergence_results
+        convergence_results_offequilibrium = convergence_results
+
+    # convergence_results_iterative = map(quadratures) do q
+    #     poiseuille_convergence_analysis(
+    #         q,
+    #         iteration_strategies[2],
+    #         τ,
+    #         scales = scales
+    #     )
+    # end
+    # convergence_results_equilibrium = map(quadratures) do q
+    #     poiseuille_convergence_analysis(
+    #         q,
+    #         iteration_strategies[3],
+    #         τ,
+    #         scales = scales
+    #     )
+    # end
+    # convergence_results_offequilibrium = map(quadratures) do q
+    #     poiseuille_convergence_analysis(
+    #         q,
+    #         iteration_strategies[4],
+    #         τ,
+    #         scales = scales
+    #     )
+    # end
 
     return (
         results = results,

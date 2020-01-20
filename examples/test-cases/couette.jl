@@ -7,6 +7,7 @@ module Couette
 using lbm, Plots, DataFrames
 # using ElectronDisplay
 using LaTeXStrings
+using JLD2
 
 # using PGFPlots
 # using PGFPlotsX
@@ -229,9 +230,13 @@ function plot_convergence(results, s = :error_u)
 
     xs = 5 * results[1].scales
     # plot!(p, 1:results[1].scales[end], x -> 1E-2 * x.^(-1), label=L"\mathcal{O}(x^{-1})", linecolor = :gray)
-    plot!(p, xs, x -> 5E-3 * x.^(-1.5), label=L"\mathcal{O}(x^{-1.5})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
+    # plot!(p, xs, x -> 5E-3 * x.^(-1.5), label=L"\mathcal{O}(x^{-1.5})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
     # plot!(p, 1:results[1].scales[end], x -> 1E-4 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :gray)
-    plot!(p, xs, x -> 5E-4 * x.^(-3), label=L"\mathcal{O}(x^{-3})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
+    # plot!(p, xs, x -> 5E-4 * x.^(-3), label=L"\mathcal{O}(x^{-3})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
+
+        plot!(p, xs, x -> 1E-4 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :blue, linealpha = 0.2, linestyle = :dash)
+        plot!(p, xs, x -> 2E-2 * x.^(-1), label=L"\mathcal{O}(x^{-1})", linecolor = :red, linealpha = 0.2, linestyle = :dash)
+        plot!(p, xs, x -> 3E-1 * x.^(-0), label=L"\mathcal{O}(x^{-0})", linecolor = :orange, linealpha = 0.2, linestyle = :dash)
 
     plot!(
         p,
@@ -266,7 +271,7 @@ function main2()
             scale
         )
     end
-plot_error_locations(results) |> display
+    plot_error_locations(results) |> display
 
 
     results = map(quadratures) do q
@@ -277,7 +282,7 @@ plot_error_locations(results) |> display
             2scale
         )
     end
-plot_error_locations(results) |> display
+    plot_error_locations(results) |> display
 
     results = map(quadratures) do q
         couette_velocity_profile(
@@ -287,7 +292,7 @@ plot_error_locations(results) |> display
             4scale
         )
     end
-plot_error_locations(results) |> display
+    plot_error_locations(results) |> display
 end
 
 
@@ -314,6 +319,8 @@ function main(τ = 1.0, scale = 2)
     # scales = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     # scales = [1, 2, 4, 8, 12, 16]
     scales = [1, 2, 4, 8, 16, 32, 64]
+
+    scales = [1, 2, 4, 8, 16]
 
     iteration_strategies = [
         ZeroVelocityInitialCondition(),
@@ -398,3 +405,30 @@ end
 
 end
 end
+
+# plot(
+#     plot(
+#         plot(Examples.Couette.plot_convergence(biggest_result.convergence_results, :error_u), title="Zero"),
+#         plot(Examples.Couette.plot_convergence(biggest_result.convergence_results_iterative, :error_u), title = "iterative"),
+#         plot(Examples.Couette.plot_convergence(biggest_result.convergence_results_equilibrium, :error_u), title = "equilibrium"),
+#         plot(Examples.Couette.plot_convergence(biggest_result.convergence_results_offequilibrium, :error_u), title = "offequilibrium"),
+#         legend = nothing,
+#     ),
+
+#     plot(
+#         # plot(Examples.Couette.plot_convergence(biggest_result.convergence_results, :error_p), title="Zero"),
+#         plot(Examples.Couette.plot_convergence(biggest_result.convergence_results_iterative, :error_p), title = "iterative"),
+#         plot(Examples.Couette.plot_convergence(biggest_result.convergence_results_equilibrium, :error_p), title = "equilibrium"),
+#         plot(Examples.Couette.plot_convergence(biggest_result.convergence_results_offequilibrium, :error_p), title = "offequilibrium"),
+#         legend = nothing,
+#     ),
+
+#     plot(
+#         plot(Examples.Couette.plot_convergence(biggest_result.convergence_results, :error_σ_xy), title="Zero"),
+#         plot(Examples.Couette.plot_convergence(biggest_result.convergence_results_iterative, :error_σ_xy), title = "iterative"),
+#         plot(Examples.Couette.plot_convergence(biggest_result.convergence_results_equilibrium, :error_σ_xy), title = "equilibrium"),
+#         plot(Examples.Couette.plot_convergence(biggest_result.convergence_results_offequilibrium, :error_σ_xy), title = "offequilibrium"),
+#         legend = nothing,
+#     ),
+#     size=(1200, 900)
+# )
