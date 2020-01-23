@@ -4,10 +4,10 @@ using Plots
 
 let
     s = []
-    # for q in (D2Q9 = D2Q9(), D2Q13 = D2Q13(), D2Q17 = D2Q17(), D2Q21 = D2Q21(), D2Q37 = D2Q37())
-    for q in lbm.Quadratures
+    for q in (D2Q9 = D2Q9(), D2Q13 = D2Q13(), D2Q17 = D2Q17(), D2Q21 = D2Q21(), D2Q37 = D2Q37())
+    # for q in lbm.Quadratures
         stats = DataFrame([Float64[], Float64[], Float64[], Quadrature[]], [:τ, :ν, :error_u, :q])
-        for τ = 0.5:0.01:5.0
+        for τ = 0.5:0.001:5.0
             ν = (τ - 0.5) / q.speed_of_sound_squared
 
             problem = DecayingShearFlow(ν, 1, static = true)
@@ -28,11 +28,20 @@ let
         push!(s, stats)
     end
 
-    p1 = plot()
-    for stats in ss
+
+    p2 = plot(xlabel = L"\tau", ylabel = L"\epsilon_{u}")
+    for stats in s
         @show stats.τ[argmin(stats.error_u)]
-        plot!(p1, stats.ν, stats.error_u, yscale=:log10, linestyle=:dot)
+        plot!(p2, stats.τ, stats.error_u, yscale=:log10, label = string(stats.q[1]))
     end
+    display(p2)
+
+    p1 = plot(xlabel = L"\nu", ylabel = L"\epsilon_{u}")
+    for stats in s
+        @show stats.τ[argmin(stats.error_u)]
+        plot!(p1, stats.ν, stats.error_u, yscale=:log10, linestyle=:dot, label = string(stats.q[1]))
+    end
+    display(p1)
     gui()
     return p, s
 end

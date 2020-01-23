@@ -9,6 +9,8 @@ stats = DataFrame([Float64[], Int[], Any[]], [:nu, :scale, :stats])
 
 quadratures = lbm.Quadratures
 
+# ProcessingMethod(problem::DecayingShearFlow, should_process, n_steps, stop_criteria = StopCriteria(problem)) =
+#     CompareWithAnalyticalSolution(problem, should_process, n_steps, stop_criteria)
 let
     q = D2Q9()
     τ = 1.0 / 6.0

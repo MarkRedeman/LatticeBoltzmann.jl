@@ -12,7 +12,7 @@ using Plots
     scale_range = [4]
     scale_range = [2]
     Λ_range = vcat(
-        range(0.01, stop = 0.75, step = 0.0005),
+        range(0.01, stop = 0.75, step = 0.005),
         range(0.75, stop = 1.0, step = 0.05)
     )
 
@@ -24,8 +24,8 @@ using Plots
     ν = τ / (2 * q.speed_of_sound_squared)
     # ν = 1.00 / (2 * q.speed_of_sound_squared)
     for scale = scale_range
-        # problem = DecayingShearFlow(ν, scale, static = false)
-        problem = PoiseuilleFlow(ν, scale, static = true)
+        problem = DecayingShearFlow(ν, scale, static = true)
+        # problem = PoiseuilleFlow(ν, scale, static = true)
         stats = DataFrame([
             Float64[], Float64[], Float64[], Any[], Float64[], Float64[], Float64[]
         ], [

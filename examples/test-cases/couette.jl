@@ -99,7 +99,7 @@ function couette_convergence_analysis(q = D2Q9(), initialization_strategy = Zero
             problem,
             false,
             n_steps,
-            StopCriteria(problem)
+            lbm.NoStoppingCriteria()
         )
         @show scale problem initialization_strategy n_steps
 
@@ -321,6 +321,7 @@ function main(τ = 1.0, scale = 2)
     scales = [1, 2, 4, 8, 16, 32, 64]
 
     scales = [1, 2, 4, 8, 16]
+    scales = [1, 2, 4, 8]
 
     iteration_strategies = [
         ZeroVelocityInitialCondition(),
