@@ -263,7 +263,7 @@ function next!(process_method::ShowVelocityError, q, f, t::Int64)
     # end
 
     problem = process_method.problem
-    analytical_velocity = (y) -> velocity(problem, 1.0, y)[1]
+    analytical_velocity = (y) -> velocity(problem, 1.0, y)
     x_domain = (0.0, problem.domain_size[1])
     y_domain = (0.0, problem.domain_size[2])
 
@@ -274,15 +274,17 @@ function next!(process_method::ShowVelocityError, q, f, t::Int64)
     v_a = zeros(problem.NY)
     u = zeros(dimension(q))
     x_range, y_range = range(problem)
+    total_expected_momentum = 0.0
     for y_idx = 1 : problem.NY
         ρ = density(q, f[x_idx, y_idx, :])
         velocity!(q, f[x_idx, y_idx, :], ρ, u)
         u = dimensionless_velocity(problem, u)
-        v_e[y_idx] = abs(u[1] - analytical_velocity(y_range[y_idx]))
-        v_y[y_idx] = u[1]
-        v_a[y_idx] = analytical_velocity(y_range[y_idx])
+        v_e[y_idx] = norm(u - analytical_velocity(y_range[y_idx]))
+        v_y[y_idx] = u[2]
+        v_a[y_idx] = analytical_velocity(y_range[y_idx])[2]
+total_expected_momentum += analytical_velocity(y_range[y_idx])[1]^2 + analytical_velocity(y_range[y_idx])[2]^2
     end
-    push!(process_method.l2_norms, norm(v_e))
+    push!(process_method.l2_norms, norm(v_e) / total_expected_momentum)
     # return false
     if mod(t, process_method.plot_every) != 1
         return false
