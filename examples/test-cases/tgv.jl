@@ -1,5 +1,5 @@
 module Examples
-module TGV
+module TGV_Example
 
 using LatticeBoltzmann, Plots, DataFrames
 using LaTeXStrings
@@ -55,7 +55,8 @@ function tgv_velocity_profile(
     scale = 2
 )
     ν = τ / (2.0 * q.speed_of_sound_squared)
-    problem = TaylorGreenVortex(ν, scale, static = false)
+    problem = TaylorGreenVortex(ν, scale, static = true)
+    problem = LatticeBoltzmann.TGV(q, τ, scale)
 
     @show q initialization_strategy
 
@@ -88,7 +89,8 @@ function tgv_convergence_analysis(q = D2Q9(), initialization_strategy = Analytic
     t_end = 10.0
 
     results = map(scales) do scale
-        problem = TaylorGreenVortex(ν, scale, static = false)
+        # problem = TaylorGreenVortex(ν, scale, static = true)
+        problem = LatticeBoltzmann.TGV(q, τ, scale, 16 * scale, 8 * scale)
 
         Δt = delta_t(problem)
         n_steps = round(Int, t_end / Δt)
@@ -330,8 +332,8 @@ function main(τ = 1.0, scale = 2)
     # scales = [1, 2, 4, 8, 16, 32, 64]
 
     scales = [1, 2, 4, 8, 16]
-    scales = [1 // 2, 1, 2, 4]
-    # scales = [1 // 2]
+
+    scales = [1 // 2, 1, 2, 4, 8, 16, 32, 64]
 
     iteration_strategies = [
         IterativeInitializationMeiEtAl(τ, 1E-7),
@@ -419,21 +421,36 @@ end
 end
 
 
-# plot(
-#     plot(
-#         plot(Examples.Tgv.plot_convergence(result.convergence_results, :error_u), title="Zero"),
-#         plot(Examples.Tgv.plot_convergence(result.convergence_results_iterative, :error_u), title = "iterative"),
-#         plot(Examples.Tgv.plot_convergence(result.convergence_results_equilibrium, :error_u), title = "equilibrium"),
-#         plot(Examples.Tgv.plot_convergence(result.convergence_results_offequilibrium, :error_u), title = "offequilibrium"),
-#         legend = nothing,
-#     ),
+plot(
+    plot(
+        plot(Examples.TGV_Example.plot_convergence(result.convergence_results, :error_u), title="Zero"),
+        plot(Examples.TGV_Example.plot_convergence(result.convergence_results_iterative, :error_u), title = "iterative"),
+        plot(Examples.TGV_Example.plot_convergence(result.convergence_results_equilibrium, :error_u), title = "equilibrium"),
+        plot(Examples.TGV_Example.plot_convergence(result.convergence_results_offequilibrium, :error_u), title = "offequilibrium"),
+        legend = nothing,
+    ),
 
-#     plot(
-#         plot(Examples.Tgv.plot_convergence(result.convergence_results, :error_p), title="Zero"),
-#         plot(Examples.Tgv.plot_convergence(result.convergence_results_iterative, :error_p), title = "iterative"),
-#         plot(Examples.Tgv.plot_convergence(result.convergence_results_equilibrium, :error_p), title = "equilibrium"),
-#         plot(Examples.Tgv.plot_convergence(result.convergence_results_offequilibrium, :error_p), title = "offequilibrium"),
-#         legend = nothing,
-#     ),
-#     size=(1200, 900)
-# )
+    plot(
+        plot(Examples.TGV_Example.plot_convergence(result.convergence_results, :error_p), title="Zero"),
+        plot(Examples.TGV_Example.plot_convergence(result.convergence_results_iterative, :error_p), title = "iterative"),
+        plot(Examples.TGV_Example.plot_convergence(result.convergence_results_equilibrium, :error_p), title = "equilibrium"),
+        plot(Examples.TGV_Example.plot_convergence(result.convergence_results_offequilibrium, :error_p), title = "offequilibrium"),
+        legend = nothing,
+    ),
+
+    plot(
+        plot(Examples.TGV_Example.plot_convergence(result.convergence_results, :error_σ_xx), title="Zero"),
+        plot(Examples.TGV_Example.plot_convergence(result.convergence_results_iterative, :error_σ_xx), title = "iterative"),
+        plot(Examples.TGV_Example.plot_convergence(result.convergence_results_equilibrium, :error_σ_xx), title = "equilibrium"),
+        plot(Examples.TGV_Example.plot_convergence(result.convergence_results_offequilibrium, :error_σ_xx), title = "offequilibrium"),
+        legend = nothing,
+    ),
+    # plot(
+    #     plot(Examples.TGV_Example.plot_convergence(result.convergence_results, :error_σ_xy), title="Zero"),
+    #     plot(Examples.TGV_Example.plot_convergence(result.convergence_results_iterative, :error_σ_xy), title = "iterative"),
+    #     plot(Examples.TGV_Example.plot_convergence(result.convergence_results_equilibrium, :error_σ_xy), title = "equilibrium"),
+    #     plot(Examples.TGV_Example.plot_convergence(result.convergence_results_offequilibrium, :error_σ_xy), title = "offequilibrium"),
+    #     legend = nothing,
+    # ),
+    size=(1200, 900)
+)

@@ -20,7 +20,6 @@ function TaylorGreenVortex(
     static = true,
     A = 1, B = -1, a = 1, b = 1
 )
-    u_max = sqrt(0.001) / scale
     u_max = 0.01 / scale
     Re = NX * u_max / ν
     @show Re
