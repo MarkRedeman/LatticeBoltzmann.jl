@@ -54,3 +54,62 @@ function should_stop!(stop_criteria::MeanVelocityStoppingCriteria, q, f_in)
 
     return false
 end
+
+struct VelocityConvergenceStoppingCriteria <: StopCriteria
+    old_velocity::Array{Vector{Float64}, 2}
+    tolerance::Float64
+    problem::FluidFlowProblem
+end
+function VelocityConvergenceStoppingCriteria(tolerance, problem)
+    return VelocityConvergenceStoppingCriteria(
+        [zeros(2) for x_idx = 1:problem.NX, y_idx = 1:problem.NY],
+        tolerance,
+        problem
+    )
+end
+
+function should_stop!(stop_criteria::VelocityConvergenceStoppingCriteria, q, f_in)
+    f = Array{Float64}(undef, size(f_in, 3))
+    u = zeros(dimension(q))
+    Nx = size(f_in, 1)
+    Ny = size(f_in, 2)
+
+    old_velocity_norm = 0.0 # norm(stop_criteria.old_velocity)
+    error = 0.0
+
+    @inbounds for x_idx = 1:Nx, y_idx = 1:Ny
+        # Calculated
+        @inbounds for f_idx = 1:size(f_in, 3)
+            f[f_idx] = f_in[x_idx, y_idx, f_idx]
+        end
+
+        ρ = density(q, f)
+        velocity!(q, f, ρ, u)
+
+        u_old = stop_criteria.old_velocity[x_idx, y_idx]
+
+        error += (
+            ((u[1] - u_old[1])^2 + (u[2] - u_old[2])^2)
+        )
+
+        old_velocity_norm += u_old[1]^2 + u_old[2]^2
+        stop_criteria.old_velocity[x_idx, y_idx] = copy(u)
+    end
+
+    converged = sqrt(error) / old_velocity_norm
+    # @show converged
+
+    if (converged < stop_criteria.tolerance)
+        @info "Stopping due to convergence"
+        return true
+    end
+
+    if (isnan(converged))
+        @warn "nan in velocity profile"
+        return true
+    end
+
+    # stop_criteria.old_mean_velocity = u_mean
+
+    return false
+end
