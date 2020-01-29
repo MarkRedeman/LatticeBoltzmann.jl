@@ -1,7 +1,8 @@
 abstract type InitializationStrategy end
 
 # TODO: base this on the existence of a velocity gradient, pressure and velocity
-InitializationStrategy(problem::FluidFlowProblem) = AnalyticalEquilibriumAndOffEquilibrium()
+# InitializationStrategy(problem::FluidFlowProblem) = AnalyticalEquilibriumAndOffEquilibrium()
+InitializationStrategy(problem::FluidFlowProblem) = AnalyticalEquilibrium()
 
 function initialize(strategy::InitializationStrategy, q::Quadrature, problem::FluidFlowProblem, cm = SRT)
     f = Array{Float64}(undef, problem.NX, problem.NY, length(q.weights))

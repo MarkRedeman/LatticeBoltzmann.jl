@@ -35,15 +35,11 @@ function initial_condition(::AnalyticalEquilibriumAndOffEquilibrium, q::Quadratu
         # f[f_idx] += q.weights[f_idx] * (cs^2 /factorial(2)) * dot(Q, σ)
     end
 
-    # @show density(q, f) - ρ_old
-    # @show velocity(q, f) - v_old
     velocity(q, f) = begin
         v = zeros(2)
         velocity!(q, f, density(q, f), v)
         v
     end
-    @show σ ./ deviatoric_tensor(q, τ, f, density(q, f), velocity(q, f))
-    # @show momentum_flux(q, f, density(q, f), velocity(q, f))
     σ = problem.u_max^2 * deviatoric_tensor(q, problem, x, y, 0.0)
 
     return f
@@ -79,8 +75,5 @@ function initial_condition(::AnalyticalEquilibriumAndOffEquilibrium, q::Quadratu
         # f[f_idx] += q.weights[f_idx] * ((τ + 0.5) * cs) * dot(Q, σ) /2
     end
 
-    # @show deviatoric_tensor(q, τ, f, ρ, u)
-    # @show σ
-    @show deviatoric_tensor(q, τ, f, ρ, u) ./ σ
     return f
 end
