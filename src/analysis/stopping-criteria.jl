@@ -7,7 +7,7 @@ mutable struct MeanVelocityStoppingCriteria <: StopCriteria
 end
 StopCriteria(problem::FluidFlowProblem) = NoStoppingCriteria()
 StopCriteria(problem::PoiseuilleFlow) = MeanVelocityStoppingCriteria(0.0, 1e-12, problem)
-StopCriteria(problem::CouetteFlow) = MeanVelocityStoppingCriteria(0.0, 1e-12, problem)
+StopCriteria(problem::CouetteFlow) = MeanVelocityStoppingCriteria(0.0, 1e-7, problem)
 StopCriteria(problem::LidDrivenCavityFlow) =
     MeanVelocityStoppingCriteria(0.0, 1e-5, problem)
 StopCriteria(problem::DecayingShearFlow) =
