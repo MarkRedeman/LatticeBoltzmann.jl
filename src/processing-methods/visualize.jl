@@ -1,4 +1,5 @@
 function visualize(problem::FluidFlowProblem, quadrature::Quadrature, f_in, time, stats)
+    return
     q = quadrature
 
     # Pre-allocate Macroscopic Variables

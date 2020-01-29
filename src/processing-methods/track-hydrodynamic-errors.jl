@@ -112,7 +112,6 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
     total_expected_σ_yx_squared = 0.0
     total_expected_p_squared = 0.0
 
-    @info "Processing"
     # @show problem.ν * delta_x(problem)^2 / delta_t(problem)
 
     total_mass = 0.0
@@ -131,7 +130,7 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         expected_T = expected_p / expected_ρ
         expected_σ = deviatoric_tensor(q, problem, x, y, time)
 
-        total_expected_u_squared += norm(expected_u, 2)
+        total_expected_u_squared += sum(expected_u.^2)# norm(expected_u, 2)^2
         total_expected_σ_xx_squared += expected_σ[1, 1]^2
         total_expected_σ_yy_squared += expected_σ[2, 2]^2
         total_expected_σ_xy_squared += expected_σ[1, 2]^2
@@ -219,7 +218,7 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
 #     @show total_expected_σ_yy_squared
 # @show total_expected_σ_yx_squared
 # @show total_expected_σ_xy_squared
-
+# total_expected_u_squared = 1.0
     push!(
         process_method.df,
         (
@@ -258,5 +257,4 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
     end
 
     return should_stop
-    return false
 end
