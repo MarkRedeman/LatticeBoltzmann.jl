@@ -10,7 +10,7 @@ problem = lbm.TGV(q, τ, 1//2, 2 * 16, 2 * 16)
 # There still seems to be an scaling issue
 # problem2 = TaylorGreenVortex(1.0 / 6.0, 1//2, static = false, a = 2);
 
-initialization_strategies = [
+iss = [
 
     # With this initialization strategy it is assumed that the initial density field
     # (or equivalently the pressure field p) is not available
@@ -30,5 +30,4 @@ initialization_strategies = [
     lbm.IterativeInitializationMeiEtAl(τ, 1E-9),
 ]
 
-is = initialization_strategies[1]
-result = lbm.simulate(problem, q, t_end = 100, initialization_strategy = is)
+result = lbm.simulate(problem, q, t_end = 100, initialization_strategy = iss[1])
