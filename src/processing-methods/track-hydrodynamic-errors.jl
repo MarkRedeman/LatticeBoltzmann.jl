@@ -28,6 +28,10 @@ TrackHydrodynamicErrors(
                 :error_σ_xy,
                 :error_σ_yy,
                 :error_σ_yx,
+
+                :mass,
+                :momentum,
+                :energy
             ),
             Tuple{
                 Int64,
@@ -36,6 +40,10 @@ TrackHydrodynamicErrors(
                 Float64,
 
                 Float64,
+                Float64,
+                Float64,
+                Float64,
+
                 Float64,
                 Float64,
                 Float64,
@@ -78,6 +86,7 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
     elseif ny == 1
         Δ = Float64(x_range.step)
     end
+    Δ_ = Δ
     Δ = 1.0
 
     τ = q.speed_of_sound_squared * lbm.lattice_viscosity(problem) + 0.5
@@ -96,6 +105,10 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
 
     @info "Processing"
     # @show problem.ν * delta_x(problem)^2 / delta_t(problem)
+
+    total_mass = 0.0
+    total_momentum = 0.0
+    total_energy = 0.0
     @inbounds for x_idx = 1:nx, y_idx = 1:ny
         # Analytical
         x = x_range[x_idx]
@@ -192,6 +205,10 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         error_σ_xy += Δ * (expected_σ[1,2] .- σ_lb[1,2])^2
         error_σ_yx += Δ * (expected_σ[2,1] .- σ_lb[2,1])^2
         error_σ_yy += Δ * (expected_σ[2,2] .- σ_lb[2,2])^2
+
+        total_mass += ρ
+        total_momentum += ρ * sum(u)
+        total_energy += ρ * sum(u.^2)
     end
 
 #     @show error_σ_xx
@@ -215,6 +232,10 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
             error_σ_xy = sqrt(error_σ_xy/ total_expected_σ_xy_squared),
             error_σ_yy = sqrt(error_σ_yy / total_expected_σ_yy_squared),
             error_σ_yx = sqrt(error_σ_yx / total_expected_σ_yx_squared),
+
+            mass = Δ_ * total_mass,
+            momentum =  Δ_ *total_momentum,
+            energy = Δ_ * total_energy,
         ),
     )
 
