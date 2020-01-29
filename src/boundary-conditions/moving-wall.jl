@@ -18,8 +18,8 @@ function apply!(bc::MovingWall{<:North}, q::Quadrature, f_new, f_old)
     a_1_eq = equilibrium_coefficient(Val{1}, q, bc.ρ, bc.u, bc.T)
     nx, ny, nf = size(f_new)
     for f_idx = 1:size(f_new, 3)
-        H_i = hermite(Val{1}, q.abscissae[:, f_idx], q)
-        a_1 = q.weights[f_idx] * cs * dot(a_1_eq, H_i)
+        H_1 = hermite(Val{1}, q.abscissae[:, f_idx], q)
+        a_1 = q.weights[f_idx] * cs * dot(a_1_eq, H_1)
 
         opposite_f_idx = opposite(q, f_idx)
 
