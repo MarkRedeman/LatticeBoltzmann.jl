@@ -179,14 +179,18 @@ function process!(
         T = dimensionless_temperature(q, problem, T)
         p = dimensionless_pressure(q, problem, p)
 
-        total_density += ρ
-        total_momentum += (u[1] + u[2]) * ρ
-        kinetic_energy = (u[1]^2 + u[2]^2) * ρ
+        opp = 1.0/(Nx * Ny)
+        # CHECK!
+        opp = 1.0
+        total_density += opp * ρ
+        total_momentum += opp * (u[1] + u[2]) * ρ
+        kinetic_energy = opp * (u[1]^2 + u[2]^2) * ρ
+
         internal_energy = T
 
-        total_kinetic_energy += kinetic_energy
-        total_internal_energy += internal_energy
-        total_energy += kinetic_energy + internal_energy
+        total_kinetic_energy += opp * kinetic_energy
+        total_internal_energy += opp * internal_energy
+        total_energy += opp * (kinetic_energy + internal_energy)
 
         # Analytical
         x = x_range[x_idx]
@@ -252,12 +256,23 @@ function process!(
     return false
 end
 
-struct ShowVelocityError <: ProcessingMethod
+struct ShowVelocityError{V} <: ProcessingMethod
     problem::FluidFlowProblem
     plot_every::Int
-    l2_norms::Vector{Float64}
+    # TODO: change to vector of vector?
+    l2_norms::Vector{V}
+    stop_criteria::StopCriteria
 end
+ShowVelocityError(problem, plot_every = 1, l2_norms = Float64[]) = ShowVelocityError(problem, plot_every, l2_norms, NoStoppingCriteria())
+
 function next!(process_method::ShowVelocityError, q, f, t::Int64)
+    should_stop = false
+    if mod(t, 100) == 0
+        if (should_stop!(process_method.stop_criteria, q, f))
+            @info "Stopping after $t iterations"
+            should_stop = true
+        end
+    end
     # if mod(t, process_method.plot_every) != 1
     #     return false
     # end
@@ -279,28 +294,39 @@ function next!(process_method::ShowVelocityError, q, f, t::Int64)
         ρ = density(q, f[x_idx, y_idx, :])
         velocity!(q, f[x_idx, y_idx, :], ρ, u)
         u = dimensionless_velocity(problem, u)
-        v_e[y_idx] = norm(u - analytical_velocity(y_range[y_idx]))
-        v_y[y_idx] = u[2]
-        v_a[y_idx] = analytical_velocity(y_range[y_idx])[2]
-total_expected_momentum += analytical_velocity(y_range[y_idx])[1]^2 + analytical_velocity(y_range[y_idx])[2]^2
-    end
-    push!(process_method.l2_norms, norm(v_e) / total_expected_momentum)
-    # return false
-    if mod(t, process_method.plot_every) != 1
-        return false
+        # v_e[y_idx] = norm(u - analytical_velocity(y_range[y_idx]))
+        v_e[y_idx] = ((u[1] - analytical_velocity(y_range[y_idx])[1])^2 + (u[1] - analytical_velocity(y_range[y_idx])[1])^2)
+        v_y[y_idx] = u[1]
+        v_a[y_idx] = analytical_velocity(y_range[y_idx])[1]
+
+        total_expected_momentum += analytical_velocity(y_range[y_idx])[1]^2 + analytical_velocity(y_range[y_idx])[2]^2
     end
 
-    @show sum(f)
+    push!(
+        process_method.l2_norms,
+        sqrt(sum(v_e) / total_expected_momentum)
+    )
+    # push!(process_method.l2_norms, v_e)
+
+    # return false
+    if mod(t, process_method.plot_every) != 1 && ! should_stop
+        return should_stop
+    end
+
+    y_idx = problem.NY
+    ρ = density(q, f[x_idx, y_idx, :])
+    velocity!(q, f[x_idx, y_idx, :], ρ, u)
+    # @show v_y[problem.NY], v_a[problem.NY], v_e[problem.NY], u[1], ρ
 
     velocity_plot = plot(y_range, v_y, label = "Numerical solution", legend=:topleft, title = string(q))
     plot!(velocity_plot, y_range, v_a, label = "Exact solution")
 
     plot(
-        scatter(y_range, v_e, title = "Abs. Error", legend=:bottomleft),
+        scatter(y_range, v_e, title = "Abs. Error", legend=nothing),
         velocity_plot
     )
     gui()
 
 
-    return false
+    return should_stop
 end
