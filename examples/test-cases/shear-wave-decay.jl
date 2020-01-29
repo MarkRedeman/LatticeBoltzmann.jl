@@ -524,4 +524,32 @@ function plot_snapshots(problem, snapshot_results, snapshots, q)
     )
 end
 
+function show_velocity_evolution_of_steady_state()
+    problem = DecayingShearFlow(1.0 / 6.0, 16, A = 0.5, static = true)
+    ν = lbm.viscosity(problem)
+    Δt = delta_t(problem);
+    snapshot_at = round.(Int, [
+        0.01 * 1.0 / (ν * Δt),
+        # 0.05 * 1.0 / (ν * Δt),
+        0.1 * 1.0 / (ν * Δt),
+        # 0.5 * 1.0 / (ν * Δt),
+        1.0 * 1.0 / (ν * Δt),
+        # 5.0 / (ν * Δt),
+        10.0 / (ν * Δt)
+    ])
+
+    q = D2Q9()
+    result = simulate(
+        problem,
+        q,
+        t_end = 10.0 / lbm.viscosity(problem),
+        process_method = lbm.TakeSnapshots(problem, snapshot_at),
+        initialization_strategy = lbm.ZeroVelocityInitialCondition()
+    );
+
+    p = lbm.visualize(result.processing_method, q)
+    plot!(p.velocity_profile_x, legend = nothing)
+    return p
+end
+
 end
