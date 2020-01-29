@@ -24,7 +24,7 @@ function initialize(
     # Simultae the lattice botlzmann method with a special collision operator that uses
     # u_0(x) as the velocity of each lattice node
     # The method stops if the density has converged
-    lbm = LatticeBoltzmannMethod(
+    model = LatticeBoltzmannMethod(
         copy(f),
         copy(f),
         q,
@@ -33,9 +33,9 @@ function initialize(
         ProcessIterativeInitialization(strategy.ϵ, problem, process_method)
     )
 
-    simulate(lbm, 1:10000)
+    simulate(model, 1:10000)
 
-    return lbm.f_stream
+    return model.f_stream
 end
 
 struct DensityConvergence{FT <: Real, MT <: AbstractMatrix{FT}} <: StopCriteria

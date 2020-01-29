@@ -108,7 +108,7 @@ function simulate(
         process_method = ProcessingMethod(problem, should_process, n_steps)
     end
 
-    lbm = LatticeBoltzmannMethod(
+    model = LatticeBoltzmannMethod(
         problem,
         q,
         collision_model = collision_model,
@@ -116,24 +116,24 @@ function simulate(
         process_method = process_method,
     )
 
-    simulate(lbm, 0:n_steps)
+    simulate(model, 0:n_steps)
 end
-function simulate(lbm::LatticeBoltzmannMethod, time)
-    Δt = isdefined(lbm.processing_method, :problem) ? delta_t(lbm.processing_method.problem) : 0.0
+function simulate(model::LatticeBoltzmannMethod, time)
+    Δt = isdefined(model.processing_method, :problem) ? delta_t(model.processing_method.problem) : 0.0
 
     @inbounds for t in time
-        collide!(lbm, time = t * Δt)
-        stream!(lbm)
-        apply_boundary_conditions!(lbm, time = t * Δt)
+        collide!(model, time = t * Δt)
+        stream!(model)
+        apply_boundary_conditions!(model, time = t * Δt)
 
-        if process_step!(lbm, t + 1)
-            return lbm
+        if process_step!(model, t + 1)
+            return model
         end
     end
 
-    process_step!(lbm, last(time) + 1)
+    process_step!(model, last(time) + 1)
 
-    lbm
+    model
 end
 
 # The following are helper functions which use the old interface where we
@@ -141,32 +141,32 @@ end
 # This will likely be refactored so that we can write specialized function
 # for each specific LatticeBoltzmannModel (once we also introduce ddf models)
 
-function collide!(lbm::LatticeBoltzmannMethod; time)
+function collide!(model::LatticeBoltzmannMethod; time)
     collide!(
-        lbm.collision_model,
-        lbm.quadrature,
-        f_new = lbm.f_collision,
-        f_old = lbm.f_stream,
+        model.collision_model,
+        model.quadrature,
+        f_new = model.f_collision,
+        f_old = model.f_stream,
         time = time,
     )
 end
 
-function stream!(lbm::LatticeBoltzmannMethod)
-    stream!(lbm.quadrature, f_new = lbm.f_stream, f_old = lbm.f_collision)
+function stream!(model::LatticeBoltzmannMethod)
+    stream!(model.quadrature, f_new = model.f_stream, f_old = model.f_collision)
 end
 
-function apply_boundary_conditions!(lbm::LatticeBoltzmannMethod; time = 0.0)
+function apply_boundary_conditions!(model::LatticeBoltzmannMethod; time = 0.0)
     apply!(
-        lbm.boundary_conditions,
-        lbm.quadrature,
-        lbm.f_stream,
-        lbm.f_collision,
+        model.boundary_conditions,
+        model.quadrature,
+        model.f_stream,
+        model.f_collision,
         time = time,
     )
 end
 
-function process_step!(lbm::LatticeBoltzmannMethod, t::Int64)
-    next!(lbm.processing_method, lbm.quadrature, lbm.f_stream, t)
+function process_step!(model::LatticeBoltzmannMethod, t::Int64)
+    next!(model.processing_method, model.quadrature, model.f_stream, t)
 end
 
 end
