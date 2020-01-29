@@ -1,9 +1,9 @@
-using lbm, Plots, DataFrames
-using lbm, Plots, DataFrames
+using LatticeBoltzmann, Plots, DataFrames
+using LatticeBoltzmann, Plots, DataFrames
 using LaTeXStrings
 using JLD2
-import lbm: StopCriteria, CompareWithAnalyticalSolution, TrackHydrodynamicErrors
-import lbm: StopCriteria,
+import LatticeBoltzmann: StopCriteria, CompareWithAnalyticalSolution, TrackHydrodynamicErrors
+import LatticeBoltzmann: StopCriteria,
     CompareWithAnalyticalSolution,
     TrackHydrodynamicErrors,
     ZeroVelocityInitialCondition,

@@ -1,15 +1,15 @@
 using DataFrames
-using lbm
+using LatticeBoltzmann
 using Plots
 
-# lbm.analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortex(viscosity, scale, static = true), 1.0 / 6.0, 2)
-# lbm.analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortex(viscosity, scale, static = false), 1.0 / 6.0, 3)
-# lbm.analyze_convergence(D2Q9(), (scale, viscosity) -> PoiseuilleFlow(viscosity, scale, static = true), 1.0 / 6.0, 3)
-# lbm.analyze_convergence(D2Q9(), (scale, viscosity) -> DecayingShearFlow(viscosity, scale, static = true), 1.0 / 6.0, 3)
+# LatticeBoltzmann.analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortex(viscosity, scale, static = true), 1.0 / 6.0, 2)
+# LatticeBoltzmann.analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortex(viscosity, scale, static = false), 1.0 / 6.0, 3)
+# LatticeBoltzmann.analyze_convergence(D2Q9(), (scale, viscosity) -> PoiseuilleFlow(viscosity, scale, static = true), 1.0 / 6.0, 3)
+# LatticeBoltzmann.analyze_convergence(D2Q9(), (scale, viscosity) -> DecayingShearFlow(viscosity, scale, static = true), 1.0 / 6.0, 3)
 
     stats = DataFrame([Float64[], Int[], Any[]], [:nu, :scale, :stats])
 
-    quadratures = lbm.Quadratures
+    quadratures = LatticeBoltzmann.Quadratures
 
     quadrature = last(quadratures)
     τ = 0.05 / 6.0
@@ -24,35 +24,35 @@ using Plots
 # nu=(2*tau-1)/6;
 
 let
-    using lbm, Plots, DataFrames, StaticArrays
+    using LatticeBoltzmann, Plots, DataFrames, StaticArrays
     q = D2Q9()
     τ = 1.0 / (2 * q.speed_of_sound_squared)
     scale = 1
     problem = CouetteFlow(τ, scale)
-    result = lbm.simulate(problem, q)
+    result = LatticeBoltzmann.simulate(problem, q)
 
     problem = LidDrivenCavityFlow(τ, scale)
-    result = lbm.simulate(problem, q)
+    result = LatticeBoltzmann.simulate(problem, q)
 
     for q in quadratures
     problem = CouetteFlow(τ, scale)
-    result = lbm.simulate(problem, q)
+    result = LatticeBoltzmann.simulate(problem, q)
         end
 
     problem = PoiseuilleFlow(τ, scale, static = true)
-    result = lbm.simulate(problem, q)
+    result = LatticeBoltzmann.simulate(problem, q)
 
     problem = TaylorGreenVortex(τ, scale, static = true)
-    result = lbm.simulate(problem, q)
+    result = LatticeBoltzmann.simulate(problem, q)
 
     problem = TaylorGreenVortex(τ, scale, static = false)
-    result = lbm.simulate(problem, q)
+    result = LatticeBoltzmann.simulate(problem, q)
 
     problem = DecayingShearFlow(τ, scale, static = true)
-    result = lbm.simulate(problem, q)
+    result = LatticeBoltzmann.simulate(problem, q)
 
     problem = DecayingShearFlow(τ, scale, static = false)
-    result = lbm.simulate(problem, q)
+    result = LatticeBoltzmann.simulate(problem, q)
 
 end
 # @show result[2]
@@ -74,7 +74,7 @@ end
         example = DecayingShearFlow(ν, scale, static = true)
         # example = TaylorGreenVortex(τ, scale, static = true)
 
-        result = lbm.simulate(example, quadrature, base = 20);
+        result = LatticeBoltzmann.simulate(example, quadrature, base = 20);
         # @show result[2]
         push!(stats, [ν, scale, result[2]])
     end

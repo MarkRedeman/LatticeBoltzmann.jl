@@ -1,13 +1,13 @@
-using Documenter, lbm
+using Documenter, LatticeBoltzmann
 
 makedocs(
-    modules = [lbm],
+    modules = [LatticeBoltzmann],
     format = :html,
     checkdocs = :exports,
-    sitename = "lbm.jl",
+    sitename = "LatticeBoltzmann.jl",
     pages = Any["index.md"]
 )
 
 deploydocs(
-    repo = "github.com/MarkRedeman/lbm.jl.git",
+    repo = "github.com/MarkRedeman/LatticeBoltzmann.jl.git",
 )

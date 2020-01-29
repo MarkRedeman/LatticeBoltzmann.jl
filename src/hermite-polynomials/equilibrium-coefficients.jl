@@ -8,7 +8,7 @@ function hermite_based_equilibrium(q, f)
 end
 
 function hermite_based_equilibrium!(q::Q, ρ, u, T, f) where {Q<:Quadrature}
-    N = div(lbm.order(q), 2)
+    N = div(LatticeBoltzmann.order(q), 2)
 
     # NOTE: we skip H_0 since its one (also because of Julia's 1 based index....)
     #Hs = [[hermite(n, q.abscissae[:, i], q) for i = 1:length(q.weights)] for n = 1:N]

@@ -1,4 +1,4 @@
-struct DecayingShearFlow <: lbm.FluidFlowProblem
+struct DecayingShearFlow <: FluidFlowProblem
     rho_0::Float64
     u_max::Float64
     ν::Float64

@@ -1,13 +1,13 @@
-using lbm, Plots, DataFrames
+using LatticeBoltzmann, Plots, DataFrames
 
-# lbm.analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortex(viscosity, scale, static = true), 1.0 / 6.0, 2)
-# lbm.analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortex(viscosity, scale, static = false), 1.0 / 6.0, 3)
-# lbm.analyze_convergence(D2Q9(), (scale, viscosity) -> PoiseuilleFlow(viscosity, scale, static = true), 1.0 / 6.0, 3)
-# lbm.analyze_convergence(D2Q9(), (scale, viscosity) -> DecayingShearFlow(viscosity, scale, static = true), 1.0 / 6.0, 3)
+# LatticeBoltzmann.analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortex(viscosity, scale, static = true), 1.0 / 6.0, 2)
+# LatticeBoltzmann.analyze_convergence(D2Q9(), (scale, viscosity) -> TaylorGreenVortex(viscosity, scale, static = false), 1.0 / 6.0, 3)
+# LatticeBoltzmann.analyze_convergence(D2Q9(), (scale, viscosity) -> PoiseuilleFlow(viscosity, scale, static = true), 1.0 / 6.0, 3)
+# LatticeBoltzmann.analyze_convergence(D2Q9(), (scale, viscosity) -> DecayingShearFlow(viscosity, scale, static = true), 1.0 / 6.0, 3)
 
 stats = DataFrame([Float64[], Int[], Any[]], [:nu, :scale, :stats])
 
-quadratures = lbm.Quadratures
+quadratures = LatticeBoltzmann.Quadratures
 
 # ProcessingMethod(problem::DecayingShearFlow, should_process, n_steps, stop_criteria = StopCriteria(problem)) =
 #     CompareWithAnalyticalSolution(problem, should_process, n_steps, stop_criteria)
@@ -17,16 +17,16 @@ let
     scale = 1
 
     problem = DecayingShearFlow(τ, scale, static = true)
-    result = lbm.simulate(problem, q)
+    result = LatticeBoltzmann.simulate(problem, q)
 
     problem = DecayingShearFlow(τ, scale, static = false)
-    result = lbm.simulate(problem, q)
+    result = LatticeBoltzmann.simulate(problem, q)
 end
 
 scales = 1:8
 x = map(
     scale -> begin
-    result = lbm.simulate(
+    result = LatticeBoltzmann.simulate(
         DecayingShearFlow(τ, scale, static = true),
         D2Q9(),
         t_end = .5,

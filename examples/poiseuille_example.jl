@@ -1,11 +1,11 @@
 using DataFrames
-using lbm
+using LatticeBoltzmann
 using Plots
 
 let
     s = []
     for q in (D2Q9 = D2Q9(), D2Q13 = D2Q13(), D2Q17 = D2Q17(), D2Q21 = D2Q21(), D2Q37 = D2Q37())
-    # for q in lbm.Quadratures
+    # for q in LatticeBoltzmann.Quadratures
         stats = DataFrame([Float64[], Float64[], Float64[], Quadrature[]], [:τ, :ν, :error_u, :q])
         for τ = 0.5:0.001:5.0
             ν = (τ - 0.5) / q.speed_of_sound_squared
@@ -13,7 +13,7 @@ let
             problem = DecayingShearFlow(ν, 1, static = true)
             # problem = PoiseuilleFlow(ν, 2, static = true)
 
-            result = lbm.simulate(
+            result = LatticeBoltzmann.simulate(
                 problem,
                 q,
                 t_end = 1.0,
@@ -55,7 +55,7 @@ let
     # ν = (1.4383 - 0.5) / q.speed_of_sound_squared
     q = D2Q9()
     s = []
-    for q in lbm.Quadratures
+    for q in LatticeBoltzmann.Quadratures
     stats = DataFrame([Float64[], Float64[]], [:τ, :error_u])
     for τ = 0.5:0.01:2.0
         ν = (τ - 0.5) / q.speed_of_sound_squared
@@ -63,7 +63,7 @@ let
         problem = DecayingShearFlow(ν, 1, static = true)
         # problem = PoiseuilleFlow(ν, 2, static = true)
 
-        result = lbm.simulate(
+        result = LatticeBoltzmann.simulate(
             problem,
             q,
             t_end = 1.0,
@@ -112,7 +112,7 @@ end
         example = DecayingShearFlow(ν, scale, static = true)
         # example = TaylorGreenVortex(τ, scale, static = true)
 
-        result = lbm.simulate(example, quadrature, base = 20);
+        result = LatticeBoltzmann.simulate(example, quadrature, base = 20);
         # @show result[2]
         push!(stats, [ν, scale, result[2]])
     end

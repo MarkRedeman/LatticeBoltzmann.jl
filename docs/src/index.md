@@ -1,3 +1,3 @@
-# lbm
+# LatticeBoltzmann
 
 *Documentation goes here.*

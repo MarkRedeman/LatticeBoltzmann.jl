@@ -30,9 +30,9 @@ function visualize(problem::FluidFlowProblem, quadrature::Quadrature, f_in, time
         x = x_range[x_idx]
         y = y_range[y_idx]
 
-        density_field[x_idx, y_idx] = lbm.density(quadrature, problem, x, y, time)
-        pressure_field[x_idx, y_idx] = lbm.pressure(quadrature, problem, x, y, time)
-        velocity_field[x_idx, y_idx, :] = lbm.velocity(problem, x, y, time)
+        density_field[x_idx, y_idx] = LatticeBoltzmann.density(quadrature, problem, x, y, time)
+        pressure_field[x_idx, y_idx] = LatticeBoltzmann.pressure(quadrature, problem, x, y, time)
+        velocity_field[x_idx, y_idx, :] = LatticeBoltzmann.velocity(problem, x, y, time)
         σ_exact = deviatoric_tensor(q, problem, x, y, time)
         σ_xx_field[x_idx, y_idx] = σ_exact[1, 1]
         σ_xy_field[x_idx, y_idx] = σ_exact[1, 2]
@@ -43,7 +43,7 @@ function visualize(problem::FluidFlowProblem, quadrature::Quadrature, f_in, time
         T_ = temperature(q, f, ρ_, u_)
         p_ = pressure(q, f, ρ_, u_)
 
-        τ = q.speed_of_sound_squared * lbm.lattice_viscosity(problem)
+        τ = q.speed_of_sound_squared * LatticeBoltzmann.lattice_viscosity(problem)
         σ_ = deviatoric_tensor(q, τ, f, ρ_, u_)
 
         ρ_ = dimensionless_density(problem, ρ_)

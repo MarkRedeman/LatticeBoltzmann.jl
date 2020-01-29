@@ -1,6 +1,6 @@
 module ExamplesShearWaveDecay
 
-include("lbm.jl")
+include("LatticeBoltzmann.jl")
 # using PGFPlotsX
 
 # using PGFPlots
@@ -37,7 +37,7 @@ include("lbm.jl")
 #     #     )
 
 
-#     #     result = lbm.simulate(problem, q, process_method = process_method, t_end = t_end)
+#     #     result = LatticeBoltzmann.simulate(problem, q, process_method = process_method, t_end = t_end)
 
 #     #     push!(stats, [ν, scale, result.processing_method.df[end]])
 #     # end
@@ -47,13 +47,13 @@ include("lbm.jl")
 #     results = map(scales) do scale
 #         problem = DecayingShearFlow(ν, scale, static = false)
 #         τ = 1.0
-#         problem = lbm.TGV(q, τ, scale)
+#         problem = LatticeBoltzmann.TGV(q, τ, scale)
 #         u_max = 0.01 / scale
 #         # ν = τ / (2.0 * q.speed_of_sound_squared)
 #         NX = Int(scale * 8)
 #         NY = Int(scale * 8)
 
-#         problem = lbm.TGV(q, τ, scale, NX, NY, u_max)
+#         problem = LatticeBoltzmann.TGV(q, τ, scale, NX, NY, u_max)
 
 
 #         Δt = delta_t(problem)
@@ -71,7 +71,7 @@ include("lbm.jl")
 #             StopCriteria(problem)
 #         )
 
-#         res = lbm.simulate(problem, q, process_method = process_method, t_end = t_end)
+#         res = LatticeBoltzmann.simulate(problem, q, process_method = process_method, t_end = t_end)
 #         @show res.processing_method.df[end]
 
 #         return res.processing_method.df[end]
@@ -104,7 +104,7 @@ function shear_wave_optimal_relaxation_time()
         s3 = []
         # for q in (D2Q9 = D2Q9(), D2Q13 = D2Q13(), D2Q17 = D2Q17(), D2Q21 = D2Q21(), D2Q37 = D2Q37())
         for q in [D2Q9()]
-            # for q in lbm.Quadratures
+            # for q in LatticeBoltzmann.Quadratures
             stats = DataFrame([Float64[], Float64[], Float64[], Quadrature[]], [:τ, :ν, :error_u, :q])
             # for τ = 0.5:0.01:100.0
             τs = 0.5 .+ [10^i for i in range(-8, 1.5, length = 1000)]
@@ -115,7 +115,7 @@ function shear_wave_optimal_relaxation_time()
                 # problem = PoiseuilleFlow(ν, 2, static = true)
                 problem = CouetteFlow(ν, 2, static = true)
 
-                result = lbm.simulate(
+                result = LatticeBoltzmann.simulate(
                     problem,
                     q,
                     t_end = 1.0,
@@ -208,7 +208,7 @@ function shear_wave_convergence_analysis(q = D2Q9(), initialization_strategy = A
             problem,
             false,
             n_steps,
-            lbm.NoStoppingCriteria()
+            LatticeBoltzmann.NoStoppingCriteria()
         )
         @show scale problem initialization_strategy n_steps
 
@@ -468,19 +468,19 @@ function plot_snapshots(problem, snapshot_results, snapshots, q)
             T_ = temperature(q, f, ρ_, u_)
             p_ = pressure(q, f, ρ_, u_)
 
-            τ = q.speed_of_sound_squared * lbm.lattice_viscosity(problem)
-            σ_ = lbm.deviatoric_tensor(q, τ, f, ρ_, u_)
+            τ = q.speed_of_sound_squared * LatticeBoltzmann.lattice_viscosity(problem)
+            σ_ = LatticeBoltzmann.deviatoric_tensor(q, τ, f, ρ_, u_)
 
-            ρ_ = lbm.dimensionless_density(problem, ρ_)
-            u_ = lbm.dimensionless_velocity(problem, u_)
-            T_ = lbm.dimensionless_temperature(q, problem, T_)
-            p_ = lbm.dimensionless_pressure(q, problem, p_)
+            ρ_ = LatticeBoltzmann.dimensionless_density(problem, ρ_)
+            u_ = LatticeBoltzmann.dimensionless_velocity(problem, u_)
+            T_ = LatticeBoltzmann.dimensionless_temperature(q, problem, T_)
+            p_ = LatticeBoltzmann.dimensionless_pressure(q, problem, p_)
             ρ[x_idx, y_idx] = ρ_
             u[x_idx, y_idx, :] = u_
             p[x_idx, y_idx] = p_
             T[x_idx, y_idx] = T_
 
-            σ_ = lbm.dimensionless_stress(problem, σ_)
+            σ_ = LatticeBoltzmann.dimensionless_stress(problem, σ_)
             σ_xx[x_idx, y_idx] = σ_[1, 1]
             σ_xy[x_idx, y_idx] = σ_[1, 2]
         end
@@ -490,9 +490,9 @@ function plot_snapshots(problem, snapshot_results, snapshots, q)
 
 
         x_range, y_range = range(problem)
-        velocity = (x, y, t) -> lbm.velocity(problem, x, y, t)
-        σ = (x, y, t) -> lbm.deviatoric_tensor(q, problem, x, y, t)
-        pr = (x, y, t) -> lbm.pressure(q, problem, x, y, t)
+        velocity = (x, y, t) -> LatticeBoltzmann.velocity(problem, x, y, t)
+        σ = (x, y, t) -> LatticeBoltzmann.deviatoric_tensor(q, problem, x, y, t)
+        pr = (x, y, t) -> LatticeBoltzmann.pressure(q, problem, x, y, t)
 
         exact_range = range(0.0, length = 1000, stop = problem.domain_size[1])
 
@@ -526,7 +526,7 @@ end
 
 function show_velocity_evolution_of_steady_state()
     problem = DecayingShearFlow(1.0 / 6.0, 16, A = 0.5, static = true)
-    ν = lbm.viscosity(problem)
+    ν = LatticeBoltzmann.viscosity(problem)
     Δt = delta_t(problem);
     snapshot_at = round.(Int, [
         0.01 * 1.0 / (ν * Δt),
@@ -542,12 +542,12 @@ function show_velocity_evolution_of_steady_state()
     result = simulate(
         problem,
         q,
-        t_end = 10.0 / lbm.viscosity(problem),
-        process_method = lbm.TakeSnapshots(problem, snapshot_at),
-        initialization_strategy = lbm.ZeroVelocityInitialCondition()
+        t_end = 10.0 / LatticeBoltzmann.viscosity(problem),
+        process_method = LatticeBoltzmann.TakeSnapshots(problem, snapshot_at),
+        initialization_strategy = LatticeBoltzmann.ZeroVelocityInitialCondition()
     );
 
-    p = lbm.visualize(result.processing_method, q)
+    p = LatticeBoltzmann.visualize(result.processing_method, q)
     plot!(p.velocity_profile_x, legend = nothing)
     return p
 end

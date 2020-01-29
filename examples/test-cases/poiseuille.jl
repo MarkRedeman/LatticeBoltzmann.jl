@@ -1,10 +1,10 @@
-using lbm, Plots, DataFrames
+using LatticeBoltzmann, Plots, DataFrames
 using LaTeXStrings
 
 module Examples
 module Poiseuille
 
-using lbm, Plots, DataFrames
+using LatticeBoltzmann, Plots, DataFrames
 # using ElectronDisplay
 using LaTeXStrings
 using JLD2
@@ -13,7 +13,7 @@ using JLD2
 # using PGFPlotsX
 # pgfplots() # x?
 
-import lbm: StopCriteria,
+import LatticeBoltzmann: StopCriteria,
     CompareWithAnalyticalSolution,
     TrackHydrodynamicErrors,
     ZeroVelocityInitialCondition,
@@ -308,7 +308,7 @@ end
 
 function main(τ = 1.0, scale = 2)
     problem = PoiseuilleFlow(1.0 / 6.0, 32)
-    ν = lbm.viscosity(problem)
+    ν = LatticeBoltzmann.viscosity(problem)
     Δt = delta_t(problem)
     snapshot_at = round.(Int, [
         # 0.0005 * 1.0 / (ν * Δt),
@@ -329,9 +329,9 @@ function main(τ = 1.0, scale = 2)
     simulate(
         problem,
         D2Q9(),
-        t_end = 5.0 / lbm.viscosity(problem),
-        process_method = lbm.TakeSnapshots(problem, snapshot_at),
-        initialization_strategy = lbm.ZeroVelocityInitialCondition()
+        t_end = 5.0 / LatticeBoltzmann.viscosity(problem),
+        process_method = LatticeBoltzmann.TakeSnapshots(problem, snapshot_at),
+        initialization_strategy = LatticeBoltzmann.ZeroVelocityInitialCondition()
     );
 
     quadratures = [

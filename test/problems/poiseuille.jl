@@ -4,7 +4,7 @@
     scale = 1
     ν = 1.0 / 6.0
     problem = PoiseuilleFlow(ν, scale, static = true)
-    f_in = lbm.initialize(AnalyticalEquilibrium(), q, problem)
+    f_in = LatticeBoltzmann.initialize(AnalyticalEquilibrium(), q, problem)
     f_out = copy(f_in)
     collision_operator = CollisionModel(SRT, q, problem)
 
@@ -16,15 +16,15 @@
     for x_idx in 2, y_idx = 1:size(f_in, 2)
         f = f_in[x_idx, y_idx, :]
 
-        ρ = lbm.density(q, f)
-        lbm.velocity!(q, f, ρ, u)
-        T = lbm.temperature(q, f, ρ, u)
+        ρ = LatticeBoltzmann.density(q, f)
+        LatticeBoltzmann.velocity!(q, f, ρ, u)
+        T = LatticeBoltzmann.temperature(q, f, ρ, u)
         # @show y_idx, u, f
     end
 
     # @show size(f_in)
     t = 0
-    Δt = lbm.delta_t(problem)
+    Δt = LatticeBoltzmann.delta_t(problem)
     o = size(f_in, 2)
     p = size(f_in, 2) - 1
     # @show f_in[4, 1, :]
@@ -34,8 +34,8 @@
     # @show f_in[2, 1, :] .- f_in[2, o, :]
     # @show f_in
     # @show f_in[4, 2, :] .- f_in[4, p, :]
-    # lbm.collide!(collision_operator, q, f_in, f_out, time = t * Δt, problem = problem)
-    lbm.collide!(collision_operator, q, time = t * Δt, f_old = f_in, f_new = f_out)
+    # LatticeBoltzmann.collide!(collision_operator, q, f_in, f_out, time = t * Δt, problem = problem)
+    LatticeBoltzmann.collide!(collision_operator, q, time = t * Δt, f_old = f_in, f_new = f_out)
     # f_out = copy(f_in)
 
     # @show "after collision"
@@ -57,15 +57,15 @@
     #     @show f_in[5, y_idx, :]
     # end
 
-    # lbm.apply_boundary_conditions!(q, problem, f_new = f_in, f_old = f_out, time = t * Δt)
-    # lbm.apply_boundary_conditions!(q, problem, f_out, f_in, time = t * Δt)
+    # LatticeBoltzmann.apply_boundary_conditions!(q, problem, f_new = f_in, f_old = f_out, time = t * Δt)
+    # LatticeBoltzmann.apply_boundary_conditions!(q, problem, f_out, f_in, time = t * Δt)
     # @show "after boundary"
     # @show f_out[2, 1, :] .- f_out[2, o, :]
     # @show f_out
 
         # stream!(quadrature, f_out, f_in)
-    lbm.stream!(q, f_new = f_in, f_old = f_out)
-    # lbm.stream!(q, f_out, f_in)
+    LatticeBoltzmann.stream!(q, f_new = f_in, f_old = f_out)
+    # LatticeBoltzmann.stream!(q, f_out, f_in)
     # @show "after stream"
     # @show f_in[2, 1, :]
     # @show f_in[2, o, :]
@@ -80,8 +80,8 @@
     for x_idx in 2, y_idx = 1:size(f_in, 2)
         f = f_in[x_idx, y_idx, :]
 
-        ρ = lbm.density(q, f)
-        lbm.velocity!(q, f, ρ, u)
+        ρ = LatticeBoltzmann.density(q, f)
+        LatticeBoltzmann.velocity!(q, f, ρ, u)
         T = temperature(q, f, ρ, u)
         # @show y_idx, u, f
     end
@@ -95,15 +95,15 @@
     for x_idx in 2, y_idx = 1:size(f_in, 2)
         f = f_in[x_idx, y_idx, :]
 
-        ρ = lbm.density(q, f)
-        lbm.velocity!(q, f, ρ, u)
+        ρ = LatticeBoltzmann.density(q, f)
+        LatticeBoltzmann.velocity!(q, f, ρ, u)
         T = temperature(q, f, ρ, u)
 
         # @show y_idx, u, f
     end
 
     # @show "Simulate"
-    # result = lbm.simulate(problem, q, base = 200, should_process=false)
+    # result = LatticeBoltzmann.simulate(problem, q, base = 200, should_process=false)
     # @show "DONE"
 
     # TODO: when an a thermal model is considered, the density fluctuates

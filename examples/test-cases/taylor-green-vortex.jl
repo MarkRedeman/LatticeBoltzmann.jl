@@ -1,9 +1,9 @@
-using lbm, Plots, DataFrames
+using LatticeBoltzmann, Plots, DataFrames
 using LaTeXStrings
 
 module ExampleTaylorGreenVortex
 
-using lbm, Plots, DataFrames
+using LatticeBoltzmann, Plots, DataFrames
 # using ElectronDisplay
 using LaTeXStrings
 using JLD2
@@ -12,7 +12,7 @@ using JLD2
 # using PGFPlotsX
 # pgfplots() # x?
 
-import lbm: StopCriteria,
+import LatticeBoltzmann: StopCriteria,
     CompareWithAnalyticalSolution,
     TrackHydrodynamicErrors,
     ZeroVelocityInitialCondition,
@@ -90,7 +90,7 @@ function taylor_green_vortex_convergence_analysis(q = D2Q9(), initialization_str
             problem,
             false,
             n_steps,
-            lbm.NoStoppingCriteria()
+            LatticeBoltzmann.NoStoppingCriteria()
         )
         @show scale problem initialization_strategy n_steps
 

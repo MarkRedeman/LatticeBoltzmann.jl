@@ -1,5 +1,5 @@
 """
-Show all quadratures currently implemented in lbm.jl
+Show all quadratures currently implemented in LatticeBoltzmann.jl
 """
 function plot_quadratures(color_each_group_separatly = false)
     plot(map(q -> plot_quadrature(q, color_each_group_separatly), Quadratures)...)

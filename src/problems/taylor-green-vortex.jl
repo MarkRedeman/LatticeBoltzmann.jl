@@ -1,4 +1,4 @@
-struct TaylorGreenVortex <: lbm.FluidFlowProblem
+struct TaylorGreenVortex <: FluidFlowProblem
     rho_0::Float64
     u_max::Float64
     ν::Float64

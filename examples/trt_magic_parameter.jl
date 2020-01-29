@@ -1,5 +1,5 @@
 using DataFrames
-using lbm
+using LatticeBoltzmann
 using Plots
 
 # let
@@ -16,7 +16,7 @@ using Plots
         range(0.75, stop = 1.0, step = 0.05)
     )
 
-    Quadratures = lbm.Quadratures
+    Quadratures = LatticeBoltzmann.Quadratures
     Quadratures = [D2Q9()]
 
     for q in Quadratures
@@ -33,12 +33,12 @@ using Plots
         ])
 
         for Λ = Λ_range
-            result = lbm.simulate(
+            result = LatticeBoltzmann.simulate(
                 problem,
                 q,
                 t_end = 0.15,
                 should_process = false,
-                collision_model=lbm.TRT_Λ(Λ)
+                collision_model=LatticeBoltzmann.TRT_Λ(Λ)
             )
 
             if (! isnan(result.processing_method.df[end].error_u))

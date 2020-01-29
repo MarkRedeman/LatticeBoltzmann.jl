@@ -15,7 +15,7 @@ function initial_condition(::AnalyticalEquilibriumAndOffEquilibrium, q::Quadratu
 
     σ = problem.u_max^2 * deviatoric_tensor(q, problem, x, y, 0.0)
     ∇u = problem.u_max^2 * velocity_gradient(problem, x, y, 0.0)
-    τ = q.speed_of_sound_squared * lbm.lattice_viscosity(problem)
+    τ = q.speed_of_sound_squared * LatticeBoltzmann.lattice_viscosity(problem)
 
     cs = q.speed_of_sound_squared
     # @show σ ./ deviatoric_tensor(q, τ, f, density(q, f), velocity(q, f))
@@ -57,12 +57,12 @@ function initial_condition(::AnalyticalEquilibriumAndOffEquilibrium, q::Quadratu
 
     @show "HIER"
     @show σ ∇u (∇u + ∇u')
-    τ = q.speed_of_sound_squared * lbm.lattice_viscosity(problem)
+    τ = q.speed_of_sound_squared * LatticeBoltzmann.lattice_viscosity(problem)
     cs = problem.q.speed_of_sound_squared
     τ = cs * problem.τ
     ν = problem.ν
 
-    τ = q.speed_of_sound_squared * lbm.lattice_viscosity(problem)
+    τ = q.speed_of_sound_squared * LatticeBoltzmann.lattice_viscosity(problem)
 
     @show σ + (∇u + ∇u') * viscosity(problem)
     @show viscosity(problem), ((τ + 0.5) * cs)

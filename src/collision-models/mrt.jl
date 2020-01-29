@@ -58,7 +58,7 @@ function collide_mrt!(collision_model::MRT{Force}, q, f_in, f_out; time = 0.0) w
     τs = collision_model.τs
 
     D = dimension(q)
-    N = div(lbm.order(q), 2)
+    N = div(LatticeBoltzmann.order(q), 2)
 
     # Compute (get!?) the hermite polynomials for this quadrature
     Hs = collision_model.Hs

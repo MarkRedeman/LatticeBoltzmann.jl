@@ -98,10 +98,10 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
     Δ_ = Δ
     Δ = 1.0
 
-    τ = q.speed_of_sound_squared * lbm.lattice_viscosity(problem) + 0.5
+    τ = q.speed_of_sound_squared * LatticeBoltzmann.lattice_viscosity(problem) + 0.5
 
     D = dimension(q)
-    N = div(lbm.order(q), 2)
+    N = div(LatticeBoltzmann.order(q), 2)
     N = 2
     Hs = [[hermite(Val{n}, q.abscissae[:, i], q) for i = 1:length(q.weights)] for n = 1:N]
 
@@ -124,9 +124,9 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         y = y_range[y_idx]
 
         # Compute expected marcroscopic variables
-        expected_ρ = lbm.density(q, problem, x, y, time)
-        expected_u = lbm.velocity(problem, x, y, time)
-        expected_p = lbm.pressure(q, problem, x, y, time)
+        expected_ρ = LatticeBoltzmann.density(q, problem, x, y, time)
+        expected_u = LatticeBoltzmann.velocity(problem, x, y, time)
+        expected_p = LatticeBoltzmann.pressure(q, problem, x, y, time)
         expected_ϵ = (dimension(q) / 2) * expected_p / expected_ρ
         expected_T = expected_p / expected_ρ
         expected_σ = deviatoric_tensor(q, problem, x, y, time)
@@ -152,7 +152,7 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         # u += cm.τ * F
 
         # Hermite coefficients of \bar{f}
-        τ = q.speed_of_sound_squared * lbm.lattice_viscosity(problem)
+        τ = q.speed_of_sound_squared * LatticeBoltzmann.lattice_viscosity(problem)
         a_bar_2 = sum([f[idx] * Hs[2][idx] for idx = 1:length(q.weights)])
         a_eq_2 = equilibrium_coefficient(Val{2}, q, ρ, u, 1.0)
 
@@ -182,7 +182,7 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         P = a_2 - ρ * (u * u' - I)
         σ_lb = P - I * tr(P) / D
 
-        τ = q.speed_of_sound_squared * lbm.lattice_viscosity(problem)
+        τ = q.speed_of_sound_squared * LatticeBoltzmann.lattice_viscosity(problem)
         σ_lb = deviatoric_tensor(q, τ, f, ρ, u)
         # σ_lb = deviatoric_tensor(q, problem.τ * q.speed_of_sound_squared, f, ρ, u)
 

@@ -1,4 +1,4 @@
-struct TGV <: lbm.FluidFlowProblem
+struct TGV <: FluidFlowProblem
     q::Quadrature
     ρ_0::Float64
     u_max::Float64

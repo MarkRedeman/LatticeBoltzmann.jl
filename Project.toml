@@ -1,4 +1,4 @@
-name = "lbm"
+name = "LatticeBoltzmann"
 uuid = "526e4760-eb3d-5248-b1e2-01577cc532b6"
 authors = ["Mark Redeman <markredeman@gmail.com>"]
 version = "0.1.0"

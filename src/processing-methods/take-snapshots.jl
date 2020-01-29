@@ -65,20 +65,20 @@ function visualize(pm::TakeSnapshots, q::Quadrature)
             T_ = temperature(q, f, ρ_, u_)
             p_ = pressure(q, f, ρ_, u_)
 
-            τ = q.speed_of_sound_squared * lbm.lattice_viscosity(problem)
-            σ_ = lbm.deviatoric_tensor(q, τ, f, ρ_, u_)
+            τ = q.speed_of_sound_squared * LatticeBoltzmann.lattice_viscosity(problem)
+            σ_ = LatticeBoltzmann.deviatoric_tensor(q, τ, f, ρ_, u_)
 
-            ρ_ = lbm.dimensionless_density(problem, ρ_)
-            u_ = lbm.dimensionless_velocity(problem, u_)
-            T_ = lbm.dimensionless_temperature(q, problem, T_)
-            p_ = lbm.dimensionless_pressure(q, problem, p_)
+            ρ_ = LatticeBoltzmann.dimensionless_density(problem, ρ_)
+            u_ = LatticeBoltzmann.dimensionless_velocity(problem, u_)
+            T_ = LatticeBoltzmann.dimensionless_temperature(q, problem, T_)
+            p_ = LatticeBoltzmann.dimensionless_pressure(q, problem, p_)
             ρ[x_idx, y_idx] = ρ_
             u[x_idx, y_idx, :] = u_
             p[x_idx, y_idx] = p_
             T[x_idx, y_idx] = T_
 
-            # u[x_idx, y_idx, :] .-= lbm.velocity(problem, x, y, time)
-            σ_ = lbm.dimensionless_stress(problem, σ_)
+            # u[x_idx, y_idx, :] .-= LatticeBoltzmann.velocity(problem, x, y, time)
+            σ_ = LatticeBoltzmann.dimensionless_stress(problem, σ_)
             σ_xx[x_idx, y_idx] = σ_[1, 1]
             σ_xy[x_idx, y_idx] = σ_[1, 2]
         end
@@ -88,9 +88,9 @@ function visualize(pm::TakeSnapshots, q::Quadrature)
         domain = x_range[1:Nx]
 
         x_range, y_range = range(problem)
-        velocity = (x, y, t) -> lbm.velocity(problem, x, y, t)
-        σ = (x, y, t) -> lbm.deviatoric_tensor(q, problem, x, y, t)
-        pr = (x, y, t) -> lbm.pressure(q, problem, x, y, t)
+        velocity = (x, y, t) -> LatticeBoltzmann.velocity(problem, x, y, t)
+        σ = (x, y, t) -> LatticeBoltzmann.deviatoric_tensor(q, problem, x, y, t)
+        pr = (x, y, t) -> LatticeBoltzmann.pressure(q, problem, x, y, t)
 
         exact_range = range(0.0, length = 1000, stop = problem.domain_size[1])
 

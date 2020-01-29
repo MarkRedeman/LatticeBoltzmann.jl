@@ -198,10 +198,10 @@ function process!(
         y = y_range[y_idx]
 
         # Compute statistics
-        expected_ρ = lbm.density(q, problem, x, y, time)
-        expected_p = lbm.pressure(q, problem, x, y, time)
+        expected_ρ = LatticeBoltzmann.density(q, problem, x, y, time)
+        expected_p = LatticeBoltzmann.pressure(q, problem, x, y, time)
         expected_ϵ = (dimension(q) / 2) * expected_p / expected_ρ
-        expected_v = lbm.velocity(problem, x, y, time)
+        expected_v = LatticeBoltzmann.velocity(problem, x, y, time)
         expected_T = expected_p / expected_ρ
 
         # @show u[1], expected_v[1]

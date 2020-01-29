@@ -1,4 +1,4 @@
-using lbm, Plots, DataFrames
+using LatticeBoltzmann, Plots, DataFrames
 
 function plot_convergence_analysis_of(x)
 p = plot()
@@ -16,7 +16,7 @@ end
 
 q = D2Q9(); @time x = map(
     scale -> begin
-    result = lbm.simulate(
+    result = LatticeBoltzmann.simulate(
         DecayingShearFlow(1.000/ (q.speed_of_sound_squared * 2), scale, static = false),
         q,
         t_end = 0.1250,
@@ -30,7 +30,7 @@ q = D2Q9(); @time x = map(
 q = D2Q9();
 scale = 2//1;
 τ = 1.00 / (2 *q.speed_of_sound_squared);
-result = lbm.simulate(TaylorGreenVortex(τ, scale, static = false), q, t_end = 0.1250, should_process=true);
+result = LatticeBoltzmann.simulate(TaylorGreenVortex(τ, scale, static = false), q, t_end = 0.1250, should_process=true);
 
 Nx = 31
 Ny = 17
@@ -54,7 +54,7 @@ for scale in scales
 
     problem = TaylorGreenVortex(ρ_0, u_max, ν, NX, NY, (2pi, 2pi), false, A, B, a, b)
 
-    result = lbm.simulate(
+    result = LatticeBoltzmann.simulate(
         problem,
         q,
         t_end = 1.0,
@@ -72,7 +72,7 @@ scales = [1//2, 1, 2, 4, 8]
 
     problem = TaylorGreenVortex(ρ_0, u_max, ν, NX, NY, (2pi, 2pi), false, A, B, a, b)
 
-    result = lbm.simulate(
+    result = LatticeBoltzmann.simulate(
         problem,
         q,
         # t_end = 1.0,
@@ -86,7 +86,7 @@ scales = [1//2, 1, 2, 4, 8]
 
 q = D2Q9(); @time x = map(
            scale -> begin
-           result = lbm.simulate(
+           result = LatticeBoltzmann.simulate(
                TaylorGreenVortex(1.000/ (q.speed_of_sound_squared * 2), scale, static = false),
                q,
                t_end = 0.1250,
