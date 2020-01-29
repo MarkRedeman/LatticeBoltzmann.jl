@@ -53,8 +53,17 @@ TrackHydrodynamicErrors(
 )
 
 function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
-    if (!process_method.should_process)
-        if (t != process_method.n_steps)
+    should_stop = false
+
+    if mod(t, 100) == 0
+        if (should_stop!(process_method.stop_criteria, q, f_in))
+            @info "Stopping after $t iterations"
+            should_stop = true
+        end
+    end
+
+    if (should_stop == false && t != process_method.n_steps)
+        if (!process_method.should_process)
             return false
         end
     end
@@ -177,15 +186,6 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         σ_lb = deviatoric_tensor(q, τ, f, ρ, u)
         # σ_lb = deviatoric_tensor(q, problem.τ * q.speed_of_sound_squared, f, ρ, u)
 
-        if (x_idx == div(nx, 2) && y_idx == 1)
-            # @show τ, problem.τ * q.speed_of_sound_squared
-            @show σ_lb
-            # @show deviatoric_tensor(q, problem.τ * q.speed_of_sound_squared, f, ρ, u)
-            @show expected_σ
-            # @show (expected_p - p) (expected_p - tr(P) / D)
-            # @show (expected_p - p1)
-            # @show expected_p p tr(P) / D p1
-        end
         # Gives 4th order convergence?
         p = tr(P) /D
 
@@ -239,13 +239,6 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         ),
     )
 
-    if mod(t, 100) == 0
-        if (should_stop!(process_method.stop_criteria, q, f_in))
-            @info "Stopping after $t iterations"
-            return true
-        end
-    end
-
     if mod(t, 1) == 0
         should_visualize = false
         if (process_method.should_process)
@@ -264,5 +257,6 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         end
     end
 
+    return should_stop
     return false
 end
