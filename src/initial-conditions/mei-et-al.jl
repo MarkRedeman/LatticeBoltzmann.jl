@@ -33,7 +33,7 @@ function initialize(
         ProcessIterativeInitialization(strategy.ϵ, problem, process_method)
     )
 
-    simulate(lbm, 1:500)
+    simulate(lbm, 1:10000)
 
     return lbm.f_stream
 end
