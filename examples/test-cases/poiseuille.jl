@@ -307,6 +307,33 @@ end
 
 
 function main(τ = 1.0, scale = 2)
+    problem = PoiseuilleFlow(1.0 / 6.0, 32)
+    ν = lbm.viscosity(problem)
+    Δt = delta_t(problem)
+    snapshot_at = round.(Int, [
+        # 0.0005 * 1.0 / (ν * Δt),
+        0.005 * 1.0 / (ν * Δt),
+        0.05 * 1.0 / (ν * Δt),
+        # 0.5 * 1.0 / (ν * Δt),
+        5.0 * 1.0 / (ν * Δt)
+    ])
+
+    snapshot_at = round.(Int, [
+        0.01 * 1.0 / (ν * Δt),
+        0.05 * 1.0 / (ν * Δt),
+        0.1 * 1.0 / (ν * Δt),
+        # 0.5 * 1.0 / (ν * Δt),
+        1.0 * 1.0 / (ν * Δt)
+    ])
+
+    simulate(
+        problem,
+        D2Q9(),
+        t_end = 5.0 / lbm.viscosity(problem),
+        process_method = lbm.TakeSnapshots(problem, snapshot_at),
+        initialization_strategy = lbm.ZeroVelocityInitialCondition()
+    );
+
     quadratures = [
         D2Q4(),
         D2Q5(),
