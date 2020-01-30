@@ -2,8 +2,6 @@ abstract type Quadrature end
 
 dimension(q::Q) where { Q <: Quadrature } = 2
 
-const Population = AbstractVector{Float64}
-
 """
 Get the index of the abscissae pointing in the opposite direction of the given index
 
