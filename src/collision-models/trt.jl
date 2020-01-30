@@ -1,6 +1,6 @@
-struct TRT{Force} <: CollisionModel
-    τ_symmetric::Float64
-    τ_asymmetric::Float64
+struct TRT{Force, T <: Real} <: CollisionModel
+    τ_symmetric::T
+    τ_asymmetric::T
     force::Force
 end
 
@@ -32,8 +32,8 @@ According to [TODO cite] Λ has the following effect:
   Poiseuille flow exactly in the middle between horizontal walls and fluid nodes.
 - Λ = 1 / 4 # Provides the most stable simulations
 """
-struct TRT_Λ
-    Λ::Float64
+struct TRT_Λ{T <: Real}
+    Λ::T
 end
 function CollisionModel(cm::TRT_Λ, q::Quadrature, problem::FluidFlowProblem)
     CollisionModel(TRT, q, problem, Λ = cm.Λ)
@@ -42,15 +42,15 @@ end
 function collide!(
     collision_model::TRT{Force},
     q::Quadrature,
-    f_in,
-    f_out;
+    f_in::Populations,
+    f_out::Populations;
     time = 0.0,
-) where {Force}
+) where {Force, T <: Real, Populations <: AbstractArray{T, 3}}
     τ_s = collision_model.τ_symmetric
     τ_a = collision_model.τ_asymmetric
 
-    feq = Array{Float64}(undef, size(f_in, 3))
-    f = Array{Float64}(undef, size(f_in, 3))
+    feq = Array{T}(undef, size(f_in, 3))
+    f = Array{T}(undef, size(f_in, 3))
     u = zeros(dimension(q))
     if !(Force <: Nothing)
         F = zeros(dimension(q))
@@ -68,15 +68,15 @@ function collide!(
         velocity!(q, f, ρ, u)
 
         # Temperature
-        # T = temperature(q, f, ρ, u)
-        T = 1.0
+        # temperature = temperature(q, f, ρ, u)
+        temperature = 1.0
 
         if Force <: Nothing
-            equilibrium!(q, ρ, u, T, feq)
+            equilibrium!(q, ρ, u, temperature, feq)
         else
             F .= collision_model.force(x, y, time)
 
-            equilibrium!(q, ρ, u + τ_s * F, T, feq)
+            equilibrium!(q, ρ, u + τ_s * F, temperature, feq)
         end
 
         @inbounds for f_idx = 1:nf

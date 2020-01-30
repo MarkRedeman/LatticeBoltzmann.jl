@@ -18,14 +18,14 @@ end
 function collide!(
     collision_model::SRT{Force},
     q::Quadrature,
-    f_in,
-    f_out;
+    f_in::Populations,
+    f_out::Populations;
     time = 0.0,
-) where {Force}
+) where {Force, T <: Real, Populations <: AbstractArray{T, 3}}
     τ = collision_model.τ
 
-    feq = Array{Float64}(undef, size(f_in, 3))
-    f = Array{Float64}(undef, size(f_in, 3))
+    feq = Array{T}(undef, size(f_in, 3))
+    f = Array{T}(undef, size(f_in, 3))
     u = zeros(dimension(q))
     if !(Force <: Nothing)
         F = zeros(dimension(q))
@@ -43,15 +43,15 @@ function collide!(
         velocity!(q, f, ρ, u)
 
         # Temperature
-        # T = temperature(q, f, ρ, u)
-        T = 1.0
+        # temperature = temperature(q, f, ρ, u)
+        temperature = 1.0
 
         if Force <: Nothing
-            equilibrium!(q, ρ, u, T, feq)
+            equilibrium!(q, ρ, u, temperature, feq)
         else
             F .= collision_model.force(x, y, time)
 
-            equilibrium!(q, ρ, u + τ * F, T, feq)
+            equilibrium!(q, ρ, u + τ * F, temperature, feq)
         end
 
         @inbounds for f_idx = 1:nf

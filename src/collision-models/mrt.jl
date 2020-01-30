@@ -1,13 +1,14 @@
 struct MRT{
     Force,
-    VT <: AbstractVector{Float64},
-    HST <: AbstractVector{Array{T,1} where T},
-    AST <: AbstractVector{Array{T,1} where T}
+    T <: Real,
+    VT <: AbstractVector{T},
+    HST <: AbstractVector{Array{T,1}},
+    AST <: AbstractVector{Array{T,1}}
 } <: CollisionModel
     τs::VT
 
     # We will be using Hermite polynomials to compute the corresponding coefficients
-    H0::Float64
+    H0::T
     Hs::HST
     # Keep higher order coefficients allocated
     As::AST
@@ -15,17 +16,17 @@ struct MRT{
     force::Force
 end
 
-function MRT(q::Quadrature, τ::Float64, force = nothing)
+function MRT(q::Quadrature, τ::T, force = nothing) where { T <: Real }
     N = round(Int, order(q) / 2)
     MRT(q, fill(τ, N))
 end
 
-function MRT(q::Quadrature, τ_s::Float64, τ_a::Float64, force = nothing)
+function MRT(q::Quadrature, τ_s::T, τ_a::T, force = nothing) where { T <: Real}
     N = round(Int, order(q) / 2)
     MRT(q, repeat([τ_s, τ_a], outer = N)[1:N])
 end
 
-function MRT(q::Quadrature, τs::VT, force = nothing) where { VT <: AbstractVector{Float64} }
+function MRT(q::Quadrature, τs::VT, force = nothing) where { VT <: AbstractVector{<:Real} }
     N = round(Int, order(q) / 2)
     Hs = [[hermite(Val{n}, q.abscissae[:, i], q) for i = 1:length(q.weights)] for n = 1:N]
 
@@ -52,7 +53,13 @@ end
 # NOTE: we can do some clever optimizations where we check the value of τ_n
 # If it is equal to 1, then we don't need to compute the nth hermite coefficient
 # of f
-function collide_mrt!(collision_model::MRT{Force}, q, f_in, f_out; time = 0.0) where {Force}
+function collide_mrt!(
+    collision_model::MRT{Force},
+    q,
+    f_in::Populations,
+    f_out::Populations;
+    time = 0.0,
+) where {Force, T <: Real, Populations <: AbstractArray{T, 3}}
     cs = q.speed_of_sound_squared
 
     τs = collision_model.τs
@@ -69,7 +76,7 @@ function collide_mrt!(collision_model::MRT{Force}, q, f_in, f_out; time = 0.0) w
         F = zeros(dimension(q))
     end
 
-    f = Array{Float64}(undef, nf)
+    f = Array{T}(undef, nf)
     u = zeros(dimension(q))
     @inbounds for x_idx = 1:nx, y_idx = 1:ny
         @inbounds for f_idx = 1:nf
@@ -78,8 +85,8 @@ function collide_mrt!(collision_model::MRT{Force}, q, f_in, f_out; time = 0.0) w
 
         ρ = density(q, f)
         velocity!(q, f, ρ, u)
-        # T = temperature(q, f, ρ, a_f[1], a_f[2])
-        T = 1.0
+        # temperature = temperature(q, f, ρ, a_f[1], a_f[2])
+        temperature = 1.0
 
         if !(Force <: Nothing)
             F .= collision_model.force(x_idx, y_idx, time)
@@ -89,7 +96,7 @@ function collide_mrt!(collision_model::MRT{Force}, q, f_in, f_out; time = 0.0) w
 
         # NOTE: we don't need to compute the 0th and 1st coefficient as these are equal
         # to a_f[0] and a_f[1]
-        a_eq = [equilibrium_coefficient(Val{n}, q, ρ, u, T) for n = 1:N]
+        a_eq = [equilibrium_coefficient(Val{n}, q, ρ, u, temperature) for n = 1:N]
 
         # NOTE: we could optimize this by only computing upto n = 2 when τ = 1.0
         a_f = [sum([f[idx] * Hs[n][idx] for idx = 1:length(q.weights)]) for n = 1:N]
