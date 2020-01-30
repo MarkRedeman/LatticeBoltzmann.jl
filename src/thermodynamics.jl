@@ -52,30 +52,6 @@ function momentum_flux(q::Quadrature, f::VT, ρ::Float64, u::VT) where { VT <: A
     return p
 end
 
-# total energy density
-function total_energy(q::Quadrature, f)
-    return sum(
-        [
-            f[x, y, f_idx] * (q.abscissae[:, f_idx]' * q.abscissae[:, f_idx])
-            for x = 1:size(f, 1), y = 1:size(f, 2), f_idx = 1:size(f, 3)
-        ],
-        dims = 3,
-    )
-end
-
-# internal energy density
-function internal_energy(q::Quadrature, f, ρ, u)
-    return total_energy(q, f) - kinetic_energy(q, f, ρ, u)
-end
-
-# kinetic energy density
-function kinetic_energy(q::Quadrature, f, ρ, u)
-    return [
-        ρ[x, y] * (u[x, y, 1] .^ 2 + u[x, y, 2] .^ 2)
-        for x = 1:size(f, 1), y = 1:size(f, 2)
-    ]
-end
-
 function temperature(q::Quadrature, f::VT, ρ::Float64, u::VT) where { VT <: AbstractVector{Float64} }
     return pressure(q, f, ρ, u) ./ ρ
 end
