@@ -81,19 +81,17 @@ end
 """
 Compute the temperature from hermite coefficients
 """
-function temperature(q::Q, f::VT, a_0::FT, a_1::VT, a_2::MT) where {
+function temperature(q::Q, f::VT, a_0::VT, a_1::VT, a_2::MT) where {
     Q <: Quadrature,
-    FT <: Real,
-    VT <: AbstractVector{FT},
-    MT <: AbstractMatrix{FT}
+    T <: Real,
+    VT <: AbstractVector{T},
+    MT <: AbstractMatrix{T}
 }
     D = dimension(q)
-    P = Array{Float64}(undef, D, D)
+    P = Array{T}(undef, D, D)
     ρ = a_0
     u = a_1 / ρ
     P = q.speed_of_sound_squared * a_2 - ρ * (u * u' - I(2))
 
-    T = tr(P) / (D * ρ)
-
-    return T
+    return tr(P) / (D * ρ)
 end
