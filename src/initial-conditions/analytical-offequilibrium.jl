@@ -7,11 +7,8 @@ p₀ = p₀(x)
 σ₀ = σ₀(x)
 """
 struct AnalyticalEquilibriumAndOffEquilibrium <: InitializationStrategy end
-function initial_condition(::AnalyticalEquilibriumAndOffEquilibrium, q::Quadrature, problem::FluidFlowProblem, x::Float64, y::Float64)
-    ρ = lattice_density(q, problem, x, y)
-    u = lattice_velocity(q, problem, x, y)
-    T = lattice_temperature(q, problem, x, y)
-    f = equilibrium(q, ρ, u, T)
+function initial_condition(::AnalyticalEquilibriumAndOffEquilibrium, q::Quadrature, problem::FluidFlowProblem, x::T, y::T) where { T <: Real }
+    f = equilibrium(q, problem, x, y)
 
     σ = problem.u_max^2 * deviatoric_tensor(q, problem, x, y, 0.0)
     ∇u = problem.u_max^2 * velocity_gradient(problem, x, y, 0.0)
@@ -44,12 +41,9 @@ function initial_condition(::AnalyticalEquilibriumAndOffEquilibrium, q::Quadratu
 
     return f
 end
-function initial_condition(::AnalyticalEquilibriumAndOffEquilibrium, q::Quadrature, problem::TGV, x::Float64, y::Float64)
+function initial_condition(::AnalyticalEquilibriumAndOffEquilibrium, q::Quadrature, problem::TGV, x::T, y::T) where { T <: Real }
     @warn "Calling old TGV function"
-    ρ = lattice_density(q, problem, x, y)
-    u = lattice_velocity(q, problem, x, y)
-    T = lattice_temperature(q, problem, x, y)
-    f = equilibrium(q, ρ, u, T)
+    f = equilibrium(q, problem, x, y)
 
     σ = deviatoric_tensor(q, problem, x, y, 0.0)
     ∇u = velocity_gradient(problem, x, y, 0.0)

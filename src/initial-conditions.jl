@@ -24,9 +24,9 @@ initial_condition(
     strategy::InitializationStrategy,
     q::Quadrature,
     problem::FluidFlowProblem,
-    x,
-    y
-) = initial_condition(q, problem, x, y)
+    x::T,
+    y::T
+) where { T <: Real } = initial_condition(q, problem, x, y)
 
 include("initial-conditions/constant-density.jl")
 include("initial-conditions/analytical-equilibrium.jl")
@@ -44,8 +44,8 @@ function initial_condition(
     ::ZeroVelocityInitialCondition,
     q::Quadrature,
     problem::FluidFlowProblem,
-    x::Float64,
-    y::Float64
-)
+    x::T,
+    y::T
+) where { T <: Real }
     copy(q.weights)
 end

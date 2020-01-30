@@ -6,10 +6,6 @@ u₀ = u₀(x)
 p₀ = p₀(x)
 """
 struct AnalyticalEquilibrium <: InitializationStrategy end
-function initial_condition(::AnalyticalEquilibrium, q::Quadrature, problem::FluidFlowProblem, x::Float64, y::Float64)
-    ρ = lattice_density(q, problem, x, y)
-    u = lattice_velocity(q, problem, x, y)
-    T = lattice_temperature(q, problem, x, y)
-
-    return equilibrium(q, ρ, u, T)
+function initial_condition(::AnalyticalEquilibrium, q::Quadrature, problem::FluidFlowProblem, x::T, y::T) where { T <: Real }
+    return equilibrium(q, problem, x, y)
 end

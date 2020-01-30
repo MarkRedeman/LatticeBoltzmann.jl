@@ -23,7 +23,7 @@ function density(
     return ρ̄ + δρ
 end
 # TODO Move computing the averages to the initialize function so that these can be computed globaly
-function initial_condition(::AnalyticalVelocity, q::Quadrature, problem::FluidFlowProblem, x::Float64, y::Float64)
+function initial_condition(::AnalyticalVelocity, q::Quadrature, problem::FluidFlowProblem, x::T, y::T) where { T <: Real }
     p̄ = average_pressure(problem)
     ρ̄ = average_density(problem)
 
@@ -31,7 +31,7 @@ function initial_condition(::AnalyticalVelocity, q::Quadrature, problem::FluidFl
     ρ = density(q, problem, x, y, p̄, ρ̄)
 
     u = lattice_velocity(q, problem, x, y),
-    T = pressure(problem, x, y) / ρ
+    temperature = pressure(problem, x, y) / ρ
 
-    return equilibrium(q, ρ, u, T)
+    return equilibrium(q, ρ, u, temperature)
 end

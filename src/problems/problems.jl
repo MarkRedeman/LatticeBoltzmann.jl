@@ -112,6 +112,15 @@ dimensionless_stress(problem::FluidFlowProblem, σ) = begin
     return σ * factor
 end
 
+function equilibrium(q::Quadrature, problem::FluidFlowProblem, x::T, y::T) where { T <: Real }
+    equilibrium(
+        q,
+        lattice_density(q, problem, x, y),
+        lattice_velocity(q, problem, x, y),
+        lattice_temperature(q, problem, x, y)
+    )
+end
+
 include("taylor-green-vortex.jl")
 include("decaying-shear-flow.jl")
 include("poiseuille.jl")

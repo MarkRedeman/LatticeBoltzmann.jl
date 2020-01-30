@@ -1,9 +1,9 @@
 """
 4. Initialization scheme from Mei et al
 """
-struct IterativeInitializationMeiEtAl <: InitializationStrategy
-    τ::Float64
-    ϵ::Float64
+struct IterativeInitializationMeiEtAl{T <: Real} <: InitializationStrategy
+    τ::T
+    ϵ::T
 end
 IterativeInitialization() = IterativeInitializationMeiEtAl(1.0, 1E-7)
 
@@ -87,8 +87,8 @@ function next!(process_method::ProcessIterativeInitialization3{T}, q, f_in, t) w
 end
 
 
-struct ItirativeInitializationCollisionModel{UT <: AbstractArray{Float64, 3}} <: CollisionModel
-    τ::Float64
+struct ItirativeInitializationCollisionModel{ T <: Real, UT <: AbstractArray{T, 3}} <: CollisionModel
+    τ::T
 
     # The incompressible equilibrium funciton can be split in a linear and a nonlinear component
     # the linear component depends on the local density while the nonlinear component depends
@@ -97,10 +97,10 @@ struct ItirativeInitializationCollisionModel{UT <: AbstractArray{Float64, 3}} <:
     # precompute the nonlinear term for some performance improvements
     nonlinear_term::UT
 end
-function ItirativeInitializationCollisionModel(q::Quadrature, τ,  problem)
+function ItirativeInitializationCollisionModel(q::Quadrature, τ::T,  problem) where { T <: Real }
     nx, ny, nf = problem.NX, problem.NY, length(q.weights)
-    nonlinear_term = Array{Float64}(undef, nx, ny, nf)
-    ρ_0 = 1.0
+    nonlinear_term = Array{T}(undef, nx, ny, nf)
+    ρ_0 = one(T)
 
     # Initialize f with the given velocity field
     x_range, y_range = range(problem)
