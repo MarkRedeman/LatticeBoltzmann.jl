@@ -4,12 +4,13 @@
 # Same as D2Q17, but vertical and horizontal vectors are extended by one
 
 struct D2Q21{
-    Abscissaes <: AbstractMatrix{Int64},
-    Weights <: AbstractVector{Float64}
+    T <: Real,
+    Abscissaes <: AbstractMatrix{<:Integer},
+    Weights <: AbstractVector{<:Real}
 } <: Quadrature
     abscissae::Abscissaes
     weights::Weights
-    speed_of_sound_squared::Float64
+    speed_of_sound_squared::T
 end
 function D2Q21()
     cs = sqrt(2 / 3)

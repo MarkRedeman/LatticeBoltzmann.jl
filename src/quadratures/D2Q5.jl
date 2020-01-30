@@ -5,12 +5,13 @@
 
 # From: E3,1,5
 struct D2Q5{
-    Abscissaes <: AbstractMatrix{Int64},
-    Weights <: AbstractVector{Float64}
+    T <: Real,
+    Abscissaes <: AbstractMatrix{<:Integer},
+    Weights <: AbstractVector{<:Real}
 } <: Quadrature
     abscissae::Abscissaes
     weights::Weights
-    speed_of_sound_squared::Float64
+    speed_of_sound_squared::T
 end
 
 D2Q5() = D2Q5(

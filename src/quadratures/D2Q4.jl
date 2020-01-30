@@ -4,12 +4,13 @@
 # const original_order = [1, 2 ,3, 4]
 
 struct D2Q4{
-    Abscissaes <: AbstractMatrix{Int64},
-    Weights <: AbstractVector{Float64}
+    T <: Real,
+    Abscissaes <: AbstractMatrix{<:Integer},
+    Weights <: AbstractVector{<:Real}
 } <: Quadrature
     abscissae::Abscissaes
     weights::Weights
-    speed_of_sound_squared::Float64
+    speed_of_sound_squared::T
 end
 
 D2Q4() = D2Q4(

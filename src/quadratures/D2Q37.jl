@@ -1,10 +1,11 @@
 struct D2Q37{
-    Abscissaes <: AbstractMatrix{Int64},
-    Weights <: AbstractVector{Float64}
+    T <: Real,
+    Abscissaes <: AbstractMatrix{<:Integer},
+    Weights <: AbstractVector{<:Real}
 } <: Quadrature
     abscissae::Abscissaes
     weights::Weights
-    speed_of_sound_squared::Float64
+    speed_of_sound_squared::T
 end
 
 D2Q37() = D2Q37(

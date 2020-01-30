@@ -10,12 +10,13 @@
 #
 # https://www.researchgate.net/profile/Zhaoli_Guo2/publication/23315587_Multiple-relaxation_time_model_for_the_correct_thermodynamic_equations/links/0046352b40f45699f8000000.pdf
 struct D2Q17{
-    Abscissaes <: AbstractMatrix{Int64},
-    Weights <: AbstractVector{Float64}
+    T <: Real,
+    Abscissaes <: AbstractMatrix{<:Integer},
+    Weights <: AbstractVector{<:Real}
 } <: Quadrature
     abscissae::Abscissaes
     weights::Weights
-    speed_of_sound_squared::Float64
+    speed_of_sound_squared::T
 end
 function D2Q17()
     sq = sqrt(193)
