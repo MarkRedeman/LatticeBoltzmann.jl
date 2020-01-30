@@ -2,15 +2,16 @@
 The MovingWall boundary condition applies a bounce back rule and adds a velocity
 to each distribution that is bounced back
 """
-struct MovingWall{D<:Direction,Ints, VT <: AbstractVector{Float64}} <: BoundaryCondition
+struct MovingWall{D<:Direction,Ints, T <: Real, VT <: AbstractVector{<:Real}} <: BoundaryCondition
     direction::D
     xs::Ints
     ys::Ints
     u::VT
-    ρ::Float64
-    T::Float64
+    ρ::T
+    T::T
 end
-MovingWall(direction, xs, ys, u) = MovingWall(direction, xs, ys, u, 1.0, 1.0)
+MovingWall(direction, xs, ys, u::VT) where { T <: Real,  VT <: AbstractVector{T} } =
+    MovingWall(direction, xs, ys, u, one(T), one(T))
 
 function apply!(bc::MovingWall{<:North}, q::Quadrature, f_new, f_old)
     cs = q.speed_of_sound_squared
