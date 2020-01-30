@@ -8,11 +8,11 @@ abstract type DoubleDistributionProblem <: FluidFlowProblem end
 has_external_force(::FluidFlowProblem) = false
 function velocity_gradient(
     ::FluidFlowProblem,
-    x::Float64,
-    y::Float64,
-    timestep::Float64 = 0.0,
-)
-    return zeros(2, 2)
+    x::T,
+    y::T,
+    timestep::Real = 0.0,
+) where { T <: Real }
+    return zeros(T, 2, 2)
 end
 
 function range(problem::FluidFlowProblem)
@@ -30,10 +30,10 @@ boundary_conditions(problem::FluidFlowProblem) = BoundaryCondition[]
 function deviatoric_tensor(
     q::Quadrature,
     problem::FluidFlowProblem,
-    x::Float64,
-    y::Float64,
-    time::Float64 = 0.0,
-)
+    x::T,
+    y::T,
+    time::Real = 0.0,
+) where { T <: Real }
     a = velocity_gradient(problem, x, y, time)
     ν = viscosity(problem)
 
@@ -48,10 +48,10 @@ end
 function pressure_tensor(
     q::Quadrature,
     problem::FluidFlowProblem,
-    x::Float64,
-    y::Float64,
-    time::Float64 = 0.0,
-)
+    x::T,
+    y::T,
+    time::Real = 0.0,
+) where { T <: Real }
     A = problem.A
     B = problem.B
 
@@ -59,7 +59,7 @@ function pressure_tensor(
     return p - deviatoric_tensor(q, problem, x, y, time)
 end
 
-function force(problem::FluidFlowProblem, x_idx::Int64, y_idx::Int64, time::Float64 = 0.0)
+function force(problem::FluidFlowProblem, x_idx::Int, y_idx::Int, time::Real = 0.0) where { Int <: Integer }
     x_range, y_range = range(problem)
 
     x = x_range[x_idx]

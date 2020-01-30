@@ -1,12 +1,12 @@
-struct PoiseuilleFlow <: FluidFlowProblem
-    rho_0::Float64
-    u_max::Float64
-    ν::Float64
-    NX::Int64
-    NY::Int64
-    k::Float64
-    domain_size::Tuple{Float64,Float64}
-    G::Float64
+struct PoiseuilleFlow{T <: Real, Int <: Integer} <: FluidFlowProblem
+    rho_0::T
+    u_max::T
+    ν::T
+    NX::Int
+    NY::Int
+    k::T
+    domain_size::Tuple{T,T}
+    G::T
 end
 
 function PoiseuilleFlow(
@@ -28,30 +28,30 @@ end
 function density(
     q::Quadrature,
     problem::PoiseuilleFlow,
-    x::Float64,
-    y::Float64,
-    timestep::Float64 = 0.0,
-)
+    x::T,
+    y::T,
+    timestep::Real = 0.0,
+) where { T <: Real }
     return 1.0
 end
 
 function pressure(
     q::Quadrature,
     problem::PoiseuilleFlow,
-    x::Float64,
-    y::Float64,
-    timestep::Float64 = 0.0,
-)
+    x::T,
+    y::T,
+    timestep::Real = 0.0,
+) where { T <: Real }
     return 1.0
 end
 
-function velocity(problem::PoiseuilleFlow, x::Float64, y::Float64, timestep::Float64 = 0.0)
+function velocity(problem::PoiseuilleFlow, x::T, y::T, timestep::Real = 0.0) where { T <: Real}
     return [
         y * (problem.domain_size[2] - y) * (problem.G / 2)
         0.0
     ]
 end
-function force(problem::PoiseuilleFlow, x::Float64, y::Float64, time::Float64 = 0.0)
+function force(problem::PoiseuilleFlow, x::Int, y::Int, time::Real = 0.0) where { Int <: Integer }
     return [
         viscosity(problem) * problem.G
         0.0

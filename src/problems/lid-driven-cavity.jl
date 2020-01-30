@@ -1,10 +1,10 @@
-struct LidDrivenCavityFlow <: FluidFlowProblem
-    rho_0::Float64
-    u_max::Float64
-    ν::Float64
-    NX::Int64
-    NY::Int64
-    domain_size::Tuple{Float64,Float64}
+struct LidDrivenCavityFlow{T <: Real, Int <: Integer} <: FluidFlowProblem
+    rho_0::T
+    u_max::T
+    ν::T
+    NX::Int
+    NY::Int
+    domain_size::Tuple{T,T}
 end
 
 function LidDrivenCavityFlow(
@@ -25,29 +25,29 @@ end
 function density(
     q::Quadrature,
     problem::LidDrivenCavityFlow,
-    x::Float64,
-    y::Float64,
-    timestep::Float64 = 0.0,
-)
+    x::T,
+    y::T,
+    timestep::Real = 0.0,
+) where { T <: Real }
     return 1.0
 end
 
 function pressure(
     q::Quadrature,
     problem::LidDrivenCavityFlow,
-    x::Float64,
-    y::Float64,
-    timestep::Float64 = 0.0,
-)
+    x::T,
+    y::T,
+    timestep::Real = 0.0,
+) where { T <: Real }
     return 1.0
 end
 
 function velocity(
     problem::LidDrivenCavityFlow,
-    x::Float64,
-    y::Float64,
-    timestep::Float64 = 0.0,
-)
+    x::T,
+    y::T,
+    timestep::Real = 0.0,
+) where { T <: Real }
     return [
         0.0
         0.0

@@ -1,10 +1,10 @@
-struct CouetteFlow <: FluidFlowProblem
-    rho_0::Float64
-    u_max::Float64
-    ν::Float64
-    NX::Int64
-    NY::Int64
-    domain_size::Tuple{Float64,Float64}
+struct CouetteFlow{T <: Real, Int <: Integer} <: FluidFlowProblem
+    rho_0::T
+    u_max::T
+    ν::T
+    NX::Int
+    NY::Int
+    domain_size::Tuple{T,T}
 end
 
 function CouetteFlow(
@@ -25,24 +25,24 @@ end
 function density(
     q::Quadrature,
     problem::CouetteFlow,
-    x::Float64,
-    y::Float64,
-    timestep::Float64 = 0.0,
-)
+    x::T,
+    y::T,
+    timestep::Real = 0.0,
+) where { T <: Real }
     return 1.0
 end
 
 function pressure(
     q::Quadrature,
     problem::CouetteFlow,
-    x::Float64,
-    y::Float64,
-    timestep::Float64 = 0.0,
-)
+    x::T,
+    y::T,
+    timestep::Real = 0.0,
+) where { T <: Real }
     return 1.0
 end
 
-function velocity(problem::CouetteFlow, x::Float64, y::Float64, timestep::Float64 = 0.0)
+function velocity(problem::CouetteFlow, x::T, y::T, timestep::Real = 0.0) where { T <: Real }
     return [
         y
         0.0
@@ -50,10 +50,10 @@ function velocity(problem::CouetteFlow, x::Float64, y::Float64, timestep::Float6
 end
 function velocity_gradient(
     problem::CouetteFlow,
-    x::Float64,
-    y::Float64,
-    timestep::Float64 = 0.0,
-)
+    x::T,
+    y::T,
+    timestep::Real = 0.0,
+) where { T <: Real }
     u_x = 0.0
     v_y = 0.0
     u_y = 1.0
@@ -61,7 +61,7 @@ function velocity_gradient(
 
     return [u_x v_x; u_y v_y]
 end
-function force(problem::CouetteFlow, x::Float64, y::Float64, time::Float64 = 0.0)
+function force(problem::CouetteFlow, x::Int, y::Int, time::Real = 0.0) where { Int <: Integer }
     return [
         0.0
         0.0
