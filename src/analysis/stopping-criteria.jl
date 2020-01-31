@@ -1,8 +1,8 @@
 abstract type StopCriteria end
 struct NoStoppingCriteria <: StopCriteria end
-mutable struct MeanVelocityStoppingCriteria <: StopCriteria
-    old_mean_velocity::Float64
-    tolerance::Float64
+mutable struct MeanVelocityStoppingCriteria{ T <: Real } <: StopCriteria
+    old_mean_velocity::T
+    tolerance::T
     problem::FluidFlowProblem
 end
 StopCriteria(problem::FluidFlowProblem) = NoStoppingCriteria()
@@ -14,8 +14,8 @@ StopCriteria(problem::DecayingShearFlow) =
     problem.static ? MeanVelocityStoppingCriteria(0.0, 1e-8, problem) : NoStoppingCriteria()
 
 should_stop!(::StopCriteria, q, f_in) = false
-function should_stop!(stop_criteria::MeanVelocityStoppingCriteria, q, f_in)
-    f = Array{Float64}(undef, size(f_in, 3))
+function should_stop!(stop_criteria::MeanVelocityStoppingCriteria{T}, q, f_in) where { T }
+    f = Array{T}(undef, size(f_in, 3))
     u = zeros(dimension(q))
     Nx = size(f_in, 1)
     Ny = size(f_in, 2)
@@ -55,21 +55,21 @@ function should_stop!(stop_criteria::MeanVelocityStoppingCriteria, q, f_in)
     return false
 end
 
-struct VelocityConvergenceStoppingCriteria <: StopCriteria
-    old_velocity::Array{Vector{Float64}, 2}
-    tolerance::Float64
+struct VelocityConvergenceStoppingCriteria{T <: Real, VT <: AbstractVector{T}} <: StopCriteria
+    old_velocity::Array{VT, 2}
+    tolerance::T
     problem::FluidFlowProblem
 end
-function VelocityConvergenceStoppingCriteria(tolerance, problem)
+function VelocityConvergenceStoppingCriteria(tolerance::T, problem) where { T <: Real }
     return VelocityConvergenceStoppingCriteria(
-        [zeros(2) for x_idx = 1:problem.NX, y_idx = 1:problem.NY],
+        [zeros(T, 2) for x_idx = 1:problem.NX, y_idx = 1:problem.NY],
         tolerance,
         problem
     )
 end
 
-function should_stop!(stop_criteria::VelocityConvergenceStoppingCriteria, q, f_in)
-    f = Array{Float64}(undef, size(f_in, 3))
+function should_stop!(stop_criteria::VelocityConvergenceStoppingCriteria{T}, q, f_in) where { T }
+    f = Array{T}(undef, size(f_in, 3))
     u = zeros(dimension(q))
     Nx = size(f_in, 1)
     Ny = size(f_in, 2)
