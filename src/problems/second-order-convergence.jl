@@ -1,14 +1,14 @@
-struct TGV <: FluidFlowProblem
+struct TGV{T <: Real, Int <: Integer} <: FluidFlowProblem
     q::Quadrature
-    ρ_0::Float64
-    u_max::Float64
-    u_0::Float64
-    τ::Float64
-    ν::Float64
-    NX::Int64
-    NY::Int64
+    ρ_0::T
+    u_max::T
+    u_0::T
+    τ::T
+    ν::T
+    NX::Int
+    NY::Int
     static::Bool
-    domain_size::Tuple{Float64,Float64}
+    domain_size::Tuple{T,T}
 end
 function TGV(
     q::Quadrature,
@@ -29,10 +29,10 @@ end
 function density(
     q::Quadrature,
     problem::TGV,
-    x::Float64,
-    y::Float64,
-    t::Float64 = 0.0,
-)
+    x::T,
+    y::T,
+    t::Real = 0.0,
+) where { T <: Real }
     k_x = 2pi / problem.NX
     k_y = 2pi / problem.NY
 
@@ -53,10 +53,10 @@ end
 function pressure(
     q::Quadrature,
     problem::TGV,
-    x::Float64,
-    y::Float64,
-    t::Float64 = 0.0,
-)
+    x::T,
+    y::T,
+    t::Real = 0.0,
+) where { T <: Real }
     k_x = 2pi / problem.NX
     k_y = 2pi / problem.NY
 
@@ -77,10 +77,10 @@ end
 
 function velocity(
     problem::TGV,
-    x::Float64,
-    y::Float64,
-    t::Float64 = 0.0,
-)
+    x::T,
+    y::T,
+    t::Real = 0.0,
+) where { T <: Real }
     k_x = 2pi / problem.NX
     k_y = 2pi / problem.NY
 
@@ -98,10 +98,10 @@ end
 
 function velocity_gradient(
     problem::TGV,
-    x::Float64,
-    y::Float64,
-    t::Float64 = 0.0,
-)
+    x::T,
+    y::T,
+    t::Real = 0.0,
+) where { T <: Real }
     k_x = 2pi / problem.NX
     k_y = 2pi / problem.NY
 
@@ -120,14 +120,16 @@ function velocity_gradient(
     return exp(-t / t_d) * problem.u_0 * [u_x v_x; u_y v_y]
 end
 
-function decay(problem::TGV, x::Float64, y::Float64, t::Float64)
+function decay(problem::TGV, x::T, y::T, t::Real) where { T <: Real }
     ν = problem.ν
+    k_x = 2pi / problem.NX
+    k_y = 2pi / problem.NY
     t_d = 1 / (ν * (k_x^2 + k_y^2))
 
     return problem.static ? 1.0 : exp(-t / t_d)
 end
 
-function force(problem::TGV, x::Float64, y::Float64, t::Float64 = 0.0)
+function force(problem::TGV, x::T, y::T, t::Real = 0.0) where { T <: Real }
     ν = problem.ν
 
     return problem.static ? 2 * ν * velocity(problem, x, y, 0.0) : [0.0 0.0]
@@ -138,3 +140,10 @@ has_external_force(problem::TGV) = problem.static
 viscosity(problem::TGV) = problem.ν # (problem.τ - 0.5) / (problem.q.speed_of_sound_squared)
 delta_x(problem::TGV) = 1.0
 delta_t(problem::TGV) = 1.0
+
+function decay_time(problem)
+    ν = viscosity(problem)
+    k_x = 2pi / problem.NX
+    k_y = 2pi / problem.NY
+    t_d = 1 / (ν * (k_x^2 + k_y^2))
+end

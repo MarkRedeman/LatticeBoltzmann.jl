@@ -417,40 +417,202 @@ function plot_main(main = main())
     )
 end
 
+function kruger_analysis()
+    q = D2Q9()
+    Nx = 31
+    Ny = 17
+
+    scales = [1, 2, 4, 8, 16]
+    scales = [1, 2, 4]
+
+    Nx = 16
+    Ny = 16
+
+
+    Nx = 31
+    Ny = 17
+    τs = [0.51, 0.6, 0.8, 0.1]
+    scales = [1, 2, 4, 8, 16]
+
+    return map(τs) do τ
+        results = map(scales) do scale
+            u_0 = sqrt(0.01)
+            problem = LatticeBoltzmann.TGV(
+                q, τ, scale, Nx * scale, Ny * scale, u_0 / scale
+            )
+
+            t_end = round(Int, LatticeBoltzmann.decay_time(problem))
+
+            @time model = LatticeBoltzmann.LatticeBoltzmannMethod(
+                problem,
+                q,
+                initialization_strategy = initialization,
+                process_method = LatticeBoltzmann.ProcessingMethod(problem, false, t_end)
+            )
+
+            solution = simulate(model, 1:t_end)
+        end
+
+        convergence_31_17 = map(results) do result
+            problem = result.processing_method.problem
+            errors = result.processing_method.df[end]
+
+            return (
+                NX = problem.NX,
+                NY = problem.NY,
+                error_u = errors.error_u,
+                error_p = errors.error_p,
+                error_σ_xx = errors.error_σ_xx,
+                error_σ_xy = errors.error_σ_xy,
+            )
+        end
+
+        p = plot()
+        plot!(p, getfield.(convergence_31_17, :NX), getfield.(convergence_31_17, :error_u))
+        plot!(p, getfield.(convergence_31_17, :NX), getfield.(convergence_31_17, :error_p))
+        plot!(p, getfield.(convergence_31_17, :NX), getfield.(convergence_31_17, :error_σ_xx))
+        plot!(p, getfield.(convergence_31_17, :NX), getfield.(convergence_31_17, :error_σ_xy))
+        plot!(p, x -> 1E1 * x^(-2))
+        plot!(p, scale = :log10)
+        plot!(p, title = latexstring("\tau = ", τ))
+
+        display(p)
+
+        return results
+    end
+
+    initialization = AnalyticalEquilibrium()
+    model = LatticeBoltzmann.LatticeBoltzmannMethod(
+        problem,
+        q,
+        initialization_strategy = initialization,
+        process_method = LatticeBoltzmann.ProcessingMethod(problem, true, 1)
+    )
+
+    t_end = Round(Int, decay_time(problem))
+    solution = simulate(model, 1:t_end)
+
+    model = LatticeBoltzmann.LatticeBoltzmannMethod(
+        problem,
+        q,
+        initialization_strategy = initialization,
+        process_method = LatticeBoltzmann.ProcessingMethod(problem, true, 1)
+    )
+
+
+    snapshot_results = map(snapshots_at) do t_end
+
+        if t_end == 0
+            return simulation
+        end
+
+        simulate(simulation, 1:t_end)
+    end
+
+
+
+    results = map(quadratures) do q
+        tgv_velocity_profile(
+            q,
+            AnalyticalEquilibrium(),
+            τ,
+            scale
+        )
+    end
+
+    # scales = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    # scales = [1, 2, 4, 8, 12, 16]
+    # scales = [1, 2, 4, 8, 16, 32, 64]
+
+    scales = [1, 2, 4, 8, 16]
+
+    scales = [1 // 2, 1, 2, 4, 8, 16, 32, 64]
+
+    iteration_strategies = [
+        IterativeInitializationMeiEtAl(τ, 1E-7),
+        AnalyticalEquilibrium(),
+        AnalyticalEquilibriumAndOffEquilibrium(),
+    ]
+
+    convergence_results = map(quadratures) do q
+        tgv_convergence_analysis(
+            q,
+            iteration_strategies[1],
+            τ,
+            scales = scales
+        )
+    end
+
+    convergence_results_equilibrium = convergence_results
+
+    convergence_results_iterative = map(quadratures) do q
+        tgv_convergence_analysis(
+            q,
+            iteration_strategies[2],
+            τ,
+            scales = scales
+        )
+    end
+    convergence_results_offequilibrium = map(quadratures) do q
+        tgv_convergence_analysis(
+            q,
+            iteration_strategies[3],
+            τ,
+            scales = scales
+        )
+    end
+    # convergence_results_offequilibrium = map(quadratures) do q
+    #     tgv_convergence_analysis(
+    #         q,
+    #         iteration_strategies[4],
+    #         τ,
+    #         scales = scales
+    #     )
+    # end
+
+    return (
+        results = results,
+        convergence_results = convergence_results,
+        convergence_results_iterative = convergence_results_iterative,
+        convergence_results_equilibrium = convergence_results_equilibrium,
+        convergence_results_offequilibrium = convergence_results_offequilibrium,
+    )
+end
+
 end
 end
 
 
-plot(
-    plot(
-        plot(Examples.TGV_Example.plot_convergence(result.convergence_results, :error_u), title="Zero"),
-        plot(Examples.TGV_Example.plot_convergence(result.convergence_results_iterative, :error_u), title = "iterative"),
-        plot(Examples.TGV_Example.plot_convergence(result.convergence_results_equilibrium, :error_u), title = "equilibrium"),
-        plot(Examples.TGV_Example.plot_convergence(result.convergence_results_offequilibrium, :error_u), title = "offequilibrium"),
-        legend = nothing,
-    ),
+# plot(
+#     plot(
+#         plot(Examples.TGV_Example.plot_convergence(result.convergence_results, :error_u), title="Zero"),
+#         plot(Examples.TGV_Example.plot_convergence(result.convergence_results_iterative, :error_u), title = "iterative"),
+#         plot(Examples.TGV_Example.plot_convergence(result.convergence_results_equilibrium, :error_u), title = "equilibrium"),
+#         plot(Examples.TGV_Example.plot_convergence(result.convergence_results_offequilibrium, :error_u), title = "offequilibrium"),
+#         legend = nothing,
+#     ),
 
-    plot(
-        plot(Examples.TGV_Example.plot_convergence(result.convergence_results, :error_p), title="Zero"),
-        plot(Examples.TGV_Example.plot_convergence(result.convergence_results_iterative, :error_p), title = "iterative"),
-        plot(Examples.TGV_Example.plot_convergence(result.convergence_results_equilibrium, :error_p), title = "equilibrium"),
-        plot(Examples.TGV_Example.plot_convergence(result.convergence_results_offequilibrium, :error_p), title = "offequilibrium"),
-        legend = nothing,
-    ),
+#     plot(
+#         plot(Examples.TGV_Example.plot_convergence(result.convergence_results, :error_p), title="Zero"),
+#         plot(Examples.TGV_Example.plot_convergence(result.convergence_results_iterative, :error_p), title = "iterative"),
+#         plot(Examples.TGV_Example.plot_convergence(result.convergence_results_equilibrium, :error_p), title = "equilibrium"),
+#         plot(Examples.TGV_Example.plot_convergence(result.convergence_results_offequilibrium, :error_p), title = "offequilibrium"),
+#         legend = nothing,
+#     ),
 
-    plot(
-        plot(Examples.TGV_Example.plot_convergence(result.convergence_results, :error_σ_xx), title="Zero"),
-        plot(Examples.TGV_Example.plot_convergence(result.convergence_results_iterative, :error_σ_xx), title = "iterative"),
-        plot(Examples.TGV_Example.plot_convergence(result.convergence_results_equilibrium, :error_σ_xx), title = "equilibrium"),
-        plot(Examples.TGV_Example.plot_convergence(result.convergence_results_offequilibrium, :error_σ_xx), title = "offequilibrium"),
-        legend = nothing,
-    ),
-    # plot(
-    #     plot(Examples.TGV_Example.plot_convergence(result.convergence_results, :error_σ_xy), title="Zero"),
-    #     plot(Examples.TGV_Example.plot_convergence(result.convergence_results_iterative, :error_σ_xy), title = "iterative"),
-    #     plot(Examples.TGV_Example.plot_convergence(result.convergence_results_equilibrium, :error_σ_xy), title = "equilibrium"),
-    #     plot(Examples.TGV_Example.plot_convergence(result.convergence_results_offequilibrium, :error_σ_xy), title = "offequilibrium"),
-    #     legend = nothing,
-    # ),
-    size=(1200, 900)
-)
+#     plot(
+#         plot(Examples.TGV_Example.plot_convergence(result.convergence_results, :error_σ_xx), title="Zero"),
+#         plot(Examples.TGV_Example.plot_convergence(result.convergence_results_iterative, :error_σ_xx), title = "iterative"),
+#         plot(Examples.TGV_Example.plot_convergence(result.convergence_results_equilibrium, :error_σ_xx), title = "equilibrium"),
+#         plot(Examples.TGV_Example.plot_convergence(result.convergence_results_offequilibrium, :error_σ_xx), title = "offequilibrium"),
+#         legend = nothing,
+#     ),
+#     # plot(
+#     #     plot(Examples.TGV_Example.plot_convergence(result.convergence_results, :error_σ_xy), title="Zero"),
+#     #     plot(Examples.TGV_Example.plot_convergence(result.convergence_results_iterative, :error_σ_xy), title = "iterative"),
+#     #     plot(Examples.TGV_Example.plot_convergence(result.convergence_results_equilibrium, :error_σ_xy), title = "equilibrium"),
+#     #     plot(Examples.TGV_Example.plot_convergence(result.convergence_results_offequilibrium, :error_σ_xy), title = "offequilibrium"),
+#     #     legend = nothing,
+#     # ),
+#     size=(1200, 900)
+# )
