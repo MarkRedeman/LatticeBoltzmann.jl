@@ -5,7 +5,7 @@ abstract type InitializationStrategy end
 InitializationStrategy(problem::FluidFlowProblem) = AnalyticalEquilibrium()
 
 function initialize(strategy::InitializationStrategy, q::Quadrature, problem::FluidFlowProblem, cm = SRT)
-    f = Array{Float64}(undef, problem.NX, problem.NY, length(q.weights))
+    f = Array{eltype(q.weights)}(undef, problem.NX, problem.NY, length(q.weights))
 
     x_range, y_range = range(problem)
     for x_idx = 1:problem.NX, y_idx = 1:problem.NY
