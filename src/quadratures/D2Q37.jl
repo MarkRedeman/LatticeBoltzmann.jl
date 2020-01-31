@@ -75,9 +75,9 @@ order(q::D2Q37) = 9
 Base.show(io::IO, q::D2Q37) = show(io, "D2Q37")
 Base.string(q::D2Q37) = "D2Q37"
 
-function equilibrium!(q::D2Q37, ρ::Float64, u::VT, T::Float64, f::VT) where { VT <: AbstractVector{Float64} }
-    u_squared = 0.0
-    u_fourth = 0.0
+function equilibrium!(q::D2Q37, ρ::T, u::VT, temperature::T, f::VT) where { T <: Real, VT <: AbstractVector{T} }
+    u_squared = zero(T)
+    u_fourth = zero(T)
     for d = 1:dimension(q)
         u_squared += u[d] .^ 2
         u_fourth += u[d] .^ 4
@@ -93,7 +93,7 @@ function equilibrium!(q::D2Q37, ρ::Float64, u::VT, T::Float64, f::VT) where { V
             u_dot_xi,
             u_squared,
             u_fourth,
-            T,
+            temperature,
             q.abscissae[1, idx]^2 + q.abscissae[2, idx]^2,
         )
     end
@@ -101,13 +101,13 @@ function equilibrium!(q::D2Q37, ρ::Float64, u::VT, T::Float64, f::VT) where { V
     return
 end
 
-function _equilibrium(q::D2Q37, ρ, weight, u_dot_xi, u_squared, u_fourth, T, xi_squared)
+function _equilibrium(q::D2Q37, ρ::T, weight::T, u_dot_xi::T, u_squared::T, u_fourth::T, temperature::T, xi_squared) where { T <: Real }
     cs = q.speed_of_sound_squared
     D = dimension(q)
-    # H_2_temperature = (cs * T .- 1) .* (cs * xi_squared - D)
-    # H_3_temperature = 3.0 * (cs * T .- 1) * (cs * xi_squared - 2 - D)
-    H_2_temperature = 0.0
-    H_3_temperature = 0.0
+    # H_2_temperature = (cs * temperature .- 1) .* (cs * xi_squared - D)
+    # H_3_temperature = 3.0 * (cs * temperature .- 1) * (cs * xi_squared - 2 - D)
+    H_2_temperature = zero(T)
+    H_3_temperature = zero(T)
 
     a_H_0 = 1.0
     a_H_1 = cs * u_dot_xi
