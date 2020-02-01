@@ -32,6 +32,7 @@ include("initial-conditions/constant-density.jl")
 include("initial-conditions/analytical-equilibrium.jl")
 include("initial-conditions/analytical-offequilibrium.jl")
 include("initial-conditions/analytical-velocity.jl")
+include("initial-conditions/analytical-velocity-stress.jl")
 
 """
 f₀(x) = f_eq(ρ₀, u₀, p₀)
