@@ -431,10 +431,13 @@ function kruger_analysis()
 
     Nx = 31
     Ny = 17
-    τs = [0.51, 0.6, 0.8, 0.1]
+    τs = [0.51, 0.6, 0.8, 1.0]
+    τs = [3.0, 2.0, 1.0, 0.8, 0.6, 0.51]
     scales = [1, 2, 4, 8, 16]
 
-    return map(τs) do τ
+    initialization = LatticeBoltzmann.AnalyticalEquilibrium()
+
+    τ_results = map(τs) do τ
         results = map(scales) do scale
             u_0 = sqrt(0.01)
             problem = LatticeBoltzmann.TGV(
@@ -443,6 +446,8 @@ function kruger_analysis()
 
             t_end = round(Int, LatticeBoltzmann.decay_time(problem))
 
+            @show t_end
+
             @time model = LatticeBoltzmann.LatticeBoltzmannMethod(
                 problem,
                 q,
@@ -450,14 +455,16 @@ function kruger_analysis()
                 process_method = LatticeBoltzmann.ProcessingMethod(problem, false, t_end)
             )
 
-            solution = simulate(model, 1:t_end)
+            @time solution = simulate(model, 1:t_end)
         end
 
-        convergence_31_17 = map(results) do result
+        convergence = map(results) do result
             problem = result.processing_method.problem
             errors = result.processing_method.df[end]
 
             return (
+                τ = problem.τ,
+                ν = problem.ν,
                 NX = problem.NX,
                 NY = problem.NY,
                 error_u = errors.error_u,
@@ -467,116 +474,156 @@ function kruger_analysis()
             )
         end
 
+        # Show a plot while waiting for the results
         p = plot()
-        plot!(p, getfield.(convergence_31_17, :NX), getfield.(convergence_31_17, :error_u))
-        plot!(p, getfield.(convergence_31_17, :NX), getfield.(convergence_31_17, :error_p))
-        plot!(p, getfield.(convergence_31_17, :NX), getfield.(convergence_31_17, :error_σ_xx))
-        plot!(p, getfield.(convergence_31_17, :NX), getfield.(convergence_31_17, :error_σ_xy))
-        plot!(p, x -> 1E1 * x^(-2))
+        plot!(p, getfield.(convergence, :NX), getfield.(convergence, :error_u), label = L"\epsilon_u")
+        plot!(p, getfield.(convergence, :NX), getfield.(convergence, :error_p), label = L"\epsilon_p")
+        plot!(p, getfield.(convergence, :NX), getfield.(convergence, :error_σ_xx), label = L"\epsilon_{\sigma_{xx}}")
+        plot!(p, getfield.(convergence, :NX), getfield.(convergence, :error_σ_xy), label = L"\epsilon_{\sigma_{xx}}")
+        plot!(p, x -> 1E1 * x^(-2), label = L"x^{-2}")
         plot!(p, scale = :log10)
         plot!(p, title = latexstring("\tau = ", τ))
-
         display(p)
 
         return results
     end
 
-    initialization = AnalyticalEquilibrium()
-    model = LatticeBoltzmann.LatticeBoltzmannMethod(
-        problem,
-        q,
-        initialization_strategy = initialization,
-        process_method = LatticeBoltzmann.ProcessingMethod(problem, true, 1)
-    )
 
-    t_end = Round(Int, decay_time(problem))
-    solution = simulate(model, 1:t_end)
+    convergence = map(τ_results) do τ_result
+        map(τ_result) do result
+            problem = result.processing_method.problem
+            errors = result.processing_method.df[end]
 
-    model = LatticeBoltzmann.LatticeBoltzmannMethod(
-        problem,
-        q,
-        initialization_strategy = initialization,
-        process_method = LatticeBoltzmann.ProcessingMethod(problem, true, 1)
-    )
-
-
-    snapshot_results = map(snapshots_at) do t_end
-
-        if t_end == 0
-            return simulation
+            return (
+                τ = problem.τ,
+                ν = problem.ν,
+                NX = problem.NX,
+                NY = problem.NY,
+                error_u = errors.error_u,
+                error_p = errors.error_p,
+                error_σ_xx = errors.error_σ_xx,
+                error_σ_xy = errors.error_σ_xy,
+            )
         end
-
-        simulate(simulation, 1:t_end)
     end
 
+    p_u = plot(legend = nothing, scale=:log10, xlabel=L"t", ylabel = L"\epsilon_u");
+    p_p = plot(legend = nothing, scale=:log10, xlabel=L"t", ylabel = L"\epsilon_p");
+    p_σ_xx = plot(legend = nothing, scale=:log10, xlabel=L"t", ylabel = L"\epsilon_{\sigma_{xx}}");
+    p_σ_xy = plot(legend=:topright, scale = :log10, xlabel=L"t", ylabel = L"\epsilon_{\sigma_{xy}}");
+    for τ_convergence in convergence
+        label = latexstring("\\tau = ", τ_convergence[1].τ)
 
-
-    results = map(quadratures) do q
-        tgv_velocity_profile(
-            q,
-            AnalyticalEquilibrium(),
-            τ,
-            scale
-        )
+        scatter!(p_u, getfield.(τ_convergence, :NX), getfield.(τ_convergence, :error_u), label = label)
+        scatter!(p_p, getfield.(τ_convergence, :NX), getfield.(τ_convergence, :error_p), label = label)
+        scatter!(p_σ_xx, getfield.(τ_convergence, :NX), getfield.(τ_convergence, :error_σ_xx), label = label)
+        scatter!(p_σ_xy, getfield.(τ_convergence, :NX), getfield.(τ_convergence, :error_σ_xy), label = label)
     end
 
-    # scales = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    # scales = [1, 2, 4, 8, 12, 16]
-    # scales = [1, 2, 4, 8, 16, 32, 64]
+    plot!(p_u,  x -> 1E0 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :gray, linealpha = 0.5, linestyle = :dash);
+    plot!(p_p,  x -> 1E-1 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :gray, linealpha = 0.5, linestyle = :dash);
+    plot!(p_σ_xx,  x -> 1E0 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :gray, linealpha = 0.5, linestyle = :dash);
+    plot!(p_σ_xy,  x -> 1E2 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :gray, linealpha = 0.5, linestyle = :dash);
 
-    scales = [1, 2, 4, 8, 16]
+    plot(p_u, p_p, p_σ_xx, p_σ_xy, size=(900, 600))
+    return τ_results
 
-    scales = [1 // 2, 1, 2, 4, 8, 16, 32, 64]
+end
+
+function initial_conditions_analysis()
+    q = D2Q9()
+    scales = [1, 2, 4]
+
+    Nx = 31
+    Ny = 17
+    τs = [0.51, 0.6, 0.8, 1.0]
+
+    scale = 2
+
+    Nx = 31
+    Ny = 17
+
+    τ = 0.8
+    t_d = 840
 
     iteration_strategies = [
-        IterativeInitializationMeiEtAl(τ, 1E-7),
-        AnalyticalEquilibrium(),
-        AnalyticalEquilibriumAndOffEquilibrium(),
+        LatticeBoltzmann.AnalyticalVelocityAndStress(),
+        LatticeBoltzmann.AnalyticalEquilibriumAndOffEquilibrium(),
+    ]
+    iteration_strategies = [
+        # With this initialization strategy it is assumed that the initial density field
+        # (or equivalently the pressure field p) is not available
+        LatticeBoltzmann.ConstantDensity(),
+
+        # TODO
+        LatticeBoltzmann.AnalyticalVelocityAndStress(),
+
+        # The initial pressure field p is known, which, using the equation fo state,
+        # is used to set the initial density
+        LatticeBoltzmann.AnalyticalEquilibrium(),
+
+        # Both an initial pressure field and gradient of the velocity is known.
+        # The gradient of the velocity is used to initialize the offequilibrium components
+        LatticeBoltzmann.AnalyticalEquilibriumAndOffEquilibrium(),
+
+        # We initialize f using an iterative procedure where only the density is conserved
+        # it was shown that this procedure gives consistent itnitial conditions for both
+        # the equilibrium and off equilibrium components
+        LatticeBoltzmann.IterativeInitializationMeiEtAl(τ, 1E-10),
     ]
 
-    convergence_results = map(quadratures) do q
-        tgv_convergence_analysis(
+    init_res = map(iteration_strategies) do initialization
+        u_0 = sqrt(0.01)
+        u_0 = 0.03
+        Nx = 96
+        Ny = 72
+        τ = 0.8
+
+        # u_0 = 0.06
+        # Nx = 48
+        # Ny = 36
+
+        problem = LatticeBoltzmann.TGV(
+            q, τ, scale, Nx, Ny, u_0
+        )
+        t_end = round(Int, LatticeBoltzmann.decay_time(problem))
+        @show t_end
+
+        @time model = LatticeBoltzmann.LatticeBoltzmannMethod(
+            problem,
             q,
-            iteration_strategies[1],
-            τ,
-            scales = scales
+            initialization_strategy = initialization,
+            process_method = LatticeBoltzmann.ProcessingMethod(problem, true, t_end)
+        )
+
+        @time solution = simulate(model, 1:t_end)
+    end
+
+    init_errors = map(init_res) do result
+        problem = result.processing_method.problem
+        errors = result.processing_method.df
+
+        return (
+            error_u = getfield.(errors, :error_u),
+            error_p = getfield.(errors, :error_p),
+            error_σ_xx = getfield.(errors, :error_σ_xx),
+            error_σ_xy = getfield.(errors, :error_σ_xy),
         )
     end
 
-    convergence_results_equilibrium = convergence_results
+    p_u = plot(legend = nothing, scale=:log10, xlabel=L"t", ylabel = L"\epsilon_u");
+    p_p = plot(legend = nothing, scale=:log10, xlabel=L"t", ylabel = L"\epsilon_p");
+    p_σ_xx = plot(legend = nothing, scale=:log10, xlabel=L"t", ylabel = L"\epsilon_{\sigma_{xx}}");
+    p_σ_xy = plot(scale = :log10, xlabel=L"t", ylabel = L"\epsilon_{\sigma_{xy}}");
 
-    convergence_results_iterative = map(quadratures) do q
-        tgv_convergence_analysis(
-            q,
-            iteration_strategies[2],
-            τ,
-            scales = scales
-        )
+    for (errors, init) in zip(init_errors, ["Velocity", "Velocity + stress", "Velocity + pressure", "All", "iterative"])
+        plot!(p_u, errors.error_u, label = init)
+        plot!(p_p, errors.error_p, label = init)
+        plot!(p_σ_xx, errors.error_σ_xx, label = init)
+        plot!(p_σ_xy, errors.error_σ_xy, label = init)
     end
-    convergence_results_offequilibrium = map(quadratures) do q
-        tgv_convergence_analysis(
-            q,
-            iteration_strategies[3],
-            τ,
-            scales = scales
-        )
-    end
-    # convergence_results_offequilibrium = map(quadratures) do q
-    #     tgv_convergence_analysis(
-    #         q,
-    #         iteration_strategies[4],
-    #         τ,
-    #         scales = scales
-    #     )
-    # end
-
-    return (
-        results = results,
-        convergence_results = convergence_results,
-        convergence_results_iterative = convergence_results_iterative,
-        convergence_results_equilibrium = convergence_results_equilibrium,
-        convergence_results_offequilibrium = convergence_results_offequilibrium,
-    )
+    plot(p_u, p_p, p_σ_xx, p_σ_xy,)
+    return init_res
 end
 
 end
