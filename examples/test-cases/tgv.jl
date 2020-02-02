@@ -507,10 +507,10 @@ function kruger_analysis()
         end
     end
 
-    p_u = plot(legend = nothing, scale=:log10, xlabel=L"t", ylabel = L"\epsilon_u");
-    p_p = plot(legend = nothing, scale=:log10, xlabel=L"t", ylabel = L"\epsilon_p");
-    p_σ_xx = plot(legend = nothing, scale=:log10, xlabel=L"t", ylabel = L"\epsilon_{\sigma_{xx}}");
-    p_σ_xy = plot(legend=:topright, scale = :log10, xlabel=L"t", ylabel = L"\epsilon_{\sigma_{xy}}");
+    p_u = plot(legend = nothing, scale=:log10, xlabel=L"N", ylabel = L"\epsilon_u");
+    p_p = plot(legend = nothing, scale=:log10, xlabel=L"N", ylabel = L"\epsilon_p");
+    p_σ_xx = plot(legend = nothing, scale=:log10, xlabel=L"N", ylabel = L"\epsilon_{\sigma_{xx}}");
+    p_σ_xy = plot(legend=:topright, scale = :log10, xlabel=L"N", ylabel = L"\epsilon_{\sigma_{xy}}");
     for τ_convergence in convergence
         label = latexstring("\\tau = ", τ_convergence[1].τ)
 
@@ -520,10 +520,10 @@ function kruger_analysis()
         scatter!(p_σ_xy, getfield.(τ_convergence, :NX), getfield.(τ_convergence, :error_σ_xy), label = label)
     end
 
-    plot!(p_u,  x -> 1E0 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :gray, linealpha = 0.5, linestyle = :dash);
-    plot!(p_p,  x -> 1E-1 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :gray, linealpha = 0.5, linestyle = :dash);
-    plot!(p_σ_xx,  x -> 1E0 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :gray, linealpha = 0.5, linestyle = :dash);
-    plot!(p_σ_xy,  x -> 1E2 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :gray, linealpha = 0.5, linestyle = :dash);
+    plot!(p_u,  x -> 1E0 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :gray);
+    plot!(p_p,  x -> 1E-1 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :gray);
+    plot!(p_σ_xx,  x -> 1E0 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :gray);
+    plot!(p_σ_xy,  x -> 1E0 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :grah);
 
     plot(p_u, p_p, p_σ_xx, p_σ_xy, size=(900, 600))
     return τ_results
@@ -570,6 +570,7 @@ function initial_conditions_analysis()
         # it was shown that this procedure gives consistent itnitial conditions for both
         # the equilibrium and off equilibrium components
         LatticeBoltzmann.IterativeInitializationMeiEtAl(τ, 1E-10),
+        LatticeBoltzmann.IterativeInitializationMeiEtAl(1.0, 1E-10),
     ]
 
     init_res = map(iteration_strategies) do initialization
@@ -582,6 +583,12 @@ function initial_conditions_analysis()
         # u_0 = 0.06
         # Nx = 48
         # Ny = 36
+
+        # u_0 = 0.01
+        # Nx = 32
+        # Ny = 32
+        # ν = 0.002
+        # τ = q.speed_of_sound_squared * ν + 0.5
 
         problem = LatticeBoltzmann.TGV(
             q, τ, scale, Nx, Ny, u_0
@@ -599,6 +606,7 @@ function initial_conditions_analysis()
         @time solution = simulate(model, 1:t_end)
     end
 
+    return init_res
     init_errors = map(init_res) do result
         problem = result.processing_method.problem
         errors = result.processing_method.df
@@ -608,6 +616,10 @@ function initial_conditions_analysis()
             error_p = getfield.(errors, :error_p),
             error_σ_xx = getfield.(errors, :error_σ_xx),
             error_σ_xy = getfield.(errors, :error_σ_xy),
+
+            mass = getfield.(errors, :mass),
+            momentum = getfield.(errors, :momentum),
+            energy = getfield.(errors, :energy),
         )
     end
 
@@ -616,13 +628,23 @@ function initial_conditions_analysis()
     p_σ_xx = plot(legend = nothing, scale=:log10, xlabel=L"t", ylabel = L"\epsilon_{\sigma_{xx}}");
     p_σ_xy = plot(scale = :log10, xlabel=L"t", ylabel = L"\epsilon_{\sigma_{xy}}");
 
-    for (errors, init) in zip(init_errors, ["Velocity", "Velocity + stress", "Velocity + pressure", "All", "iterative"])
+
+    p_mass = plot(legend = nothing, xlabel=L"t", ylabel = L"Mass");
+    p_momentum = plot(legend = nothing, xlabel=L"t", ylabel = L"Momentum");
+    p_energy = plot(legend = nothing, xlabel=L"t", ylabel = L"Energy");
+
+    for (errors, init) in zip(init_errors, ["Velocity", "Velocity + stress", "Velocity + pressure", "All", "iterative", L"iterative, \tau = 1.0"])
         plot!(p_u, errors.error_u, label = init)
         plot!(p_p, errors.error_p, label = init)
         plot!(p_σ_xx, errors.error_σ_xx, label = init)
         plot!(p_σ_xy, errors.error_σ_xy, label = init)
+
+        plot!(p_mass, errors.mass, label = init)
+        plot!(p_momentum, errors.momentum, label = init)
+        plot!(p_energy, errors.energy, label = init)
     end
-    plot(p_u, p_p, p_σ_xx, p_σ_xy,)
+    plot(p_u, p_p, p_σ_xx, p_σ_xy,) |> display
+    plot(p_mass, p_momentum, p_energy) |> display
     return init_res
 end
 
