@@ -29,12 +29,12 @@ import LatticeBoltzmann: StopCriteria,
 # line_style(q::Quadrature) = (:line, :dot)
 
 line_style(q::D2Q4) = (:line)
-line_style(q::D2Q5) = (:line, :dash, 1.0, 3.0)
+line_style(q::D2Q5) = (:line, :dash, 1.0, 1.0)
 line_style(q::D2Q9) = (:line)
 line_style(q::D2Q13) = (:line)
 line_style(q::D2Q17) = (:line)
 line_style(q::D2Q21) = (:line)
-line_style(q::D2Q37) = (:line, :dash, 1.0, 3.0)
+line_style(q::D2Q37) = (:line, :dash, 1.0, 1.0)
 marker_style(q::Quadrature) = ()
 
 marker_style(q::D2Q4) = ()
@@ -242,8 +242,8 @@ function plot_convergence(results, s = :error_u)
     # plot!(p, 1:results[1].scales[end], x -> 1E-4 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :gray)
     # plot!(p, xs, x -> 5E-4 * x.^(-3), label=L"\mathcal{O}(x^{-3})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
 
-        plot!(p, xs, x -> 1E-4 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :blue, linealpha = 0.2, linestyle = :dash)
-        plot!(p, xs, x -> 2E-2 * x.^(-1), label=L"\mathcal{O}(x^{-1})", linecolor = :red, linealpha = 0.2, linestyle = :dash)
+        plot!(p, xs, x -> 1E-4 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linestyle = :dash, linecolor = :gray)
+        plot!(p, xs, x -> 2E-2 * x.^(-1), label=L"\mathcal{O}(x^{-1})", linestyle = :dash, linecolor = :gray)
         # plot!(p, xs, x -> 3E-1 * x.^(-0), label=L"\mathcal{O}(x^{-0})", linecolor = :orange, linealpha = 0.2, linestyle = :dash)
 
     plot!(
@@ -306,8 +306,8 @@ end
 
 function main(τ = 1.0, scale = 2)
     quadratures = [
-        D2Q4(),
-        D2Q5(),
+        # D2Q4(),
+        # D2Q5(),
         D2Q9(),
         D2Q13(),
         D2Q17(),
@@ -315,17 +315,18 @@ function main(τ = 1.0, scale = 2)
         D2Q37(),
     ]
 
-    results = map(quadratures) do q
-        couette_velocity_profile(
-            q,
-            # ZeroVelocityInitialCondition(),
-            AnalyticalEquilibrium(),
-            τ,
-            # TODO: check viscosity dependency (determines rate of convergence  wrt. time)
-            # τ * q.speed_of_sound_squared
-            scale
-        )
-    end
+    # results = map(quadratures) do q
+    #     couette_velocity_profile(
+    #         q,
+    #         # ZeroVelocityInitialCondition(),
+    #         AnalyticalEquilibrium(),
+    #         τ,
+    #         # TODO: check viscosity dependency (determines rate of convergence  wrt. time)
+    #         # τ * q.speed_of_sound_squared
+    #         8scale
+    #     )
+    # end
+    results = []
     # plot_error_progresion(results) |> display
     # plot_error_locations(results) |> display
 
@@ -439,17 +440,18 @@ function main(τ = 1.0, scale = 2)
 
     scales = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8182, 2* 8182, 4 * 8182, 8*8182]
     scales = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
-    scales = [1, 2, 4, 8]
+    scales = [1, 2, 4, 8, 16, 32, 64, 128]
+    scales = [1, 2, 4, 8, 16, 32, 64, 128]
 
     iteration_strategies = [
-        AnalyticalEquilibrium(),
-        # ZeroVelocityInitialCondition(),
+        # AnalyticalEquilibrium(),
+        ZeroVelocityInitialCondition(),
         IterativeInitializationMeiEtAl(τ, 1E-7),
         AnalyticalEquilibrium(),
         AnalyticalEquilibriumAndOffEquilibrium(),
     ]
 
-    τ = 0.6
+    τ = 0.8
     convergence_results = map(quadratures) do q
         couette_convergence_analysis(
             q,
@@ -498,15 +500,15 @@ function main(τ = 1.0, scale = 2)
 end
 
 function plot_main(main = main())
-    error_location = plot_error_locations(main.results)
-    error_progression = plot_error_progresion(main.results)
+    # error_location = plot_error_locations(main.results)
+    # error_progression = plot_error_progresion(main.results)
     convergence = plot_convergence(main.convergence_results)
     convergence_iterative = plot_convergence(main.convergence_results_iterative)
     convergence_equilibrium = plot_convergence(main.convergence_results_equilibrium)
     convergence_offequilibrium = plot_convergence(main.convergence_results_offequilibrium)
 
     # display(error_location)
-    display(error_progression)
+    # display(error_progression)
     display(convergence)
     # display(convergence_iterative)
     # display(convergence_equilibrium)
@@ -521,8 +523,8 @@ function plot_main(main = main())
         convergence_results_offequilibrium = main.convergence_results_offequilibrium,
 
         plots = (
-            error_location = error_location,
-            error_progression = error_progression,
+            # error_location = error_location,
+            # error_progression = error_progression,
             convergence = convergence,
         )
     )
