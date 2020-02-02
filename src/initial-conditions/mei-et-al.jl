@@ -5,6 +5,7 @@ struct IterativeInitializationMeiEtAl{T <: Real} <: InitializationStrategy
     τ::T
     ϵ::T
 end
+IterativeInitializationMeiEtAl() = IterativeInitialization()
 IterativeInitialization() = IterativeInitializationMeiEtAl(1.0, 1E-7)
 
 function initialize(
