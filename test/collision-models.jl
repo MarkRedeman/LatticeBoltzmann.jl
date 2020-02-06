@@ -23,10 +23,15 @@ import LatticeBoltzmann: LatticeBoltzmannMethod,
 
     @test f_srt ≈ f_trt
 
-    problem = PoiseuilleFlow(1.0 / 6.0, 1, static = false)
-    process_method = ProcessingMethod(problem, false, 10)
-
     for τ = [0.51, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1]
+        cs² = q.speed_of_sound_squared
+        ν = (τ - 0.5) / cs²
+
+        problem = PoiseuilleFlow(ν, 1, static = false)
+
+        process_method = ProcessingMethod(problem, false, 10)
+        force_field = LatticeBoltzmann.has_external_force(problem) ? (x_idx, y_idx, t) -> lattice_force(problem, x_idx, y_idx, t) : nothing
+
         srt_model = LatticeBoltzmannMethod(problem, q, collision_model = SRT(τ), process_method = process_method)
         trt_model = LatticeBoltzmannMethod(problem, q, collision_model = LatticeBoltzmann.TRT(τ, τ), process_method = process_method)
 
