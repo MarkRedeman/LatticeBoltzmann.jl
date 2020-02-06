@@ -13,7 +13,6 @@ function CollisionModel(
 )
     τ = q.speed_of_sound_squared * lattice_viscosity(problem) + 0.5
     τ_ = 0.5 + Λ / (τ - 0.5)
-    @show Λ, τ, τ_
 
     force_field = has_external_force(problem) ?
         (x_idx, y_idx, t) -> lattice_force(problem, x_idx, y_idx, t) : nothing
