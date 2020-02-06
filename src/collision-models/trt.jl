@@ -77,7 +77,7 @@ function collide!(
         else
             F .= collision_model.force(x, y, time)
 
-            equilibrium!(q, ρ, u + τ_s * F, temperature, feq)
+            equilibrium!(q, ρ, u + τ_a * F, temperature, feq)
         end
 
         @inbounds for f_idx = 1:nf
