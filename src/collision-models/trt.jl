@@ -3,6 +3,7 @@ struct TRT{Force, T <: Real} <: CollisionModel
     τ_asymmetric::T
     force::Force
 end
+TRT(τ_a, τ_s) = TRT(τ_s, τ_a, nothing)
 
 function CollisionModel(
     cm::Type{<:TRT},
