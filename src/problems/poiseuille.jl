@@ -51,6 +51,19 @@ function velocity(problem::PoiseuilleFlow, x::T, y::T, timestep::Real = 0.0) whe
         0.0
     ]
 end
+function velocity_gradient(
+    problem::PoiseuilleFlow,
+    x::T,
+    y::T,
+    timestep::Real = 0.0,
+) where { T <: Real }
+    u_x = 0.0
+    v_y = 0.0
+    u_y = (problem.domain_size[2] - 2y) * (problem.G / 2)
+    v_x = 0.0
+
+    return [u_x v_x; u_y v_y]
+end
 function force(problem::PoiseuilleFlow, x::Int, y::Int, time::Real = 0.0) where { Int <: Integer }
     return [
         viscosity(problem) * problem.G
