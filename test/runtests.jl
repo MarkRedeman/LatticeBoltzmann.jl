@@ -10,6 +10,7 @@ quadratures = LatticeBoltzmann.Quadratures
 include("problems/taylor-green-vortex.jl")
 include("problems/poiseuille.jl")
 include("collision-models.jl")
+include("initial-conditions.jl")
 
 @testset "LATTICEBOLTZMANN.jl" begin
 
