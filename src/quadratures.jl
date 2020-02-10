@@ -43,4 +43,3 @@ const Quadratures = (
     D2Q37 = D2Q37(),
 )
 
-include("quadratures/plot-quadratures.jl")
