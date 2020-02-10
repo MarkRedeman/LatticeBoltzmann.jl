@@ -5,13 +5,9 @@ module Examples
 module Couette
 
 using LatticeBoltzmann, Plots, DataFrames
-# using ElectronDisplay
+using ElectronDisplay
 using LaTeXStrings
 using JLD2
-
-# using PGFPlots
-# using PGFPlotsX
-# pgfplots() # x?
 
 import LatticeBoltzmann: StopCriteria,
     CompareWithAnalyticalSolution,
@@ -315,133 +311,18 @@ function main(τ = 1.0, scale = 2)
         D2Q37(),
     ]
 
-    # results = map(quadratures) do q
-    #     couette_velocity_profile(
-    #         q,
-    #         # ZeroVelocityInitialCondition(),
-    #         AnalyticalEquilibrium(),
-    #         τ,
-    #         # TODO: check viscosity dependency (determines rate of convergence  wrt. time)
-    #         # τ * q.speed_of_sound_squared
-    #         8scale
-    #     )
-    # end
-    results = []
-    # plot_error_progresion(results) |> display
-    # plot_error_locations(results) |> display
+    results = map(quadratures) do q
+        couette_velocity_profile(
+            q,
+            # ZeroVelocityInitialCondition(),
+            AnalyticalEquilibrium(),
+            τ,
+            scale
+        )
+    end
+    plot_error_progresion(results) |> display
 
-    # results = map(quadratures) do q
-    #     couette_velocity_profile(
-    #         q,
-    #         # ZeroVelocityInitialCondition(),
-    #         AnalyticalEquilibrium(),
-    #         τ,
-    #         2scale
-    #     )
-    # end
-    # plot_error_progresion(results) |> display
-    # plot_error_locations(results) |> display
-
-    # results = map(quadratures) do q
-    #     couette_velocity_profile(
-    #         q,
-    #         # ZeroVelocityInitialCondition(),
-    #         AnalyticalEquilibrium(),
-    #         τ,
-    #         # TODO: check viscosity dependency (determines rate of convergence  wrt. time)
-    #         # τ * q.speed_of_sound_squared
-    #         4scale
-    #     )
-    # end
-    # plot_error_progresion(results) |> display
-    # plot_error_locations(results) |> display
-
-    # results = map(quadratures) do q
-    #     couette_velocity_profile(
-    #         q,
-    #         # ZeroVelocityInitialCondition(),
-    #     AnalyticalEquilibrium(),
-    #         τ,
-    #         2scale
-    #     )
-    # end
-    # plot_error_progresion(results) |> display
-
-    # results = map(quadratures) do q
-    #     couette_velocity_profile(
-    #         q,
-    #         # ZeroVelocityInitialCondition(),
-    #     AnalyticalEquilibrium(),
-    #         τ,
-    #         4scale
-    #     )
-    # end
-    # plot_error_progresion(results) |> display
-
-    # results = map(quadratures) do q
-    #     couette_velocity_profile(
-    #         q,
-    #         # ZeroVelocityInitialCondition(),
-    #         AnalyticalEquilibrium(),
-    #         τ,
-    #         8scale
-    #     )
-    # end
-    # plot_error_progresion(results) |> display
-    # results = map(quadratures) do q
-    #     couette_velocity_profile(
-    #         q,
-    #         # ZeroVelocityInitialCondition(),
-    #         AnalyticalEquilibrium(),
-    #         τ,
-    #         16scale
-    #     )
-    # end
-    # plot_error_progresion(results) |> display
-    # results = map(quadratures) do q
-    #     couette_velocity_profile(
-    #         q,
-    #         # ZeroVelocityInitialCondition(),
-    #         AnalyticalEquilibrium(),
-    #         τ,
-    #         32scale
-    #     )
-    # end
-    # plot_error_progresion(results) |> display
-    # results = map(quadratures) do q
-    #     couette_velocity_profile(
-    #         q,
-    #         # ZeroVelocityInitialCondition(),
-    #         AnalyticalEquilibrium(),
-    #         τ,
-    #         64scale
-    #     )
-    # end
-    # plot_error_progresion(results) |> display
-    # results = map(quadratures) do q
-    #     couette_velocity_profile(
-    #         q,
-    #         # ZeroVelocityInitialCondition(),
-    #         AnalyticalEquilibrium(),
-    #         τ,
-    #         128scale
-    #     )
-    # end
-    # plot_error_progresion(results) |> display
-
-    # scales = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    # scales = [1, 2, 4, 8, 12, 16]
-    scales = [1, 2, 4, 8, 16, 32, 64]
-
-    # scales = [1, 2, 4, 8, 16, 32]
-    scales = [1, 2, 4, 8, 16, 32, 64]
-    # scales = [1, 2, 4, 8, 16, 32, 64]
-    # scales = [1, 2, 4, 8, 16, 32, 64, 128, 256]
-
-    scales = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8182, 2* 8182, 4 * 8182, 8*8182]
-    scales = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
-    scales = [1, 2, 4, 8, 16, 32, 64, 128]
-    scales = [1, 2, 4, 8, 16, 32, 64, 128]
+    scales = [1, 2, 4]
 
     iteration_strategies = [
         # AnalyticalEquilibrium(),
@@ -461,34 +342,30 @@ function main(τ = 1.0, scale = 2)
         )
     end
 
-    convergence_results_iterative = convergence_results
-    convergence_results_equilibrium = convergence_results
-    convergence_results_offequilibrium = convergence_results
-
-    # convergence_results_iterative = map(quadratures) do q
-    #     couette_convergence_analysis(
-    #         q,
-    #         iteration_strategies[2],
-    #         τ,
-    #         scales = scales
-    #     )
-    # end
-    # convergence_results_equilibrium = map(quadratures) do q
-    #     couette_convergence_analysis(
-    #         q,
-    #         iteration_strategies[3],
-    #         τ,
-    #         scales = scales
-    #     )
-    # end
-    # convergence_results_offequilibrium = map(quadratures) do q
-    #     couette_convergence_analysis(
-    #         q,
-    #         iteration_strategies[4],
-    #         τ,
-    #         scales = scales
-    #     )
-    # end
+    convergence_results_iterative = map(quadratures) do q
+        couette_convergence_analysis(
+            q,
+            iteration_strategies[2],
+            τ,
+            scales = scales
+        )
+    end
+    convergence_results_equilibrium = map(quadratures) do q
+        couette_convergence_analysis(
+            q,
+            iteration_strategies[3],
+            τ,
+            scales = scales
+        )
+    end
+    convergence_results_offequilibrium = map(quadratures) do q
+        couette_convergence_analysis(
+            q,
+            iteration_strategies[4],
+            τ,
+            scales = scales
+        )
+    end
 
     return (
         results = results,
@@ -790,32 +667,44 @@ function hoi_snapshot(q = D2Q9(), initialization_strategy = nothing, τ = 1.0, s
 
 end
 
+function truncation_versus_numerical(xs)
+    q = D2Q13()
+    τ = 0.8
+    ν = τ / (2.0 * q.speed_of_sound_squared)
+    scale = 2
+
+    NX = 1
+    NY = 5 * scale
+    domain_size = (1.0, 1.0)
+    map(xs) do u_max
+        problem = CouetteFlow(1.0, u_max / scale, ν, NX, NY, domain_size)
+
+        t_end = 1.0
+        Δt = delta_t(problem)
+        @show Δt
+        n_steps = round(Int, t_end / Δt)
+
+        # CompareWithAnalyticalSolution
+        process_method = TrackHydrodynamicErrors(
+            problem,
+            false,
+            n_steps,
+            LatticeBoltzmann.VelocityConvergenceStoppingCriteria(1E-7, problem)
+        )
+        @show problem
+
+        @time res = simulate(
+            problem,
+            q,
+            process_method = process_method,
+            initialization_strategy = ZeroVelocityInitialCondition(),
+            #initialization_strategy = AnalyticalEquilibrium(),
+            t_end = t_end
+        )
+
+        return res.processing_method.df[end].error_u
+    end
+end
+
 end
 end
-
-# plot(
-#     plot(
-#         plot(Examples.Couette.plot_convergence(biggest_result.convergence_results, :error_u), title="Zero"),
-#         plot(Examples.Couette.plot_convergence(biggest_result.convergence_results_iterative, :error_u), title = "iterative"),
-#         plot(Examples.Couette.plot_convergence(biggest_result.convergence_results_equilibrium, :error_u), title = "equilibrium"),
-#         plot(Examples.Couette.plot_convergence(biggest_result.convergence_results_offequilibrium, :error_u), title = "offequilibrium"),
-#         legend = nothing,
-#     ),
-
-#     plot(
-#         # plot(Examples.Couette.plot_convergence(biggest_result.convergence_results, :error_p), title="Zero"),
-#         plot(Examples.Couette.plot_convergence(biggest_result.convergence_results_iterative, :error_p), title = "iterative"),
-#         plot(Examples.Couette.plot_convergence(biggest_result.convergence_results_equilibrium, :error_p), title = "equilibrium"),
-#         plot(Examples.Couette.plot_convergence(biggest_result.convergence_results_offequilibrium, :error_p), title = "offequilibrium"),
-#         legend = nothing,
-#     ),
-
-#     plot(
-#         plot(Examples.Couette.plot_convergence(biggest_result.convergence_results, :error_σ_xy), title="Zero"),
-#         plot(Examples.Couette.plot_convergence(biggest_result.convergence_results_iterative, :error_σ_xy), title = "iterative"),
-#         plot(Examples.Couette.plot_convergence(biggest_result.convergence_results_equilibrium, :error_σ_xy), title = "equilibrium"),
-#         plot(Examples.Couette.plot_convergence(biggest_result.convergence_results_offequilibrium, :error_σ_xy), title = "offequilibrium"),
-#         legend = nothing,
-#     ),
-#     size=(1200, 900)
-# )
