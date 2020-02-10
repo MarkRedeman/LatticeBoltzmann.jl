@@ -8,12 +8,12 @@ using Plots
 include("quadratures.jl")
 include("boundary_conditions.jl")
 include("problems/problems.jl")
-include("initial-conditions.jl")
+include("initial_conditions.jl")
 include("stream.jl")
 include("collision.jl")
 include("analysis.jl")
 include("process.jl")
-include("initial-conditions/mei-et-al.jl")
+include("initial_conditions/mei_et_al.jl")
 
 include("interop/plots.jl")
 

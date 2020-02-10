@@ -28,11 +28,11 @@ initial_condition(
     y::T
 ) where { T <: Real } = initial_condition(q, problem, x, y)
 
-include("initial-conditions/constant-density.jl")
-include("initial-conditions/analytical-equilibrium.jl")
-include("initial-conditions/analytical-offequilibrium.jl")
-include("initial-conditions/analytical-velocity.jl")
-include("initial-conditions/analytical-velocity-stress.jl")
+include("initial_conditions/constant_density.jl")
+include("initial_conditions/analytical_equilibrium.jl")
+include("initial_conditions/analytical_offequilibrium.jl")
+include("initial_conditions/analytical_velocity.jl")
+include("initial_conditions/analytical_velocity_stress.jl")
 
 """
 f₀(x) = f_eq(ρ₀, u₀, p₀)
