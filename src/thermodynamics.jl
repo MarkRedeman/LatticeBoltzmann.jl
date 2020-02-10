@@ -21,23 +21,6 @@ function pressure(q::Quadrature, f::P, ρ::T, u::VT) where {
     VT <: AbstractVector{T},
     P <: AbstractVector{T}
 }
-    # D = dimension(q)
-    # a_eq_2 = equilibrium_coefficient(Val{2}, q, ρ, u, 1.0)
-    # p = (tr(a_eq_2) - ρ * (u[1]^2 + u[2]^2)) / D
-    # # p = (tr(a_2)/D - ρ * (u[1]^2 + u[2]^2 - D))
-
-    # E = 0.0
-    # @inbounds for idx = 1:length(f)
-    #     E += f[idx] * (q.abscissae[1, idx]^2 + q.abscissae[2, idx]^2)
-    # end
-
-    # return p
-    # return q.speed_of_sound_squared * (E - ρ * (u[1]^2 + u[2]^2)) / D
-    # @show p q.speed_of_sound_squared * (E - ρ * (u[1]^2 + u[2]^2)) / D
-    # p = q.speed_of_sound_squared * (E - ρ * (u[1]^2 + u[2]^2)) / D
-
-    # return p
-
     a_2 = sum(f[idx] * hermite(Val{2}, q.abscissae[:, idx], q) for idx = 1:length(q.weights))
     D = dimension(q)
 
