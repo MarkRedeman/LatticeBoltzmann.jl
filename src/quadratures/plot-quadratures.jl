@@ -28,7 +28,7 @@ function plot_quadrature(q::Quadrature, color_each_group_separatly = false)
     for f_idx = 1:length(q.weights)
         color_idx = findfirst(isequal(q.weights[f_idx]), unique_weights)
 
-        if q.abscissae[:, f_idx] != [0, 0]
+        if q.abscissae[:, f_idx] != [0, 0] && q.weights[f_idx] != 0
             quiver!(
                 p,
                 [0.0],
@@ -40,6 +40,9 @@ function plot_quadrature(q::Quadrature, color_each_group_separatly = false)
     end
 
     for f_idx = 1:length(q.weights)
+        if q.weights == 0
+            continue
+        end
         if q.abscissae[:, f_idx] != [0, 0]
             continue
         end
