@@ -19,12 +19,12 @@ function opposite(q::Quadrature, idx::Int64)
 end
 
 δ(α, β) = α == β ? 1 : 0
-include("hermite-polynomials/hermite.jl")
-include("hermite-polynomials/equilibrium-coefficients.jl")
-include("hermite-polynomials/equilibrium.jl")
+include("hermite_polynomials/hermite.jl")
+include("hermite_polynomials/equilibrium_coefficients.jl")
+include("hermite_polynomials/equilibrium.jl")
 include("thermodynamics.jl")
 
-# Specific quadrature rules
+# Specific velocity sets
 include("quadratures/D2Q4.jl")
 include("quadratures/D2Q5.jl")
 include("quadratures/D2Q9.jl")
