@@ -5,13 +5,9 @@ module Examples
 module Poiseuille
 
 using LatticeBoltzmann, Plots, DataFrames
-# using ElectronDisplay
+using ElectronDisplay
 using LaTeXStrings
 using JLD2
-
-# using PGFPlots
-# using PGFPlotsX
-# pgfplots() # x?
 
 import LatticeBoltzmann: StopCriteria,
     CompareWithAnalyticalSolution,
@@ -25,8 +21,6 @@ import LatticeBoltzmann: StopCriteria,
     next!,
     InitializationStrategy,
     ShowVelocityError
-
-# line_style(q::Quadrature) = (:line, :dot)
 
 line_style(q::D2Q4) = (:line)
 line_style(q::D2Q5) = (:line, :dash, 1.0, 3.0)
@@ -44,7 +38,6 @@ marker_style(q::D2Q13) = ()
 marker_style(q::D2Q17) = ()
 marker_style(q::D2Q21) = ()
 marker_style(q::D2Q37) = (:hexagon)
-# line_style(q::D2Q4) = (linestyle = :dot, linecolor = :red)
 
 function poiseuille_velocity_profile(
     q = D2Q9(),
@@ -99,7 +92,8 @@ function poiseuille_convergence_analysis(q = D2Q9(), initialization_strategy = Z
             problem,
             false,
             n_steps,
-            StopCriteria(problem)
+            LatticeBoltzmann.VelocityConvergenceStoppingCriteria(1E-7, problem)
+            # StopCriteria(problem)
         )
         @show scale problem initialization_strategy n_steps
 
@@ -237,7 +231,6 @@ function plot_convergence(results, s = :error_u)
 
         plot!(p, xs, x -> 1E-1 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
         plot!(p, xs, x -> 1E-1 * x.^(-1), label=L"\mathcal{O}(x^{-1})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
-        plot!(p, xs, x -> 1E-1 * x.^(-0), label=L"\mathcal{O}(x^{-0})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
     end
 
     if s == :error_p
@@ -305,16 +298,38 @@ function main2()
     plot_error_locations(results) |> display
 end
 
+function main_convergence(τ = 0.8)
+    quadratures = [
+        # D2Q4(),
+        # D2Q5(),
+        D2Q9(),
+        D2Q13(),
+        D2Q17(),
+        D2Q21(),
+        D2Q37(),
+    ]
+    scales = [1, 2, 4]
+    convergence_results = map(quadratures) do q
+        poiseuille_convergence_analysis(
+            q,
+            ZeroVelocityInitialCondition(),
+            τ,
+            scales = scales
+        )
+    end
+
+    convergence = plot_convergence(convergence_results)
+    display(convergence)
+    return convergence_results
+end
 
 function main(τ = 1.0, scale = 2)
     problem = PoiseuilleFlow(1.0 / 6.0, 32)
     ν = LatticeBoltzmann.viscosity(problem)
     Δt = delta_t(problem)
     snapshot_at = round.(Int, [
-        # 0.0005 * 1.0 / (ν * Δt),
         0.005 * 1.0 / (ν * Δt),
         0.05 * 1.0 / (ν * Δt),
-        # 0.5 * 1.0 / (ν * Δt),
         5.0 * 1.0 / (ν * Δt)
     ])
 
@@ -322,11 +337,10 @@ function main(τ = 1.0, scale = 2)
         0.01 * 1.0 / (ν * Δt),
         0.05 * 1.0 / (ν * Δt),
         0.1 * 1.0 / (ν * Δt),
-        # 0.5 * 1.0 / (ν * Δt),
         1.0 * 1.0 / (ν * Δt)
     ])
 
-    simulate(
+    snapshot_results = simulate(
         problem,
         D2Q9(),
         t_end = 5.0 / LatticeBoltzmann.viscosity(problem),
@@ -353,11 +367,6 @@ function main(τ = 1.0, scale = 2)
         )
     end
 
-    # scales = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    # scales = [1, 2, 4, 8, 12, 16]
-    # scales = [1, 2, 4, 8, 16, 32, 64]
-
-    scales = [1, 2, 4, 8, 16]
     scales = [1, 2, 4]
 
     iteration_strategies = [
@@ -375,35 +384,30 @@ function main(τ = 1.0, scale = 2)
             scales = scales
         )
     end
-
-        convergence_results_iterative = convergence_results
-        convergence_results_equilibrium = convergence_results
-        convergence_results_offequilibrium = convergence_results
-
-    # convergence_results_iterative = map(quadratures) do q
-    #     poiseuille_convergence_analysis(
-    #         q,
-    #         iteration_strategies[2],
-    #         τ,
-    #         scales = scales
-    #     )
-    # end
-    # convergence_results_equilibrium = map(quadratures) do q
-    #     poiseuille_convergence_analysis(
-    #         q,
-    #         iteration_strategies[3],
-    #         τ,
-    #         scales = scales
-    #     )
-    # end
-    # convergence_results_offequilibrium = map(quadratures) do q
-    #     poiseuille_convergence_analysis(
-    #         q,
-    #         iteration_strategies[4],
-    #         τ,
-    #         scales = scales
-    #     )
-    # end
+    convergence_results_iterative = map(quadratures) do q
+        poiseuille_convergence_analysis(
+            q,
+            iteration_strategies[2],
+            τ,
+            scales = scales
+        )
+    end
+    convergence_results_equilibrium = map(quadratures) do q
+        poiseuille_convergence_analysis(
+            q,
+            iteration_strategies[3],
+            τ,
+            scales = scales
+        )
+    end
+    convergence_results_offequilibrium = map(quadratures) do q
+        poiseuille_convergence_analysis(
+            q,
+            iteration_strategies[4],
+            τ,
+            scales = scales
+        )
+    end
 
     return (
         results = results,
@@ -447,23 +451,3 @@ end
 
 end
 end
-
-
-# plot(
-#     plot(
-#         plot(Examples.Poiseuille.plot_convergence(result.convergence_results, :error_u), title="Zero"),
-#         plot(Examples.Poiseuille.plot_convergence(result.convergence_results_iterative, :error_u), title = "iterative"),
-#         plot(Examples.Poiseuille.plot_convergence(result.convergence_results_equilibrium, :error_u), title = "equilibrium"),
-#         plot(Examples.Poiseuille.plot_convergence(result.convergence_results_offequilibrium, :error_u), title = "offequilibrium"),
-#         legend = nothing,
-#     ),
-
-#     plot(
-#         plot(Examples.Poiseuille.plot_convergence(result.convergence_results, :error_p), title="Zero"),
-#         plot(Examples.Poiseuille.plot_convergence(result.convergence_results_iterative, :error_p), title = "iterative"),
-#         plot(Examples.Poiseuille.plot_convergence(result.convergence_results_equilibrium, :error_p), title = "equilibrium"),
-#         plot(Examples.Poiseuille.plot_convergence(result.convergence_results_offequilibrium, :error_p), title = "offequilibrium"),
-#         legend = nothing,
-#     ),
-#     size=(1200, 900)
-# )
