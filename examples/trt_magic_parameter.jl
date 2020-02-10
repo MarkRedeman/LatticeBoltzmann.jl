@@ -1,106 +1,97 @@
+module TRT_MAGIC_EXAMPLE
+
+using LaTeXStrings
 using DataFrames
 using LatticeBoltzmann
 using Plots
+using JLD2
 
-# let
-    q = D2Q9()
-    # problem = PoiseuilleFlow(ν, 2, static = true)
+import LatticeBoltzmann: StopCriteria,
+    CompareWithAnalyticalSolution,
+    TrackHydrodynamicErrors,
+    ZeroVelocityInitialCondition,
+    IterativeInitializationMeiEtAl,
+    density,
+    velocity!,
+    dimensionless_velocity,
+    ProcessingMethod,
+    next!,
+    InitializationStrategy,
+    ShowVelocityError
+
+# Choose an end time such that we can be certain that a steady state solution
+# has been found before terminating
+const T_END = 100.0
+
+function solve(problem, q, τ_s, τ_a)
+    t_end = T_END
+    Δt = LatticeBoltzmann.delta_t(problem)
+    n_steps = round(Int, t_end / Δt)
+
+    process_method = TrackHydrodynamicErrors(
+        problem,
+        false,
+        n_steps,
+        LatticeBoltzmann.VelocityConvergenceStoppingCriteria(1E-7, problem)
+    )
+
+    collision_model = LatticeBoltzmann.TRT(
+        τ_s,
+        τ_a,f
+        (x_idx, y_idx, t) -> LatticeBoltzmann.lattice_force(problem, x_idx, y_idx, t)
+    )
+
+    @time result = LatticeBoltzmann.simulate(
+        problem,
+        q,
+        t_end = t_end,
+        should_process = false,
+        collision_model = collision_model,
+        process_method = process_method,
+        initialization_strategy = ZeroVelocityInitialCondition(),
+    )
+
+    return result
+end
+
+function plot_main(result; Quadratures = [D2Q9()], scale = 2)
     s = []
-
-    scale_range = [1, 2, 4]
-    scale_range = [1, 2]
-    scale_range = [4]
-    scale_range = [2]
-    Λ_range = vcat(
-        range(0.01, stop = 0.75, step = 0.005),
-        range(0.75, stop = 1.0, step = 0.05)
-    )
-
-    Quadratures = LatticeBoltzmann.Quadratures
-    Quadratures = [D2Q9()]
-
     for q in Quadratures
-    for τ = 0.5:0.01:2.0
-    ν = τ / (2 * q.speed_of_sound_squared)
-    # ν = 1.00 / (2 * q.speed_of_sound_squared)
-    for scale = scale_range
-        problem = DecayingShearFlow(ν, scale, static = true)
-        # problem = PoiseuilleFlow(ν, scale, static = true)
-        stats = DataFrame([
-            Float64[], Float64[], Float64[], Any[], Float64[], Float64[], Float64[]
-        ], [
-            :Λ, :scale, :τ, :q, :error_u, :error_σ_xx, :error_σ_xy
-        ])
+        for τ_s in range(0.51, stop = 10.0, step = 0.05),
+            τ_a in range(0.51, stop = 10.0, step = 0.05)
 
-        for Λ = Λ_range
-            result = LatticeBoltzmann.simulate(
-                problem,
-                q,
-                t_end = 0.15,
-                should_process = false,
-                collision_model=LatticeBoltzmann.TRT_Λ(Λ)
-            )
+            ν = (τ_s - 0.5) / q.speed_of_sound_squared
+            problem = PoiseuilleFlow(ν, scale)
 
-            if (! isnan(result.processing_method.df[end].error_u))
-                push!(
-                    stats,
-                    [
-                        Λ,
-                        scale,
-                        τ,
-                        q,
-                        result.processing_method.df[end].error_u,
-                        result.processing_method.df[end].error_σ_xx,
-                        result.processing_method.df[end].error_σ_xy
-                    ]
-                )
-            end
+            result = solve(problem, q, τ_s, τ_a)
+            errors = result.processing_method.df[end]
+
+            push!(s, (
+                τ_s = τ_s,
+                τ_a = τ_a,
+                quadrature = q,
+                error_u = errors.error_u,
+                error_p = errors.error_p,
+                error_σ_xx = errors.error_σ_xx,
+                error_σ_xy = errors.error_σ_xy
+            ))
         end
-
-        # plot(stats.Λ, stats.error_u, yscale=:log10)
-        # gui()
-        push!(s, stats)
     end
-    end
-    end
+    return s
+end
 
-    p = plot()
-    for stats in s
-        @show stats.Λ[argmin(stats.error_u)]
-        plot!(stats.Λ, stats.error_u, yscale=:log10, linestyle=:dot)
-    end
-    gui()
-
-
-    optimal_Λs = []
-    for stats in s
-        @show stats.Λ[argmin(stats.error_σ_xy)]
-        push!(optimal_Λs, [
-              stats.τ[argmin(stats.error_u)],
-              stats.Λ[argmin(stats.error_u)],
-        ])
-    end
-
-    τ_ = 0.5 .+ last.(optimal_Λs) ./ (first.(optimal_Λs) .- 0.5)
-    plot(
-        first.(optimal_Λs),
-        last.(optimal_Λs),
-        xlabel = "Tau",
-        label="Optimal Lambda"
+function plot_results(x)
+    τ_as = map(d -> d.τ_a, x) |> unique
+    τ_ss = map(d -> d.τ_s, x) |> unique
+    p = contour(
+        τ_ss,
+        τ_as,
+        (s, a) -> x[findfirst(d -> d.τ_s == s && d.τ_a == a, x)].error_u,
+        xlabel=L"\tau_s",
+        ylabel=L"\tau_a",
+        fill=true
     )
-    plt = twinx()
-    plot!(
-        plt,
-        first.(optimal_Λs),
-        0.5 .+ last.(optimal_Λs) ./ (first.(optimal_Λs) .- 0.5),
-        xlabel = "Tau",
-        label="Optimal Tau -"
-    )
-    gui()
+    return p
+end
 
-    # stats.τ[argmin(stats.error_u)] = 1.438
-    # 1.438
-    # julia> @show stats.τ[argmin(stats.error_u)]
-    # stats.τ[argmin(stats.error_u)] = 1.76
-    # 1.76
-# end
+end
