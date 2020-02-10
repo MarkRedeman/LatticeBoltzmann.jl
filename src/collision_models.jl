@@ -1,8 +1,8 @@
 abstract type CollisionModel end
 
-include("collision-models/srt.jl")
-include("collision-models/trt.jl")
-include("collision-models/mrt.jl")
+include("collision_models/srt.jl")
+include("collision_models/trt.jl")
+include("collision_models/mrt.jl")
 
 """
 Our default collision model uses the Single Relaxation Time method
