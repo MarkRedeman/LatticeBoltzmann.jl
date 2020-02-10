@@ -2,8 +2,8 @@ struct MRT{
     Force,
     T <: Real,
     VT <: AbstractVector{T},
-    HST <: AbstractVector{Array{T,1}},
-    AST <: AbstractVector{Array{T,1}}
+    HST, #<: AbstractVector{AbstractArray{T,1}},
+    AST #<: AbstractVector{AbstractArray{T,1}}
 } <: CollisionModel
     τs::VT
 
