@@ -34,8 +34,6 @@ function initial_condition(::AnalyticalVelocityAndStress, q::Quadrature, problem
         f[f_idx] += - f_neq
     end
 
-
-    @info "Check"
     u = lattice_velocity(q, problem, x, y)
     u_lb = copy(u)
     ρ = density(q, f)
