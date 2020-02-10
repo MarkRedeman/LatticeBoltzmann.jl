@@ -6,7 +6,7 @@ using LinearAlgebra
 using Plots
 
 include("quadratures.jl")
-include("boundary-conditions.jl")
+include("boundary_conditions.jl")
 include("problems/problems.jl")
 include("initial-conditions.jl")
 include("stream.jl")

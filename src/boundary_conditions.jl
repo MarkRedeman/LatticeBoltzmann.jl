@@ -31,5 +31,5 @@ struct East <: Direction end
 struct South <: Direction end
 struct West <: Direction end
 
-include("boundary-conditions/bounce-back.jl")
-include("boundary-conditions/moving-wall.jl")
+include("boundary_conditions/bounce_back.jl")
+include("boundary_conditions/moving_wall.jl")
