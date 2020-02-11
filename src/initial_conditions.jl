@@ -33,6 +33,7 @@ include("initial_conditions/analytical_equilibrium.jl")
 include("initial_conditions/analytical_offequilibrium.jl")
 include("initial_conditions/analytical_velocity.jl")
 include("initial_conditions/analytical_velocity_stress.jl")
+include("initial_conditions/mei_et_al.jl")
 
 """
 f₀(x) = f_eq(ρ₀, u₀, p₀)

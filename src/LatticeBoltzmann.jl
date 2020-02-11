@@ -24,7 +24,6 @@ include("initial_conditions.jl")
 include("stream.jl")
 include("collision_models.jl")
 include("processing_methods.jl")
-include("initial_conditions/mei_et_al.jl")
 include("lattice_boltzmann_model.jl")
 
 include("interop/plots.jl")
