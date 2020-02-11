@@ -448,7 +448,7 @@ function kruger_analysis()
 
             @show t_end
 
-            @time model = LatticeBoltzmann.LatticeBoltzmannMethod(
+            @time model = LatticeBoltzmann.LatticeBoltzmannModel(
                 problem,
                 q,
                 initialization_strategy = initialization,
@@ -596,7 +596,7 @@ function initial_conditions_analysis()
         t_end = round(Int, LatticeBoltzmann.decay_time(problem))
         @show t_end
 
-        @time model = LatticeBoltzmann.LatticeBoltzmannMethod(
+        @time model = LatticeBoltzmann.LatticeBoltzmannModel(
             problem,
             q,
             initialization_strategy = initialization,

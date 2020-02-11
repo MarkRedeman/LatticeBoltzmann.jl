@@ -439,7 +439,7 @@ function compute_snapshots(
     Δt = delta_t(problem)
 
     snapshot_results = map(snapshots_at) do t_end
-        simulation = LatticeBoltzmann.LatticeBoltzmannMethod(
+        simulation = LatticeBoltzmann.LatticeBoltzmannModel(
             problem,
             q,
             initialization_strategy = initialization_strategy,

@@ -1,6 +1,6 @@
 module ExamplesShearWaveDecay
 
-include("LatticeBoltzmann.jl")
+include("lbm.jl")
 # using PGFPlotsX
 
 # using PGFPlots

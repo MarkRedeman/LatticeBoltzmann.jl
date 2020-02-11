@@ -1,4 +1,4 @@
-struct LatticeBoltzmannMethod{Q<:Quadrature,T,CM<:CollisionModel,PM<:ProcessingMethod,BCs <: AbstractVector{<:BoundaryCondition}}
+struct LatticeBoltzmannModel{Q<:Quadrature,T,CM<:CollisionModel,PM<:ProcessingMethod,BCs <: AbstractVector{<:BoundaryCondition}}
     f_stream::T
     f_collision::T
     quadrature::Q
@@ -6,7 +6,7 @@ struct LatticeBoltzmannMethod{Q<:Quadrature,T,CM<:CollisionModel,PM<:ProcessingM
     boundary_conditions::BCs
     processing_method::PM
 end
-function LatticeBoltzmannMethod(
+function LatticeBoltzmannModel(
     problem,
     quadrature;
     collision_model = SRT,
@@ -16,7 +16,7 @@ function LatticeBoltzmannMethod(
     f_stream = initialize(initialization_strategy, quadrature, problem, collision_model)
     f_collision = copy(f_stream)
 
-    LatticeBoltzmannMethod(
+    LatticeBoltzmannModel(
         f_stream,
         f_collision,
         quadrature,
@@ -41,7 +41,7 @@ function simulate(
         process_method = ProcessingMethod(problem, should_process, n_steps)
     end
 
-    model = LatticeBoltzmannMethod(
+    model = LatticeBoltzmannModel(
         problem,
         q,
         collision_model = collision_model,
@@ -51,7 +51,7 @@ function simulate(
 
     simulate(model, 0:n_steps)
 end
-function simulate(model::LatticeBoltzmannMethod, time)
+function simulate(model::LatticeBoltzmannModel, time)
     Δt = isdefined(model.processing_method, :problem) ? delta_t(model.processing_method.problem) : 0.0
 
     @inbounds for t in time
@@ -74,7 +74,7 @@ end
 # This will likely be refactored so that we can write specialized function
 # for each specific LatticeBoltzmannModel (once we also introduce ddf models)
 
-function collide!(model::LatticeBoltzmannMethod; time)
+function collide!(model::LatticeBoltzmannModel; time)
     collide!(
         model.collision_model,
         model.quadrature,
@@ -84,11 +84,11 @@ function collide!(model::LatticeBoltzmannMethod; time)
     )
 end
 
-function stream!(model::LatticeBoltzmannMethod)
+function stream!(model::LatticeBoltzmannModel)
     stream!(model.quadrature, f_new = model.f_stream, f_old = model.f_collision)
 end
 
-function apply_boundary_conditions!(model::LatticeBoltzmannMethod; time = 0.0)
+function apply_boundary_conditions!(model::LatticeBoltzmannModel; time = 0.0)
     apply!(
         model.boundary_conditions,
         model.quadrature,
@@ -98,6 +98,6 @@ function apply_boundary_conditions!(model::LatticeBoltzmannMethod; time = 0.0)
     )
 end
 
-function process_step!(model::LatticeBoltzmannMethod, t::Int64)
+function process_step!(model::LatticeBoltzmannModel, t::Int64)
     next!(model.processing_method, model.quadrature, model.f_stream, t)
 end

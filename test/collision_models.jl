@@ -1,4 +1,4 @@
-import LatticeBoltzmann: LatticeBoltzmannMethod,
+import LatticeBoltzmann: LatticeBoltzmannModel,
     ProcessingMethod
 
 @testset "TRT with τ_a = τ_s is identical to SRT" begin
@@ -31,8 +31,8 @@ import LatticeBoltzmann: LatticeBoltzmannMethod,
         process_method = ProcessingMethod(problem, false, 10)
         force_field = LatticeBoltzmann.has_external_force(problem) ? (x_idx, y_idx, t) -> lattice_force(problem, x_idx, y_idx, t) : nothing
 
-        srt_model = LatticeBoltzmannMethod(problem, q, collision_model = SRT(τ), process_method = process_method)
-        trt_model = LatticeBoltzmannMethod(problem, q, collision_model = LatticeBoltzmann.TRT(τ, τ), process_method = process_method)
+        srt_model = LatticeBoltzmannModel(problem, q, collision_model = SRT(τ), process_method = process_method)
+        trt_model = LatticeBoltzmannModel(problem, q, collision_model = LatticeBoltzmann.TRT(τ, τ), process_method = process_method)
 
         srt_result = simulate(srt_model, 0:10)
         trt_result = simulate(trt_model, 0:10)
@@ -74,8 +74,8 @@ end
         process_method = ProcessingMethod(problem, false, 10)
         force_field = LatticeBoltzmann.has_external_force(problem) ? (x_idx, y_idx, t) -> lattice_force(problem, x_idx, y_idx, t) : nothing
 
-        srt_model = LatticeBoltzmannMethod(problem, q, collision_model = SRT(τ), process_method = process_method)
-        mrt_model = LatticeBoltzmannMethod(problem, q, collision_model = LatticeBoltzmann.MRT(q, τ), process_method = process_method)
+        srt_model = LatticeBoltzmannModel(problem, q, collision_model = SRT(τ), process_method = process_method)
+        mrt_model = LatticeBoltzmannModel(problem, q, collision_model = LatticeBoltzmann.MRT(q, τ), process_method = process_method)
 
         srt_result = simulate(srt_model, 0:10)
         mrt_result = simulate(mrt_model, 0:10)

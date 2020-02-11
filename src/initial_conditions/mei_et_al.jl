@@ -25,7 +25,7 @@ function initialize(
     # Simultae the lattice botlzmann method with a special collision operator that uses
     # u_0(x) as the velocity of each lattice node
     # The method stops if the density has converged
-    model = LatticeBoltzmannMethod(
+    model = LatticeBoltzmannModel(
         copy(f),
         copy(f),
         q,
