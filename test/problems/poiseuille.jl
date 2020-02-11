@@ -19,63 +19,14 @@
         ρ = LatticeBoltzmann.density(q, f)
         LatticeBoltzmann.velocity!(q, f, ρ, u)
         T = LatticeBoltzmann.temperature(q, f, ρ, u)
-        # @show y_idx, u, f
     end
 
-    # @show size(f_in)
     t = 0
     Δt = LatticeBoltzmann.delta_t(problem)
     o = size(f_in, 2)
     p = size(f_in, 2) - 1
-    # @show f_in[4, 1, :]
-    # @show f_in[4, 2, :]
-    # @show f_in[4, o, :]
-    # @show f_in[4, p, :]
-    # @show f_in[2, 1, :] .- f_in[2, o, :]
-    # @show f_in
-    # @show f_in[4, 2, :] .- f_in[4, p, :]
-    # LatticeBoltzmann.collide!(collision_operator, q, f_in, f_out, time = t * Δt, problem = problem)
     LatticeBoltzmann.collide!(collision_operator, q, time = t * Δt, f_old = f_in, f_new = f_out)
-    # f_out = copy(f_in)
-
-    # @show "after collision"
-    # @show f_out[2, 1, :] .- f_out[2, o, :]
-    # @show f_out
-    # @show f_out[:, :, 2]
-    # @show f_out[:, :, 4]
-    # @show f_out[:, :, 6]
-    # @show f_out[:, :, 8]
-    # @show f_in[4, 1, :]
-    # @show f_in[4, 2, :]
-    # @show f_in[4, o, :]
-    # @show f_in[4, p, :]
-    # @show f_in[4, 2, :] .- f_in[4, p, :]
-
-    # for x_idx = 4, y_idx = 1 : size(f_in, 2)
-    #     @show f_in[3, y_idx, :]
-    #     @show f_in[4, y_idx, :]
-    #     @show f_in[5, y_idx, :]
-    # end
-
-    # LatticeBoltzmann.apply_boundary_conditions!(q, problem, f_new = f_in, f_old = f_out, time = t * Δt)
-    # LatticeBoltzmann.apply_boundary_conditions!(q, problem, f_out, f_in, time = t * Δt)
-    # @show "after boundary"
-    # @show f_out[2, 1, :] .- f_out[2, o, :]
-    # @show f_out
-
-        # stream!(quadrature, f_out, f_in)
     LatticeBoltzmann.stream!(q, f_new = f_in, f_old = f_out)
-    # LatticeBoltzmann.stream!(q, f_out, f_in)
-    # @show "after stream"
-    # @show f_in[2, 1, :]
-    # @show f_in[2, o, :]
-    # @show f_in[2, 1, :] .- f_in[2, o, :]
-    # @show f_in
-
-    # @show f_in[:, :, 2]
-    # @show f_in[:, :, 4]
-    # @show f_in[:, :, 6]
-    # @show f_in[:, :, 8]
 
     for x_idx in 2, y_idx = 1:size(f_in, 2)
         f = f_in[x_idx, y_idx, :]
@@ -83,28 +34,15 @@
         ρ = LatticeBoltzmann.density(q, f)
         LatticeBoltzmann.velocity!(q, f, ρ, u)
         T = temperature(q, f, ρ, u)
-        # @show y_idx, u, f
     end
 
-    # @show f_in[4, 1, :]
-    # @show f_in[4, 2, :]
-    # @show f_in[4, o, :]
-    # @show f_in[4, p, :]
-    # @show f_in[4, 2, :] .- f_in[4, p, :]
-    # @show "First step"
     for x_idx in 2, y_idx = 1:size(f_in, 2)
         f = f_in[x_idx, y_idx, :]
 
         ρ = LatticeBoltzmann.density(q, f)
         LatticeBoltzmann.velocity!(q, f, ρ, u)
         T = temperature(q, f, ρ, u)
-
-        # @show y_idx, u, f
     end
-
-    # @show "Simulate"
-    # result = LatticeBoltzmann.simulate(problem, q, base = 200, should_process=false)
-    # @show "DONE"
 
     # TODO: when an a thermal model is considered, the density fluctuates
     # TODO: when a thermal model is considerd we have constant density
