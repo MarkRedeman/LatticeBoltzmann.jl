@@ -5,7 +5,16 @@ import Base: range
 using LinearAlgebra
 using Plots
 
+δ(α, β) = α == β ? 1 : 0
+
 include("quadratures.jl")
+
+# Equilibria
+include("hermite_polynomials/hermite.jl")
+include("equilibria/moments.jl")
+include("equilibria/maxwell_boltzmann.jl")
+include("equilibria/hermite.jl")
+
 include("boundary_conditions.jl")
 include("problems/problems.jl")
 include("initial_conditions.jl")

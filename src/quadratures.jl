@@ -18,12 +18,6 @@ function opposite(q::Quadrature, idx::Int64)
     return idx - 1
 end
 
-δ(α, β) = α == β ? 1 : 0
-include("hermite_polynomials/hermite.jl")
-include("hermite_polynomials/equilibrium_coefficients.jl")
-include("hermite_polynomials/equilibrium.jl")
-include("thermodynamics.jl")
-
 # Specific velocity sets
 include("quadratures/D2Q4.jl")
 include("quadratures/D2Q5.jl")
@@ -42,4 +36,3 @@ const Quadratures = (
     D2Q21 = D2Q21(),
     D2Q37 = D2Q37(),
 )
-
