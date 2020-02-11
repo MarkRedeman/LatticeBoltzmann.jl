@@ -3,6 +3,7 @@ abstract type CollisionModel end
 include("collision_models/srt.jl")
 include("collision_models/trt.jl")
 include("collision_models/mrt.jl")
+include("collision_models/iterative_initialization.jl")
 
 """
 Our default collision model uses the Single Relaxation Time method
