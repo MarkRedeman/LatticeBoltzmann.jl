@@ -7,12 +7,12 @@ using LatticeBoltzmann
 quadratures = [D2Q4(), D2Q5(), D2Q9(), D2Q13(), D2Q17(), D2Q21(), D2Q37()]
 quadratures = LatticeBoltzmann.Quadratures
 
-include("problems/taylor-green-vortex.jl")
+include("problems/taylor_green_vortex.jl")
 include("problems/poiseuille.jl")
-include("collision-models.jl")
-include("initial-conditions.jl")
+include("collision_models.jl")
+include("initial_conditions.jl")
 
-@testset "LATTICEBOLTZMANN.jl" begin
+@testset "LatticeBoltzmann.jl" begin
 
     @testset "Multinomial hermite coefficients" begin
 
