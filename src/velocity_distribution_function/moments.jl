@@ -1,14 +1,16 @@
-density(q::Quadrature, fs::P) where { N <: Int, P <: AbstractArray{<:Real, N} } = sum(fs, dims = N)
-density(q::Quadrature, f::P) where { P <: AbstractVector{<:Real}} = sum(f)
+density(q::Quadrature, fs::P) where {N <: Int, P <: AbstractArray{<:Real, N}} =
+    sum(fs, dims = N)
+density(q::Quadrature, f::P) where {P <: AbstractVector{<:Real}} = sum(f)
 
-function velocity!(q::Quadrature, f::P, ρ::T, u::VT) where {
-    T <: Real,
-    VT <: AbstractVector{T},
-    P <: AbstractVector{T}
-}
-    @inbounds for d = 1:dimension(q)
+function velocity!(
+    q::Quadrature,
+    f::P,
+    ρ::T,
+    u::VT,
+) where {T <: Real, VT <: AbstractVector{T}, P <: AbstractVector{T}}
+    @inbounds for d in 1:dimension(q)
         u[d] = zero(T)
-        for idx = 1:length(q.weights)
+        for idx in 1:length(q.weights)
             u[d] += f[idx] * q.abscissae[d, idx]
         end
         u[d] /= ρ
@@ -16,26 +18,29 @@ function velocity!(q::Quadrature, f::P, ρ::T, u::VT) where {
     return
 end
 
-function pressure(q::Quadrature, f::P, ρ::T, u::VT) where {
-    T <: Real,
-    VT <: AbstractVector{T},
-    P <: AbstractVector{T}
-}
-    a_2 = sum(f[idx] * hermite(Val{2}, q.abscissae[:, idx], q) for idx = 1:length(q.weights))
+function pressure(
+    q::Quadrature,
+    f::P,
+    ρ::T,
+    u::VT,
+) where {T <: Real, VT <: AbstractVector{T}, P <: AbstractVector{T}}
+    a_2 =
+        sum(f[idx] * hermite(Val{2}, q.abscissae[:, idx], q) for idx in 1:length(q.weights))
     D = dimension(q)
 
     p = (tr(a_2) - ρ * (u[1]^2 + u[2]^2 - D)) / D
     return p
 end
 
-function momentum_flux(q::Quadrature, f::Population, ρ::T, u::VT) where {
-    T <: Real,
-    VT <: AbstractVector{T},
-    Population <: AbstractVector{T}
-}
+function momentum_flux(
+    q::Quadrature,
+    f::Population,
+    ρ::T,
+    u::VT,
+) where {T <: Real, VT <: AbstractVector{T}, Population <: AbstractVector{T}}
     D = dimension(q)
     P = zeros(D, D)
-    @inbounds for x_idx = 1:D, y_idx = 1:D
+    @inbounds for x_idx in 1:D, y_idx in 1:D
         P[x_idx, y_idx] = sum(
             # Pressure tensor
             f[f_idx] *
@@ -44,14 +49,14 @@ function momentum_flux(q::Quadrature, f::Population, ρ::T, u::VT) where {
 
             # Stress tensor
             # f[f_idx] * (q.abscissae[x_idx, f_idx]) * (q.abscissae[y_idx, f_idx])
-            for f_idx = 1:length(f)
+            for f_idx in 1:length(f)
         ) #- ρ * u[x_idx] * u[y_idx]
     end
 
     return q.speed_of_sound_squared * P #- I * pressure(q, f, ρ, u)
 
     E = 0.0
-    @inbounds for idx = 1:length(f)
+    @inbounds for idx in 1:length(f)
         E += f[idx] * (q.abscissae[1, idx]^2 + q.abscissae[2, idx]^2)
     end
 
@@ -59,11 +64,12 @@ function momentum_flux(q::Quadrature, f::Population, ρ::T, u::VT) where {
     return p
 end
 
-function temperature(q::Quadrature, f::P, ρ::T, u::VT) where {
-    T <: Real,
-    VT <: AbstractVector{T},
-    P <: AbstractVector{T}
-}
+function temperature(
+    q::Quadrature,
+    f::P,
+    ρ::T,
+    u::VT,
+) where {T <: Real, VT <: AbstractVector{T}, P <: AbstractVector{T}}
     return pressure(q, f, ρ, u) ./ ρ
 end
 
@@ -72,14 +78,18 @@ Computes the deviatoric tensor σ
 
 τ is the relaxation time such that ν = cs^2 τ
 """
-function deviatoric_tensor(q::Quadrature, τ::T, f::P, ρ::T, u::VT) where {
-    T <: Real,
-    VT <: AbstractVector{T},
-    P <: AbstractVector{T}
-}
+function deviatoric_tensor(
+    q::Quadrature,
+    τ::T,
+    f::P,
+    ρ::T,
+    u::VT,
+) where {T <: Real, VT <: AbstractVector{T}, P <: AbstractVector{T}}
     D = dimension(q)
 
-    a_bar_2 = sum([f[idx] * hermite(Val{2}, q.abscissae[:, idx], q) for idx = 1:length(q.weights)])
+    a_bar_2 = sum([
+        f[idx] * hermite(Val{2}, q.abscissae[:, idx], q) for idx in 1:length(q.weights)
+    ])
     a_eq_2 = equilibrium_coefficient(Val{2}, q, ρ, u, 1.0)
     σ = (a_bar_2 - a_eq_2) / (1 + 1 / (2 * τ))
     return σ - I * tr(σ) / D

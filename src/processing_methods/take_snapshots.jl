@@ -6,7 +6,8 @@ struct TakeSnapshots{S <: AbstractVector{Array{Float64, 3}}} <: ProcessingMethod
     snapshots::S
     timesteps::Vector{Int}
 end
-TakeSnapshots(problem, every_t) = TakeSnapshots(problem, every_t, Array{Float64, 3}[], Int[])
+TakeSnapshots(problem, every_t) =
+    TakeSnapshots(problem, every_t, Array{Float64, 3}[], Int[])
 
 function next!(pm::TakeSnapshots, q, f_in, t::Int64)
     if pm.every_t isa Int && mod(t, pm.every_t) != 0
@@ -28,12 +29,17 @@ function next!(pm::TakeSnapshots, q, f_in, t::Int64)
 end
 
 function visualize(pm::TakeSnapshots, q::Quadrature)
-    velocity_profile_x = plot(xlabel = L"x", ylabel=L"u_y")
-    velocity_profile_y = plot(xlabel = "x", ylabel=L"u_y", legend=:bottomright, title = string("Velocity profile at ", latexstring("y = \\pi")))
-    pressure_profile = plot(xlabel = "x", ylabel=L"p")
-    temperature_profile = plot(xlabel = "x", ylabel=L"T")
-    sigma_xx_profile = plot(xlabel = "x", ylabel=L"\sigma_{xx}")
-    sigma_xy_profile = plot(xlabel = "x", ylabel=L"\sigma_{xy}")
+    velocity_profile_x = plot(xlabel = L"x", ylabel = L"u_y")
+    velocity_profile_y = plot(
+        xlabel = "x",
+        ylabel = L"u_y",
+        legend = :bottomright,
+        title = string("Velocity profile at ", latexstring("y = \\pi")),
+    )
+    pressure_profile = plot(xlabel = "x", ylabel = L"p")
+    temperature_profile = plot(xlabel = "x", ylabel = L"T")
+    sigma_xx_profile = plot(xlabel = "x", ylabel = L"\sigma_{xx}")
+    sigma_xy_profile = plot(xlabel = "x", ylabel = L"\sigma_{xy}")
 
     problem = pm.problem
     for (timestep, f_in) in zip(pm.timesteps, pm.snapshots)
@@ -53,8 +59,8 @@ function visualize(pm::TakeSnapshots, q::Quadrature)
 
         f = Array{Float64}(undef, size(f_in, 3))
         u_ = zeros(dimension(q))
-        @inbounds for x_idx = 1:Nx, y_idx = 1:Ny
-            @inbounds for f_idx = 1:size(f_in, 3)
+        @inbounds for x_idx in 1:Nx, y_idx in 1:Ny
+            @inbounds for f_idx in 1:size(f_in, 3)
                 f[f_idx] = f_in[x_idx, y_idx, f_idx]
             end
             x = x_range[x_idx]
@@ -94,8 +100,13 @@ function visualize(pm::TakeSnapshots, q::Quadrature)
 
         exact_range = range(0.0, length = 1000, stop = problem.domain_size[1])
 
-
-        plot!(velocity_profile_x, domain, u[:, y_pos, 2], label = latexstring("t = ", time), linecolor = :gray)
+        plot!(
+            velocity_profile_x,
+            domain,
+            u[:, y_pos, 2],
+            label = latexstring("t = ", time),
+            linecolor = :gray,
+        )
         y_exact = map(exact_range) do y
             velocity(y, y_range[y_pos], time)[2]
         end
@@ -118,22 +129,80 @@ function visualize(pm::TakeSnapshots, q::Quadrature)
 
         # scatter!(velocity_profile_x, domain, u[x_pos, :, 2], label = latexstring("t = ", timestep))
 
-        scatter!(velocity_profile_y, domain, u[x_pos, :, 2], label = latexstring("t = ", timestep), markershape = :auto, markersize = 6)
-        plot!((y) -> velocity(x_range[x_pos], y, time)[2], exact_range, label = "", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
+        scatter!(
+            velocity_profile_y,
+            domain,
+            u[x_pos, :, 2],
+            label = latexstring("t = ", timestep),
+            markershape = :auto,
+            markersize = 6,
+        )
+        plot!(
+            (y) -> velocity(x_range[x_pos], y, time)[2],
+            exact_range,
+            label = "",
+            linecolor = :gray,
+            linealpha = 0.2,
+            linestyle = :dash,
+        )
 
-        scatter!(pressure_profile, domain, p[x_pos, :], label = latexstring("t = ", timestep))
-        plot!(pressure_profile, (y) -> pr(x_range[x_pos], y, time), exact_range, label = "", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
+        scatter!(
+            pressure_profile,
+            domain,
+            p[x_pos, :],
+            label = latexstring("t = ", timestep),
+        )
+        plot!(
+            pressure_profile,
+            (y) -> pr(x_range[x_pos], y, time),
+            exact_range,
+            label = "",
+            linecolor = :gray,
+            linealpha = 0.2,
+            linestyle = :dash,
+        )
 
-        plot!(temperature_profile, domain, T[x_pos, :], label = latexstring("t = ", timestep))
+        plot!(
+            temperature_profile,
+            domain,
+            T[x_pos, :],
+            label = latexstring("t = ", timestep),
+        )
 
-        scatter!(sigma_xx_profile, domain, σ_xx[x_pos, :], label = latexstring("t = ", timestep))
-        plot!(sigma_xx_profile, (y) -> σ(x_range[x_pos], y, time)[1,1], exact_range, label = "", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
+        scatter!(
+            sigma_xx_profile,
+            domain,
+            σ_xx[x_pos, :],
+            label = latexstring("t = ", timestep),
+        )
+        plot!(
+            sigma_xx_profile,
+            (y) -> σ(x_range[x_pos], y, time)[1, 1],
+            exact_range,
+            label = "",
+            linecolor = :gray,
+            linealpha = 0.2,
+            linestyle = :dash,
+        )
 
-        scatter!(sigma_xy_profile, domain, σ_xy[x_pos, :], label = latexstring("t = ", timestep))
-        plot!(sigma_xy_profile, (y) -> σ(x_range[x_pos], y, time)[1,2], exact_range, label = "", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
+        scatter!(
+            sigma_xy_profile,
+            domain,
+            σ_xy[x_pos, :],
+            label = latexstring("t = ", timestep),
+        )
+        plot!(
+            sigma_xy_profile,
+            (y) -> σ(x_range[x_pos], y, time)[1, 2],
+            exact_range,
+            label = "",
+            linecolor = :gray,
+            linealpha = 0.2,
+            linestyle = :dash,
+        )
     end
 
-    ps =  (
+    ps = (
         velocity_profile_x = velocity_profile_x,
         velocity_profile_y = velocity_profile_y,
         temperature_profile = temperature_profile,

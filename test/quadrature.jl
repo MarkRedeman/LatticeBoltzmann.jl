@@ -8,10 +8,10 @@
     # If we didn't manage to choose correct weights all other tests will likely fail
     @test sum(q.weights) ≈ 1.0
 
-    @testset "Symmetry $n" for n = 1:div(LatticeBoltzmann.order(q), 2)
+    @testset "Symmetry $n" for n in 1:div(LatticeBoltzmann.order(q), 2)
         H = sum([
             q.weights[f_idx] * hermite(n, q.abscissae[:, f_idx], q)
-            for f_idx = 1:length(q.weights)
+            for f_idx in 1:length(q.weights)
         ])
 
         @test all(isapprox.(H, 0.0, atol = 1e-15))
@@ -86,7 +86,13 @@ end
         @inferred LatticeBoltzmann.equilibrium(q, ρ, u, 1.0)
         # @code_warntype LatticeBoltzmann.equilibrium(q, ρ, u, 1.0);
         # @code_warntype collide(collision_model, q, f)
-        @inferred LatticeBoltzmann.collide!(SRT(1.0), q, f_old = f_in, f_new = f_out, time = 0.0)
+        @inferred LatticeBoltzmann.collide!(
+            SRT(1.0),
+            q,
+            f_old = f_in,
+            f_new = f_out,
+            time = 0.0,
+        )
     end
 
     @testset "Stream and collide" begin
@@ -104,7 +110,7 @@ end
         f_out = copy(f)
         f_fff = f
         τ = 1.0
-        for t = 0:3
+        for t in 0:3
             LatticeBoltzmann.collide!(SRT(τ), q, f_old = f_inn, f_new = f_out, time = 0.0)
             LatticeBoltzmann.stream!(q, f_new = f_inn, f_old = f_out)
         end
@@ -116,7 +122,7 @@ end
 end
 
 @testset "Opposite directions of $q" for q in quadratures
-    for idx = 1:length(q.weights)
+    for idx in 1:length(q.weights)
         opposite_idx = opposite(q, idx)
 
         @test all(q.abscissae[:, idx] .+ q.abscissae[:, opposite_idx] .== 0)

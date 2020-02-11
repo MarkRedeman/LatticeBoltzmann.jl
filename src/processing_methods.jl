@@ -9,12 +9,24 @@ include("processing_methods/process_iterative_initialization.jl")
 
 ProcessingMethod(problem, should_process, n_steps, stop_criteria = StopCriteria(problem)) =
     CompareWithAnalyticalSolution(problem, should_process, n_steps, stop_criteria)
-ProcessingMethod(problem::TaylorGreenVortex, should_process, n_steps, stop_criteria = StopCriteria(problem)) =
-    TrackHydrodynamicErrors(problem, should_process, n_steps, stop_criteria)
-ProcessingMethod(problem::DecayingShearFlow, should_process, n_steps, stop_criteria = StopCriteria(problem)) =
-    TrackHydrodynamicErrors(problem, should_process, n_steps, stop_criteria)
-ProcessingMethod(problem::TGV, should_process, n_steps, stop_criteria = StopCriteria(problem)) =
-    TrackHydrodynamicErrors(problem, should_process, n_steps, stop_criteria)
+ProcessingMethod(
+    problem::TaylorGreenVortex,
+    should_process,
+    n_steps,
+    stop_criteria = StopCriteria(problem),
+) = TrackHydrodynamicErrors(problem, should_process, n_steps, stop_criteria)
+ProcessingMethod(
+    problem::DecayingShearFlow,
+    should_process,
+    n_steps,
+    stop_criteria = StopCriteria(problem),
+) = TrackHydrodynamicErrors(problem, should_process, n_steps, stop_criteria)
+ProcessingMethod(
+    problem::TGV,
+    should_process,
+    n_steps,
+    stop_criteria = StopCriteria(problem),
+) = TrackHydrodynamicErrors(problem, should_process, n_steps, stop_criteria)
 # ProcessingMethod(problem::TGV, should_process, n_steps) =
 #     TrackHydrodynamicErrors(problem, should_process, n_steps)
 
@@ -29,54 +41,53 @@ CompareWithAnalyticalSolution(
     problem,
     should_process,
     n_steps,
-    stop_criteria = StopCriteria(problem)
+    stop_criteria = StopCriteria(problem),
 ) = CompareWithAnalyticalSolution(
-        problem,
-        should_process,
-        n_steps,
-        stop_criteria,
-        Vector{
-            NamedTuple{
-                (
-                    :density,
-                    :momentum,
-                    :total_energy,
-                    :kinetic_energy,
-                    :internal_energy,
-                    :density_a,
-                    :momentum_a,
-                    :total_energy_a,
-                    :kinetic_energy_a,
-                    :internal_energy_a,
-                    :error_u,
-                    :error_p,
-                    :error_σ_xx,
-                    :error_σ_xy,
-                    :error_σ_yy,
-                    :error_σ_yx,
-                ),
-                Tuple{
-                    Float64,
-                    Float64,
-                    Float64,
-                    Float64,
-                    Float64,
-                    Float64,
-                    Float64,
-                    Float64,
-                    Float64,
-                    Float64,
-                    Float64,
-                    Float64,
-
-                    Float64,
-                    Float64,
-                    Float64,
-                    Float64,
-                },
+    problem,
+    should_process,
+    n_steps,
+    stop_criteria,
+    Vector{
+        NamedTuple{
+            (
+                :density,
+                :momentum,
+                :total_energy,
+                :kinetic_energy,
+                :internal_energy,
+                :density_a,
+                :momentum_a,
+                :total_energy_a,
+                :kinetic_energy_a,
+                :internal_energy_a,
+                :error_u,
+                :error_p,
+                :error_σ_xx,
+                :error_σ_xy,
+                :error_σ_yy,
+                :error_σ_yx,
+            ),
+            Tuple{
+                Float64,
+                Float64,
+                Float64,
+                Float64,
+                Float64,
+                Float64,
+                Float64,
+                Float64,
+                Float64,
+                Float64,
+                Float64,
+                Float64,
+                Float64,
+                Float64,
+                Float64,
+                Float64,
             },
-        }(),
-    )
+        },
+    }(),
+)
 
 function next!(process_method::CompareWithAnalyticalSolution, q, f_in, t::Int64)
     if mod(t, 100) == 0
@@ -102,7 +113,6 @@ function next!(process_method::CompareWithAnalyticalSolution, q, f_in, t::Int64)
         end
     end
 
-
     if mod(t, 1) == 0
         should_visualize = false
         if (process_method.should_process)
@@ -114,7 +124,6 @@ function next!(process_method::CompareWithAnalyticalSolution, q, f_in, t::Int64)
                 should_visualize = true
             end
         end
-
 
         Δt = delta_t(process_method.problem)
         process!(
@@ -165,9 +174,9 @@ function process!(
     error_u = 0.0
     error_p = 0.0
 
-    @inbounds for x_idx = 1:Nx, y_idx = 1:Ny
+    @inbounds for x_idx in 1:Nx, y_idx in 1:Ny
         # Calculated
-        @inbounds for f_idx = 1:size(f_in, 3)
+        @inbounds for f_idx in 1:size(f_in, 3)
             f[f_idx] = f_in[x_idx, y_idx, f_idx]
         end
         ρ = density(q, f)
@@ -185,7 +194,7 @@ function process!(
         T = dimensionless_temperature(q, problem, T)
         p = dimensionless_pressure(q, problem, p)
 
-        opp = 1.0/(Nx * Ny)
+        opp = 1.0 / (Nx * Ny)
         # CHECK!
         opp = 1.0
         total_density += opp * ρ
@@ -245,7 +254,6 @@ function process!(
             internal_energy_a = expected_total_internal_energy,
             error_u = sqrt(error_u),
             error_p = sqrt(error_p),
-
             error_σ_xx = 0.0,
             error_σ_xy = 0.0,
             error_σ_yy = 0.0,
@@ -267,7 +275,8 @@ struct ShowVelocityError{V} <: ProcessingMethod
     l2_norms::Vector{V}
     stop_criteria::StopCriteria
 end
-ShowVelocityError(problem, plot_every = 1, l2_norms = Float64[]) = ShowVelocityError(problem, plot_every, l2_norms, NoStoppingCriteria())
+ShowVelocityError(problem, plot_every = 1, l2_norms = Float64[]) =
+    ShowVelocityError(problem, plot_every, l2_norms, NoStoppingCriteria())
 
 function next!(process_method::ShowVelocityError, q, f, t::Int64)
     should_stop = false
@@ -294,26 +303,28 @@ function next!(process_method::ShowVelocityError, q, f, t::Int64)
     u = zeros(dimension(q))
     x_range, y_range = range(problem)
     total_expected_momentum = 0.0
-    for y_idx = 1 : problem.NY
+    for y_idx in 1:(problem.NY)
         ρ = density(q, f[x_idx, y_idx, :])
         velocity!(q, f[x_idx, y_idx, :], ρ, u)
         u = dimensionless_velocity(problem, u)
         # v_e[y_idx] = norm(u - analytical_velocity(y_range[y_idx]))
-        v_e[y_idx] = ((u[1] - analytical_velocity(y_range[y_idx])[1])^2 + (u[1] - analytical_velocity(y_range[y_idx])[1])^2)
+        v_e[y_idx] = (
+            (u[1] - analytical_velocity(y_range[y_idx])[1])^2 +
+                (u[1] - analytical_velocity(y_range[y_idx])[1])^2
+        )
         v_y[y_idx] = u[1]
         v_a[y_idx] = analytical_velocity(y_range[y_idx])[1]
 
-        total_expected_momentum += analytical_velocity(y_range[y_idx])[1]^2 + analytical_velocity(y_range[y_idx])[2]^2
+        total_expected_momentum +=
+            analytical_velocity(y_range[y_idx])[1]^2 +
+            analytical_velocity(y_range[y_idx])[2]^2
     end
 
-    push!(
-        process_method.l2_norms,
-        sqrt(sum(v_e) / total_expected_momentum)
-    )
+    push!(process_method.l2_norms, sqrt(sum(v_e) / total_expected_momentum))
     # push!(process_method.l2_norms, v_e)
 
     # return false
-    if mod(t, process_method.plot_every) != 1 && ! should_stop
+    if mod(t, process_method.plot_every) != 1 && !should_stop
         return should_stop
     end
 
@@ -322,15 +333,17 @@ function next!(process_method::ShowVelocityError, q, f, t::Int64)
     velocity!(q, f[x_idx, y_idx, :], ρ, u)
     # @show v_y[problem.NY], v_a[problem.NY], v_e[problem.NY], u[1], ρ
 
-    velocity_plot = plot(y_range, v_y, label = "Numerical solution", legend=:topleft, title = string(q))
+    velocity_plot = plot(
+        y_range,
+        v_y,
+        label = "Numerical solution",
+        legend = :topleft,
+        title = string(q),
+    )
     plot!(velocity_plot, y_range, v_a, label = "Exact solution")
 
-    plot(
-        scatter(y_range, v_e, title = "Abs. Error", legend=nothing),
-        velocity_plot
-    )
+    plot(scatter(y_range, v_e, title = "Abs. Error", legend = nothing), velocity_plot)
     gui()
-
 
     return should_stop
 end

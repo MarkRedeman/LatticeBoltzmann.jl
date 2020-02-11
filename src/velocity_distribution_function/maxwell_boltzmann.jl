@@ -1,16 +1,27 @@
-function equilibrium(q::Quadrature, ρ::T, u::VT, temperature::T) where { T <: Real, VT <: AbstractVector{T} }
+function equilibrium(
+    q::Quadrature,
+    ρ::T,
+    u::VT,
+    temperature::T,
+) where {T <: Real, VT <: AbstractVector{T}}
     f = zeros(length(q.weights))
     hermite_based_equilibrium!(q, ρ, u, temperature, f)
     return f
 end
 
-function equilibrium!(q::Quadrature, ρ::T, u::VT, temperature::T, f) where { T <: Real, VT <: AbstractVector{T} }
+function equilibrium!(
+    q::Quadrature,
+    ρ::T,
+    u::VT,
+    temperature::T,
+    f,
+) where {T <: Real, VT <: AbstractVector{T}}
     u_squared = 0.0
-    for d = 1:dimension(q)
+    for d in 1:dimension(q)
         u_squared += u[d] .^ 2
     end
 
-    for idx = 1:length(q.weights)
+    for idx in 1:length(q.weights)
         u_dot_xi = q.abscissae[1, idx] .* u[1] .+ q.abscissae[2, idx] .* u[2]
 
         f[idx] = _equilibrium(
@@ -29,7 +40,15 @@ end
 
 # Truncated upto order 2
 # function _equilibrium(q::Quadrature, ρ::T, weight::T, u_dot_xi::T, u_squared::T, temperature::T, xi_squared::T) where { T <: Real }
-function _equilibrium(q::Quadrature, ρ, weight, u_dot_xi, u_squared, temperature, xi_squared)
+function _equilibrium(
+    q::Quadrature,
+    ρ,
+    weight,
+    u_dot_xi,
+    u_squared,
+    temperature,
+    xi_squared,
+)
     cs = q.speed_of_sound_squared
     # a = 0.0
     a_H_0 = 1.0

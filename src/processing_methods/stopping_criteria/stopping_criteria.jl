@@ -1,6 +1,6 @@
 abstract type StopCriteria end
 struct NoStoppingCriteria <: StopCriteria end
-mutable struct MeanVelocityStoppingCriteria{ T <: Real } <: StopCriteria
+mutable struct MeanVelocityStoppingCriteria{T <: Real} <: StopCriteria
     old_mean_velocity::T
     tolerance::T
     problem::FluidFlowProblem
@@ -14,7 +14,7 @@ StopCriteria(problem::DecayingShearFlow) =
     problem.static ? MeanVelocityStoppingCriteria(0.0, 1e-8, problem) : NoStoppingCriteria()
 
 should_stop!(::StopCriteria, q, f_in) = false
-function should_stop!(stop_criteria::MeanVelocityStoppingCriteria{T}, q, f_in) where { T }
+function should_stop!(stop_criteria::MeanVelocityStoppingCriteria{T}, q, f_in) where {T}
     f = Array{T}(undef, size(f_in, 3))
     u = zeros(dimension(q))
     Nx = size(f_in, 1)
@@ -23,11 +23,11 @@ function should_stop!(stop_criteria::MeanVelocityStoppingCriteria{T}, q, f_in) w
     divide_by = 0
     u_mean = 0.0
 
-    @inbounds for x_idx = 1:Nx, y_idx = 1:Ny
+    @inbounds for x_idx in 1:Nx, y_idx in 1:Ny
         divide_by += 1
 
         # Calculated
-        @inbounds for f_idx = 1:size(f_in, 3)
+        @inbounds for f_idx in 1:size(f_in, 3)
             f[f_idx] = f_in[x_idx, y_idx, f_idx]
         end
         ρ = density(q, f)
@@ -54,20 +54,25 @@ function should_stop!(stop_criteria::MeanVelocityStoppingCriteria{T}, q, f_in) w
     return false
 end
 
-struct VelocityConvergenceStoppingCriteria{T <: Real, VT <: AbstractVector{T}} <: StopCriteria
+struct VelocityConvergenceStoppingCriteria{T <: Real, VT <: AbstractVector{T}} <:
+       StopCriteria
     old_velocity::Array{VT, 2}
     tolerance::T
     problem::FluidFlowProblem
 end
-function VelocityConvergenceStoppingCriteria(tolerance::T, problem) where { T <: Real }
+function VelocityConvergenceStoppingCriteria(tolerance::T, problem) where {T <: Real}
     return VelocityConvergenceStoppingCriteria(
-        [zeros(T, 2) for x_idx = 1:problem.NX, y_idx = 1:problem.NY],
+        [zeros(T, 2) for x_idx in 1:(problem.NX), y_idx in 1:(problem.NY)],
         tolerance,
-        problem
+        problem,
     )
 end
 
-function should_stop!(stop_criteria::VelocityConvergenceStoppingCriteria{T}, q, f_in) where { T }
+function should_stop!(
+    stop_criteria::VelocityConvergenceStoppingCriteria{T},
+    q,
+    f_in,
+) where {T}
     f = Array{T}(undef, size(f_in, 3))
     u = zeros(dimension(q))
     Nx = size(f_in, 1)
@@ -76,9 +81,9 @@ function should_stop!(stop_criteria::VelocityConvergenceStoppingCriteria{T}, q, 
     old_velocity_norm = 0.0 # norm(stop_criteria.old_velocity)
     error = 0.0
 
-    @inbounds for x_idx = 1:Nx, y_idx = 1:Ny
+    @inbounds for x_idx in 1:Nx, y_idx in 1:Ny
         # Calculated
-        @inbounds for f_idx = 1:size(f_in, 3)
+        @inbounds for f_idx in 1:size(f_in, 3)
             f[f_idx] = f_in[x_idx, y_idx, f_idx]
         end
 
@@ -87,9 +92,7 @@ function should_stop!(stop_criteria::VelocityConvergenceStoppingCriteria{T}, q, 
 
         u_old = stop_criteria.old_velocity[x_idx, y_idx]
 
-        error += (
-            ((u[1] - u_old[1])^2 + (u[2] - u_old[2])^2)
-        )
+        error += (((u[1] - u_old[1])^2 + (u[2] - u_old[2])^2))
 
         old_velocity_norm += u_old[1]^2 + u_old[2]^2
         stop_criteria.old_velocity[x_idx, y_idx] = copy(u)

@@ -6,6 +6,12 @@ u₀ = u₀(x)
 p₀ = p₀(x)
 """
 struct AnalyticalEquilibrium <: InitializationStrategy end
-function initial_condition(::AnalyticalEquilibrium, q::Quadrature, problem::FluidFlowProblem, x::T, y::T) where { T <: Real }
+function initial_condition(
+    ::AnalyticalEquilibrium,
+    q::Quadrature,
+    problem::FluidFlowProblem,
+    x::T,
+    y::T,
+) where {T <: Real}
     return equilibrium(q, problem, x, y)
 end

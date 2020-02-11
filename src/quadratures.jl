@@ -1,6 +1,6 @@
 abstract type Quadrature end
 
-dimension(q::Q) where { Q <: Quadrature } = 2
+dimension(q::Q) where {Q <: Quadrature} = 2
 
 """
 Get the index of the abscissae pointing in the opposite direction of the given index

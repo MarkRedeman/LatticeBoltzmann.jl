@@ -9,11 +9,7 @@ function ProcessIterativeInitialization(ϵ, problem, process_method)
     ρ = zeros(nx, ny)
     ρ_old = zeros(nx, ny)
 
-    ProcessIterativeInitialization(
-        DensityConvergence(ϵ, ρ, ρ_old),
-        process_method,
-        100
-    )
+    ProcessIterativeInitialization(DensityConvergence(ϵ, ρ, ρ_old), process_method, 100)
 end
 function next!(process_method::ProcessIterativeInitialization{T}, q, f_in, t) where {T}
     if mod(t, max(10, round(Int, process_method.n_steps / 25))) == 0

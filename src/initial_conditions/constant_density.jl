@@ -7,7 +7,13 @@ p₀ = unkown
 """
 struct ConstantDensity <: InitializationStrategy end
 
-function initial_condition(::ConstantDensity, q::Quadrature, problem::FluidFlowProblem, x::T, y::T) where { T <: Real }
+function initial_condition(
+    ::ConstantDensity,
+    q::Quadrature,
+    problem::FluidFlowProblem,
+    x::T,
+    y::T,
+) where {T <: Real}
     u = lattice_velocity(q, problem, x, y)
 
     return equilibrium(q, one(T), u, one(T))

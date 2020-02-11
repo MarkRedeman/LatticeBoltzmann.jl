@@ -57,8 +57,8 @@ function collide!(
     end
 
     nx, ny, nf = size(f_in)
-    @inbounds for x = 1:nx, y = 1:ny
-        @inbounds for f_idx = 1:nf
+    @inbounds for x in 1:nx, y in 1:ny
+        @inbounds for f_idx in 1:nf
             f[f_idx] = f_in[x, y, f_idx]
         end
 
@@ -79,13 +79,12 @@ function collide!(
             equilibrium!(q, ρ, u + τ_a * F, temperature, feq)
         end
 
-        @inbounds for f_idx = 1:nf
+        @inbounds for f_idx in 1:nf
             opposite_idx = opposite(q, f_idx)
             feq_symmetric = 0.5 * (feq[f_idx] + feq[opposite_idx])
             feq_asymmetric = 0.5 * (feq[f_idx] - feq[opposite_idx])
             f_symmetric = 0.5 * (f[f_idx] + f[opposite_idx])
             f_asymmetric = 0.5 * (f[f_idx] - f[opposite_idx])
-
 
             f_out[x, y, f_idx] =
                 f[f_idx] + (

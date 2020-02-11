@@ -5,7 +5,7 @@ struct DensityConvergence{FT <: Real, MT <: AbstractMatrix{FT}} <: StopCriteria
 end
 function should_stop!(stop_criteria::DensityConvergence, q, f_in)
     nx, ny = size(stop_criteria.ρ_old)
-    for x_idx = nx, y_idx = ny
+    for x_idx in nx, y_idx in ny
         stop_criteria.ρ_old[x_idx, y_idx] = stop_criteria.ρ[x_idx, y_idx]
         stop_criteria.ρ[x_idx, y_idx] = density(q, f_in[x_idx, y_idx, :])
     end

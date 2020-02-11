@@ -7,7 +7,7 @@
 struct D2Q5{
     T <: Real,
     Abscissaes <: AbstractMatrix{<:Integer},
-    Weights <: AbstractVector{<:Real}
+    Weights <: AbstractVector{<:Real},
 } <: Quadrature
     abscissae::Abscissaes
     weights::Weights
@@ -45,4 +45,4 @@ Base.show(io::IO, q::D2Q5) = show(io, "D2Q5")
 Base.string(q::D2Q5) = "D2Q5"
 
 # The D2Q5 lattice is unable to include temperature
-pressure(q::D2Q5, f::VT, ρ::T, u::VT) where { T <: Real, VT <: AbstractVector{T}} = one(T)
+pressure(q::D2Q5, f::VT, ρ::T, u::VT) where {T <: Real, VT <: AbstractVector{T}} = one(T)

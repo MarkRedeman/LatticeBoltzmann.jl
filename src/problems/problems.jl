@@ -11,7 +11,7 @@ function velocity_gradient(
     x::T,
     y::T,
     timestep::Real = 0.0,
-) where { T <: Real }
+) where {T <: Real}
     return zeros(T, 2, 2)
 end
 
@@ -33,11 +33,11 @@ function deviatoric_tensor(
     x::T,
     y::T,
     time::Real = 0.0,
-) where { T <: Real }
+) where {T <: Real}
     a = velocity_gradient(problem, x, y, time)
     ν = viscosity(problem)
 
-    σ = - ν * [
+    σ = -ν * [
         2 * a[1, 1] a[1, 2] + a[2, 1]
         a[1, 2] + a[2, 1] 2 * a[2, 2]
     ]
@@ -51,7 +51,7 @@ function pressure_tensor(
     x::T,
     y::T,
     time::Real = 0.0,
-) where { T <: Real }
+) where {T <: Real}
     A = problem.A
     B = problem.B
 
@@ -59,7 +59,12 @@ function pressure_tensor(
     return p - deviatoric_tensor(q, problem, x, y, time)
 end
 
-function force(problem::FluidFlowProblem, x_idx::Int, y_idx::Int, time::Real = 0.0) where { Int <: Integer }
+function force(
+    problem::FluidFlowProblem,
+    x_idx::Int,
+    y_idx::Int,
+    time::Real = 0.0,
+) where {Int <: Integer}
     x_range, y_range = range(problem)
 
     x = x_range[x_idx]
@@ -73,7 +78,8 @@ is_time_dependant(problem::FluidFlowProblem) = !problem.static
 
 # Dimensionless
 viscosity(problem::FluidFlowProblem) = problem.ν * delta_x(problem)^2 / delta_t(problem)
-heat_diffusion(problem::FluidFlowProblem) = problem.κ * delta_x(problem)^2 / delta_t(problem)
+heat_diffusion(problem::FluidFlowProblem) =
+    problem.κ * delta_x(problem)^2 / delta_t(problem)
 reynolds(problem::FluidFlowProblem) = problem.NY * problem.u_max / problem.ν
 
 function delta_t(problem::FluidFlowProblem)
@@ -112,12 +118,12 @@ dimensionless_stress(problem::FluidFlowProblem, σ) = begin
     return σ * factor
 end
 
-function equilibrium(q::Quadrature, problem::FluidFlowProblem, x::T, y::T) where { T <: Real }
+function equilibrium(q::Quadrature, problem::FluidFlowProblem, x::T, y::T) where {T <: Real}
     equilibrium(
         q,
         lattice_density(q, problem, x, y),
         lattice_velocity(q, problem, x, y),
-        lattice_temperature(q, problem, x, y)
+        lattice_temperature(q, problem, x, y),
     )
 end
 

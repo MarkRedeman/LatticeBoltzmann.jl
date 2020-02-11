@@ -30,7 +30,7 @@ struct LinearizedThermalDiffusion <: FluidFlowProblem
     ν::Float64
     κ::Float64
 
-    domain_size::Tuple{Float64,Float64}
+    domain_size::Tuple{Float64, Float64}
 
     u_max::Float64
     NX::Int64
@@ -42,15 +42,11 @@ function LinearizedThermalDiffusion(ν, κ, scale, NY = 4 * scale)
     return LinearizedThermalDiffusion(
         1.0,
         1.0,
-
         0.001,
         0.001,
-
         ν,
         κ,
-
         (2pi, 2pi),
-
         u_max,
         # 3,
         NY,
@@ -61,7 +57,6 @@ end
 function delta_x(problem::LinearizedThermalDiffusion)
     return problem.domain_size[2] / problem.NY
 end
-
 
 function density(
     q::Quadrature,
@@ -123,7 +118,7 @@ struct LinearizedTransverseShearWave <: FluidFlowProblem
     ν::Float64
     κ::Float64
 
-    domain_size::Tuple{Float64,Float64}
+    domain_size::Tuple{Float64, Float64}
 
     u_max::Float64
     NX::Int64
@@ -135,15 +130,11 @@ function LinearizedTransverseShearWave(ν, κ, scale, NY = 8 * scale)
     return LinearizedTransverseShearWave(
         1.0,
         1.0,
-
         0.001,
         0.001,
-
         ν,
         κ,
-
         (2pi, 2pi),
-
         u_max,
         NY,
         NY,
@@ -153,7 +144,6 @@ end
 function delta_x(problem::LinearizedTransverseShearWave)
     return problem.domain_size[2] / problem.NY
 end
-
 
 function density(
     q::Quadrature,

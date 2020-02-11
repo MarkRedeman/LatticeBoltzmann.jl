@@ -15,7 +15,8 @@ import LinearAlgebra: I, tr
         D = dimension(q)
         N = div(LatticeBoltzmann.order(q), 2)
         Hs = [
-            [hermite(Val{n}, q.abscissae[:, i], q) for i = 1:length(q.weights)] for n = 1:N
+            [hermite(Val{n}, q.abscissae[:, i], q) for i in 1:length(q.weights)]
+            for n in 1:N
         ]
 
         scale = 1
@@ -32,7 +33,7 @@ import LinearAlgebra: I, tr
         τ = problem.ν
         τ = q.speed_of_sound_squared * LatticeBoltzmann.lattice_viscosity(problem) + 0.5
 
-        a_f = [sum([f[idx] * Hs[n][idx] for idx = 1:length(q.weights)]) for n = 1:N]
+        a_f = [sum([f[idx] * Hs[n][idx] for idx in 1:length(q.weights)]) for n in 1:N]
 
         P = a_f[2] - (a_f[1] * a_f[1]') / ρ - ρ * I
         P = P * (1 - 1 / (2 * τ))
@@ -57,18 +58,19 @@ import LinearAlgebra: I, tr
         d_u = problem.u_max * LatticeBoltzmann.velocity_gradient(problem, x, y, 0.0)
         τ = problem.ν
         τ = q.speed_of_sound_squared * LatticeBoltzmann.lattice_viscosity(problem) + 0.5
-        for f_idx = 1:length(f)
+        for f_idx in 1:length(f)
             f[f_idx] +=
                 -(q.weights[f_idx] * ρ * τ / cs) *
                 sum(LatticeBoltzmann.hermite(Val{2}, q.abscissae[:, f_idx], q) .* d_u)
         end
 
-
         u = zeros(LatticeBoltzmann.dimension(q))
         LatticeBoltzmann.velocity!(q, f, ρ, u)
         T = LatticeBoltzmann.temperature(q, f, ρ, u)
 
-        σ_lb = LatticeBoltzmann.momentum_flux(q, f, ρ, u) - I * LatticeBoltzmann.pressure(q, f, ρ, u)
+        σ_lb =
+            LatticeBoltzmann.momentum_flux(q, f, ρ, u) -
+            I * LatticeBoltzmann.pressure(q, f, ρ, u)
         σ = LatticeBoltzmann.deviatoric_tensor(q, problem, x, y, 0.0)
     end
 end

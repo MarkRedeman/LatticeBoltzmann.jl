@@ -5,7 +5,7 @@ struct PoiseuilleFlow{T <: Real, Int <: Integer} <: FluidFlowProblem
     NX::Int
     NY::Int
     k::T
-    domain_size::Tuple{T,T}
+    domain_size::Tuple{T, T}
     G::T
 end
 
@@ -31,7 +31,7 @@ function density(
     x::T,
     y::T,
     timestep::Real = 0.0,
-) where { T <: Real }
+) where {T <: Real}
     return 1.0
 end
 
@@ -41,11 +41,16 @@ function pressure(
     x::T,
     y::T,
     timestep::Real = 0.0,
-) where { T <: Real }
+) where {T <: Real}
     return 1.0
 end
 
-function velocity(problem::PoiseuilleFlow, x::T, y::T, timestep::Real = 0.0) where { T <: Real}
+function velocity(
+    problem::PoiseuilleFlow,
+    x::T,
+    y::T,
+    timestep::Real = 0.0,
+) where {T <: Real}
     return [
         y * (problem.domain_size[2] - y) * (problem.G / 2)
         0.0
@@ -56,7 +61,7 @@ function velocity_gradient(
     x::T,
     y::T,
     timestep::Real = 0.0,
-) where { T <: Real }
+) where {T <: Real}
     u_x = 0.0
     v_y = 0.0
     u_y = (problem.domain_size[2] - 2y) * (problem.G / 2)
@@ -64,7 +69,12 @@ function velocity_gradient(
 
     return [u_x v_x; u_y v_y]
 end
-function force(problem::PoiseuilleFlow, x::Int, y::Int, time::Real = 0.0) where { Int <: Integer }
+function force(
+    problem::PoiseuilleFlow,
+    x::Int,
+    y::Int,
+    time::Real = 0.0,
+) where {Int <: Integer}
     return [
         viscosity(problem) * problem.G
         0.0
@@ -81,6 +91,6 @@ has_external_force(problem::PoiseuilleFlow) = true
 Apply a bottom and top wall bounce back boundary condition
 """
 boundary_conditions(problem::PoiseuilleFlow) = [
-    BounceBack(North(), 1:problem.NX, 1:problem.NY),
-    BounceBack(South(), 1:problem.NX, 1:problem.NY),
+    BounceBack(North(), 1:(problem.NX), 1:(problem.NY)),
+    BounceBack(South(), 1:(problem.NX), 1:(problem.NY)),
 ]

@@ -1,5 +1,5 @@
 # Halfway Bounce Back rules
-struct BounceBack{D<:Direction,Ints} <: BoundaryCondition
+struct BounceBack{D <: Direction, Ints} <: BoundaryCondition
     direction::D
     xs::Ints
     ys::Ints
@@ -7,7 +7,7 @@ end
 
 function apply!(bc::BounceBack{<:North}, q::Quadrature, f_new, f_old)
     nx, ny, nf = size(f_new)
-    for f_idx = 1:size(f_new, 3)
+    for f_idx in 1:size(f_new, 3)
         # Bounce back the unkown populations
         opposite_f_idx = opposite(q, f_idx)
 
@@ -24,7 +24,7 @@ end
 
 function apply!(bc::BounceBack{<:South}, q::Quadrature, f_new, f_old)
     nx, ny, nf = size(f_new)
-    for f_idx = 1:size(f_new, 3)
+    for f_idx in 1:size(f_new, 3)
         opposite_f_idx = opposite(q, f_idx)
 
         for y_idx in bc.ys
@@ -40,7 +40,7 @@ end
 
 function apply!(bc::BounceBack{<:East}, q::Quadrature, f_new, f_old)
     nx, ny, nf = size(f_new)
-    for f_idx = 1:size(f_new, 3)
+    for f_idx in 1:size(f_new, 3)
         # Bounce back the unkown populations
         opposite_f_idx = opposite(q, f_idx)
 
@@ -56,7 +56,7 @@ function apply!(bc::BounceBack{<:East}, q::Quadrature, f_new, f_old)
 end
 function apply!(bc::BounceBack{<:West}, q::Quadrature, f_new, f_old)
     nx, ny, nf = size(f_new)
-    for f_idx = 1:size(f_new, 3)
+    for f_idx in 1:size(f_new, 3)
         # Bounce back the unkown populations
         opposite_f_idx = opposite(q, f_idx)
 

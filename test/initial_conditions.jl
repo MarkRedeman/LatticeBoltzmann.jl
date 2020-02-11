@@ -14,7 +14,7 @@ struct InitializationTestProblem <: FluidFlowProblem
     ν::Float64
     NX::Int64
     NY::Int64
-    domain_size::Tuple{Float64,Float64}
+    domain_size::Tuple{Float64, Float64}
 end
 InitializationTestProblem(N = 4, ν = 1.0 / 6.0) = InitializationTestProblem(
     1.0,
@@ -22,26 +22,50 @@ InitializationTestProblem(N = 4, ν = 1.0 / 6.0) = InitializationTestProblem(
     N,
     N,
     # (2.0 * pi, 2.0 * pi)
-    (1.0, 1.0)
+    (1.0, 1.0),
 )
 
 const U = 0.001
 
-LatticeBoltzmann.density(q::Quadrature, problem::InitializationTestProblem, x::T, y::T, timestep::Real = 0.0) where { T <: Real } = pressure(q, problem, x, y, timestep)
-function LatticeBoltzmann.pressure(q::Quadrature, problem::InitializationTestProblem, x::T, y::T, timestep::Real = 0.0) where { T <: Real }
-    return 1.0 - (1/4) * q.speed_of_sound_squared * problem.u_max^2 * U^2 * (cos(2x) + cos(2y))
+LatticeBoltzmann.density(
+    q::Quadrature,
+    problem::InitializationTestProblem,
+    x::T,
+    y::T,
+    timestep::Real = 0.0,
+) where {T <: Real} = pressure(q, problem, x, y, timestep)
+function LatticeBoltzmann.pressure(
+    q::Quadrature,
+    problem::InitializationTestProblem,
+    x::T,
+    y::T,
+    timestep::Real = 0.0,
+) where {T <: Real}
+    return 1.0 -
+           (1 / 4) * q.speed_of_sound_squared * problem.u_max^2 * U^2 * (cos(2x) + cos(2y))
 end
-LatticeBoltzmann.velocity(problem::InitializationTestProblem, x, y, timestep= 0.0) where { T <: Real } = problem.u_max * U * [
-    cos(2pi * x) * sin(2pi * y)
-    -sin(2pi * x) * cos(2pi * y)
-]
-function LatticeBoltzmann.velocity_gradient(problem::InitializationTestProblem, x::T, y::T, timestep::Real = 0.0) where { T <: Real }
+LatticeBoltzmann.velocity(
+    problem::InitializationTestProblem,
+    x,
+    y,
+    timestep = 0.0,
+) where {T <: Real} =
+    problem.u_max * U * [
+        cos(2pi * x) * sin(2pi * y)
+        -sin(2pi * x) * cos(2pi * y)
+    ]
+function LatticeBoltzmann.velocity_gradient(
+    problem::InitializationTestProblem,
+    x::T,
+    y::T,
+    timestep::Real = 0.0,
+) where {T <: Real}
     u_x = -sin(2pi * x) * sin(2pi * y)
     v_y = sin(2pi * x) * sin(2pi * y)
     u_y = cos(2pi * x) * cos(2pi * y)
     v_x = -cos(2pi * x) * cos(2pi * y)
 
-    return problem.u_max * U * 2pi .*  [u_x v_x; u_y v_y]
+    return problem.u_max * U * 2pi .* [u_x v_x; u_y v_y]
 end
 
 function LatticeBoltzmann.deviatoric_tensor(
@@ -50,16 +74,16 @@ function LatticeBoltzmann.deviatoric_tensor(
     x::T,
     y::T,
     time::Real = 0.0,
-) where { T <: Real }
+) where {T <: Real}
     a = LatticeBoltzmann.velocity_gradient(problem, x, y, time)
     ν = LatticeBoltzmann.viscosity(problem)
 
-    σ = - ν * [
+    σ = -ν * [
         2 * a[1, 1] a[1, 2] + a[2, 1]
         a[1, 2] + a[2, 1] 2 * a[2, 2]
     ]
 
-    return σ*(problem.NX)
+    return σ * (problem.NX)
 end
 
 @testset "Initialization strategies with $q" for q in [D2Q9(), D2Q13(), D2Q17(), D2Q21()]
@@ -88,8 +112,8 @@ end
             expected_σ = deviatoric_tensor(q, problem, x, y)
 
             if (density(q, problem, x, y) ≉ 1.0)
-            @test ρ ≉ density(q, problem, x, y)
-            @test p ≉ pressure(q, problem, x, y)
+                @test ρ ≉ density(q, problem, x, y)
+                @test p ≉ pressure(q, problem, x, y)
             end
 
             @test u ≈ velocity(problem, x, y)
@@ -147,8 +171,8 @@ end
             # @warn deviatoric_tensor(q, problem, x, y) ./ σ
 
             if (density(q, problem, x, y) ≉ 1.0)
-            @test ρ ≉ density(q, problem, x, y)
-            @test p ≉ pressure(q, problem, x, y)
+                @test ρ ≉ density(q, problem, x, y)
+                @test p ≉ pressure(q, problem, x, y)
             end
 
             @test u ≈ velocity(problem, x, y)

@@ -23,21 +23,22 @@ function visualize(problem::FluidFlowProblem, quadrature::Quadrature, f_in, time
 
     f = Array{Float64}(undef, size(f_in, 3))
     u_ = zeros(dimension(q))
-    @inbounds for x_idx = 1:Nx, y_idx = 1:Ny
-        @inbounds for f_idx = 1:size(f_in, 3)
+    @inbounds for x_idx in 1:Nx, y_idx in 1:Ny
+        @inbounds for f_idx in 1:size(f_in, 3)
             f[f_idx] = f_in[x_idx, y_idx, f_idx]
         end
 
         x = x_range[x_idx]
         y = y_range[y_idx]
 
-        density_field[x_idx, y_idx] = LatticeBoltzmann.density(quadrature, problem, x, y, time)
-        pressure_field[x_idx, y_idx] = LatticeBoltzmann.pressure(quadrature, problem, x, y, time)
+        density_field[x_idx, y_idx] =
+            LatticeBoltzmann.density(quadrature, problem, x, y, time)
+        pressure_field[x_idx, y_idx] =
+            LatticeBoltzmann.pressure(quadrature, problem, x, y, time)
         velocity_field[x_idx, y_idx, :] = LatticeBoltzmann.velocity(problem, x, y, time)
         σ_exact = deviatoric_tensor(q, problem, x, y, time)
         σ_xx_field[x_idx, y_idx] = σ_exact[1, 1]
         σ_xy_field[x_idx, y_idx] = σ_exact[1, 2]
-
 
         ρ_ = density(q, f)
         velocity!(q, f, ρ_, u_)
@@ -63,7 +64,7 @@ function visualize(problem::FluidFlowProblem, quadrature::Quadrature, f_in, time
 
     s = (1000, 500)
 
-    domain = (2:(problem.NY-1)) ./ (problem.NY - 2)
+    domain = (2:(problem.NY - 1)) ./ (problem.NY - 2)
 
     if (typeof(problem) != DecayingShearFlow)
         x_pos = round(Int, problem.NX / 2)
@@ -72,18 +73,41 @@ function visualize(problem::FluidFlowProblem, quadrature::Quadrature, f_in, time
         velocity_profile_x = plot(domain, u[x_pos, :, 1], label = "solution", title = "u_x")
         plot!(velocity_profile_x, domain, velocity_field[x_pos, :, 1], label = "exact")
 
-        velocity_profile_y = plot(u[x_pos, 1:(problem.NY), 2], domain, label = "solution", title = "u_y")
-        plot!(velocity_profile_y, velocity_field[x_pos, 1:(problem.NY), 2], domain, label = "exact")
+        velocity_profile_y =
+            plot(u[x_pos, 1:(problem.NY), 2], domain, label = "solution", title = "u_y")
+        plot!(
+            velocity_profile_y,
+            velocity_field[x_pos, 1:(problem.NY), 2],
+            domain,
+            label = "exact",
+        )
 
-        pressure_profile = plot(domain, p[x_pos, 1:(problem.NY)], label = "solution", title = "p")
-        plot!(pressure_profile, domain, pressure_field[x_pos, 1:(problem.NY)], label = "exact")
+        pressure_profile =
+            plot(domain, p[x_pos, 1:(problem.NY)], label = "solution", title = "p")
+        plot!(
+            pressure_profile,
+            domain,
+            pressure_field[x_pos, 1:(problem.NY)],
+            label = "exact",
+        )
 
-        temperature_profile = plot(domain, T[x_pos, 1:(problem.NY), 1], label = "solution", title = "T")
+        temperature_profile =
+            plot(domain, T[x_pos, 1:(problem.NY), 1], label = "solution", title = "T")
 
-        sigma_xx_profile = plot(domain, σ_xx[x_pos, 1:(problem.NY)], label = "solution", title = "sigma_xx")
+        sigma_xx_profile = plot(
+            domain,
+            σ_xx[x_pos, 1:(problem.NY)],
+            label = "solution",
+            title = "sigma_xx",
+        )
         plot!(sigma_xx_profile, domain, σ_xx_field[x_pos, 1:(problem.NY)], label = "exact")
 
-        sigma_xy_profile = plot(domain, σ_xy[x_pos, 1:(problem.NY)], label = "solution", title = "sigma_xy")
+        sigma_xy_profile = plot(
+            domain,
+            σ_xy[x_pos, 1:(problem.NY)],
+            label = "solution",
+            title = "sigma_xy",
+        )
         plot!(sigma_xy_profile, domain, σ_xy_field[x_pos, 1:(problem.NY)], label = "exact")
     else
         y_pos = round(Int, problem.NY / 2)
@@ -100,10 +124,12 @@ function visualize(problem::FluidFlowProblem, quadrature::Quadrature, f_in, time
 
         temperature_profile = plot(domain, T[:, y_pos], label = "solution", title = "T")
 
-        sigma_xx_profile = plot(domain, σ_xx[:, y_pos], label = "solution", title = "sigma_xx")
+        sigma_xx_profile =
+            plot(domain, σ_xx[:, y_pos], label = "solution", title = "sigma_xx")
         plot!(sigma_xx_profile, domain, σ_xx_field[:, y_pos], label = "exact")
 
-        sigma_xy_profile = plot(domain, σ_xy[:, y_pos], label = "solution", title = "sigma_xy")
+        sigma_xy_profile =
+            plot(domain, σ_xy[:, y_pos], label = "solution", title = "sigma_xy")
         plot!(sigma_xy_profile, domain, σ_xy_field[:, y_pos], label = "exact")
     end
 
@@ -141,11 +167,8 @@ function streamline(
     step = round(Int, size(j, 1) / amount_of_arrows),
 )
     s = (1000, 500)
-    velocity_field = contour(
-        (j[:, :, 1] .^ 2 .+ j[:, :, 2] .^ 2)',
-        fill = true,
-        title = "Momentum",
-    )
+    velocity_field =
+        contour((j[:, :, 1] .^ 2 .+ j[:, :, 2] .^ 2)', fill = true, title = "Momentum")
     N = size(j, 1)
     X = [
         i
@@ -162,9 +185,9 @@ function streamline(
         Y,
         quiver = (x, y) -> (
             0.1 * amount_of_arrows * j[Int(x), Int(y), 1] /
-            sqrt(j[Int(x), Int(y), 1]^2 + j[Int(x), Int(y), 2]^2),
+                sqrt(j[Int(x), Int(y), 1]^2 + j[Int(x), Int(y), 2]^2),
             0.1 * amount_of_arrows * j[Int(x), Int(y), 2] /
-            sqrt(j[Int(x), Int(y), 1]^2 + j[Int(x), Int(y), 2]^2),
+                sqrt(j[Int(x), Int(y), 1]^2 + j[Int(x), Int(y), 2]^2),
         ),
         color = "white",
     )

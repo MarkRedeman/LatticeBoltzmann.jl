@@ -3,7 +3,7 @@ struct MRT{
     T <: Real,
     VT <: AbstractVector{T},
     HST, #<: AbstractVector{AbstractArray{T,1}},
-    AST #<: AbstractVector{AbstractArray{T,1}}
+    AST, #<: AbstractVector{AbstractArray{T,1}}
 } <: CollisionModel
     τs::VT
 
@@ -16,19 +16,19 @@ struct MRT{
     force::Force
 end
 
-function MRT(q::Quadrature, τ::T, force = nothing) where { T <: Real }
+function MRT(q::Quadrature, τ::T, force = nothing) where {T <: Real}
     N = round(Int, order(q) / 2)
     MRT(q, fill(τ, N))
 end
 
-function MRT(q::Quadrature, τ_s::T, τ_a::T, force = nothing) where { T <: Real}
+function MRT(q::Quadrature, τ_s::T, τ_a::T, force = nothing) where {T <: Real}
     N = round(Int, order(q) / 2)
     MRT(q, repeat([τ_s, τ_a], outer = N)[1:N])
 end
 
-function MRT(q::Quadrature, τs::VT, force = nothing) where { VT <: AbstractVector{<:Real} }
+function MRT(q::Quadrature, τs::VT, force = nothing) where {VT <: AbstractVector{<:Real}}
     N = round(Int, order(q) / 2)
-    Hs = [[hermite(Val{n}, q.abscissae[:, i], q) for i = 1:length(q.weights)] for n = 1:N]
+    Hs = [[hermite(Val{n}, q.abscissae[:, i], q) for i in 1:length(q.weights)] for n in 1:N]
 
     MRT(τs, 1.0, Hs, copy(Hs), force)
 end
@@ -78,8 +78,8 @@ function collide_mrt!(
 
     f = Array{T}(undef, nf)
     u = zeros(dimension(q))
-    @inbounds for x_idx = 1:nx, y_idx = 1:ny
-        @inbounds for f_idx = 1:nf
+    @inbounds for x_idx in 1:nx, y_idx in 1:ny
+        @inbounds for f_idx in 1:nf
             f[f_idx] = f_in[x_idx, y_idx, f_idx]
         end
 
@@ -96,19 +96,21 @@ function collide_mrt!(
 
         # NOTE: we don't need to compute the 0th and 1st coefficient as these are equal
         # to a_f[0] and a_f[1]
-        a_eq = [equilibrium_coefficient(Val{n}, q, ρ, u, temperature) for n = 1:N]
+        a_eq = [equilibrium_coefficient(Val{n}, q, ρ, u, temperature) for n in 1:N]
 
         # NOTE: we could optimize this by only computing upto n = 2 when τ = 1.0
-        a_f = [sum([f[idx] * Hs[n][idx] for idx = 1:length(q.weights)]) for n = 1:N]
+        a_f = [sum([f[idx] * Hs[n][idx] for idx in 1:length(q.weights)]) for n in 1:N]
 
-        a_coll = [(1 - 1 / τs[n]) .* a_f[n] .+ (1 / τs[n]) .* a_eq[n] for n = 1:N]
+        a_coll = [(1 - 1 / τs[n]) .* a_f[n] .+ (1 / τs[n]) .* a_eq[n] for n in 1:N]
 
-        @inbounds for f_idx = 1:nf
+        @inbounds for f_idx in 1:nf
             f_out[x_idx, y_idx, f_idx] =
                 q.weights[f_idx] * (
                     ρ +
                     cs * ρ * sum(u .* Hs[1][f_idx]) +
-                    sum([cs^n * dot(a_coll[n], Hs[n][f_idx]) / (factorial(n)) for n = 2:N])
+                    sum([
+                        cs^n * dot(a_coll[n], Hs[n][f_idx]) / (factorial(n)) for n in 2:N
+                    ])
                 )
         end
     end

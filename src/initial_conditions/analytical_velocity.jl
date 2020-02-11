@@ -16,22 +16,27 @@ function density(
     x,
     y,
     p̄ = average_pressure(problem),
-    ρ̄ = average_density(problem)
+    ρ̄ = average_density(problem),
 )
     δρ = (pressure(problem, x, y) - p̄) / q.speed_of_sound_squared
 
     return ρ̄ + δρ
 end
 # TODO Move computing the averages to the initialize function so that these can be computed globaly
-function initial_condition(::AnalyticalVelocity, q::Quadrature, problem::FluidFlowProblem, x::T, y::T) where { T <: Real }
+function initial_condition(
+    ::AnalyticalVelocity,
+    q::Quadrature,
+    problem::FluidFlowProblem,
+    x::T,
+    y::T,
+) where {T <: Real}
     p̄ = average_pressure(problem)
     ρ̄ = average_density(problem)
 
     # Compute the density from the pressure, average pressure and average density
     ρ = density(q, problem, x, y, p̄, ρ̄)
 
-    u = lattice_velocity(q, problem, x, y),
-    temperature = pressure(problem, x, y) / ρ
+    u = lattice_velocity(q, problem, x, y), temperature = pressure(problem, x, y) / ρ
 
     return equilibrium(q, ρ, u, temperature)
 end

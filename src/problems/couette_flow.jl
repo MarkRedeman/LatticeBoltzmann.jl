@@ -4,7 +4,7 @@ struct CouetteFlow{T <: Real, Int <: Integer} <: FluidFlowProblem
     ν::T
     NX::Int
     NY::Int
-    domain_size::Tuple{T,T}
+    domain_size::Tuple{T, T}
 end
 
 function CouetteFlow(
@@ -30,7 +30,7 @@ function density(
     x::T,
     y::T,
     timestep::Real = 0.0,
-) where { T <: Real }
+) where {T <: Real}
     return 1.0
 end
 
@@ -40,11 +40,11 @@ function pressure(
     x::T,
     y::T,
     timestep::Real = 0.0,
-) where { T <: Real }
+) where {T <: Real}
     return 1.0
 end
 
-function velocity(problem::CouetteFlow, x::T, y::T, timestep::Real = 0.0) where { T <: Real }
+function velocity(problem::CouetteFlow, x::T, y::T, timestep::Real = 0.0) where {T <: Real}
     return [
         y
         0.0
@@ -55,7 +55,7 @@ function velocity_gradient(
     x::T,
     y::T,
     timestep::Real = 0.0,
-) where { T <: Real }
+) where {T <: Real}
     u_x = 0.0
     v_y = 0.0
     u_y = 1.0
@@ -63,7 +63,12 @@ function velocity_gradient(
 
     return [u_x v_x; u_y v_y]
 end
-function force(problem::CouetteFlow, x::Int, y::Int, time::Real = 0.0) where { Int <: Integer }
+function force(
+    problem::CouetteFlow,
+    x::Int,
+    y::Int,
+    time::Real = 0.0,
+) where {Int <: Integer}
     return [
         0.0
         0.0
@@ -75,6 +80,6 @@ Apply a bounce back to the bottom of the domain and a moving wall to the
 top of the domain
 """
 boundary_conditions(problem::CouetteFlow) = [
-    BounceBack(South(), 1:problem.NX, 1:problem.NY),
-    MovingWall(North(), 1:problem.NX, 1:problem.NY, [problem.u_max, 0]),
+    BounceBack(South(), 1:(problem.NX), 1:(problem.NY)),
+    MovingWall(North(), 1:(problem.NX), 1:(problem.NY), [problem.u_max, 0]),
 ]

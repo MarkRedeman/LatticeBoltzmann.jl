@@ -32,8 +32,8 @@ function collide!(
     end
 
     nx, ny, nf = size(f_in)
-    @inbounds for x = 1:nx, y = 1:ny
-        @inbounds for f_idx = 1:nf
+    @inbounds for x in 1:nx, y in 1:ny
+        @inbounds for f_idx in 1:nf
             f[f_idx] = f_in[x, y, f_idx]
         end
 
@@ -54,7 +54,7 @@ function collide!(
             equilibrium!(q, ρ, u + τ * F, temperature, feq)
         end
 
-        @inbounds for f_idx = 1:nf
+        @inbounds for f_idx in 1:nf
             f_out[x, y, f_idx] = (1 - 1 / τ) * f[f_idx] + (1 / τ) * feq[f_idx]
         end
     end

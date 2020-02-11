@@ -6,7 +6,7 @@ side of the domain
 function stream(quadrature::Quadrature, f, f_new = copy(f))
     lx, ly, lq = size(f)
 
-    @inbounds for x = 1:lx, y = 1:ly, f_idx = 1:lq
+    @inbounds for x in 1:lx, y in 1:ly, f_idx in 1:lq
         next_x, next_y = stream_periodically_from(quadrature, x, y, lx, ly, f_idx)
 
         f_new[next_x, next_y, f_idx] = f[x, y, f_idx]
@@ -19,7 +19,7 @@ stream!(q::Quadrature; f_new, f_old) = stream!(q, f_old, f_new)
 function stream!(quadrature::Quadrature, f, f_new)
     lx, ly, lq = size(f)
 
-    @inbounds for x = 1:lx, y = 1:ly, f_idx = 1:lq
+    @inbounds for x in 1:lx, y in 1:ly, f_idx in 1:lq
         # Implement streaming using a gather approach
         from_x, from_y = stream_periodically_to(quadrature, x, y, lx, ly, f_idx)
 
@@ -59,7 +59,6 @@ function stream_periodically_from(q::Quadrature, x, y, lx, ly, f_idx)
 
     return next_x, next_y
 end
-
 
 """
 Choose the next indices which should be streamed to depending on the given

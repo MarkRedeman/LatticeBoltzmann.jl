@@ -4,7 +4,7 @@ struct LidDrivenCavityFlow{T <: Real, Int <: Integer} <: FluidFlowProblem
     ν::T
     NX::Int
     NY::Int
-    domain_size::Tuple{T,T}
+    domain_size::Tuple{T, T}
 end
 
 function LidDrivenCavityFlow(
@@ -28,7 +28,7 @@ function density(
     x::T,
     y::T,
     timestep::Real = 0.0,
-) where { T <: Real }
+) where {T <: Real}
     return 1.0
 end
 
@@ -38,7 +38,7 @@ function pressure(
     x::T,
     y::T,
     timestep::Real = 0.0,
-) where { T <: Real }
+) where {T <: Real}
     return 1.0
 end
 
@@ -47,7 +47,7 @@ function velocity(
     x::T,
     y::T,
     timestep::Real = 0.0,
-) where { T <: Real }
+) where {T <: Real}
     return [
         0.0
         0.0
@@ -59,8 +59,8 @@ Apply a moving wall to the top of the domain and bounce back to all other
 sides of the domain
 """
 boundary_conditions(problem::LidDrivenCavityFlow) = [
-    BounceBack(East(), 1:problem.NX, 1:problem.NY),
-    BounceBack(South(), 1:problem.NX, 1:problem.NY),
-    BounceBack(West(), 1:problem.NX, 1:problem.NY),
-    MovingWall(North(), 1:problem.NX, 1:problem.NY, [problem.u_max, 0]),
+    BounceBack(East(), 1:(problem.NX), 1:(problem.NY)),
+    BounceBack(South(), 1:(problem.NX), 1:(problem.NY)),
+    BounceBack(West(), 1:(problem.NX), 1:(problem.NY)),
+    MovingWall(North(), 1:(problem.NX), 1:(problem.NY), [problem.u_max, 0]),
 ]

@@ -4,7 +4,7 @@ struct TaylorGreenVortex <: FluidFlowProblem
     ν::Float64
     NX::Int64
     NY::Int64
-    domain_size::Tuple{Float64,Float64}
+    domain_size::Tuple{Float64, Float64}
     static::Bool
     A::Float64
     B::Float64
@@ -18,7 +18,10 @@ function TaylorGreenVortex(
     NY = NX,
     domain_size = (2pi, 2pi);
     static = true,
-    A = 1, B = -1, a = 1, b = 1
+    A = 1,
+    B = -1,
+    a = 1,
+    b = 1,
 )
     u_max = 0.01 / scale
     Re = NX * u_max / ν
@@ -56,7 +59,8 @@ function pressure(
     b = problem.b
     B = problem.B
 
-    P = -(1 / 4) *
+    P =
+        -(1 / 4) *
         problem.rho_0 *
         decay(problem, x, y, timestep)^2 *
         (A^2 * cos(2 * a * x) + B^2 * cos(2 * b * y))
@@ -103,15 +107,12 @@ function decay(problem::TaylorGreenVortex, x::Float64, y::Float64, timestep::Flo
     a = problem.a
     b = problem.b
 
-    return problem.static ?
-        1.0 :
-        exp(-(a^2 + b^2) * viscosity(problem) * timestep)
+    return problem.static ? 1.0 : exp(-(a^2 + b^2) * viscosity(problem) * timestep)
 end
 
 function force(problem::TaylorGreenVortex, x::Float64, y::Float64, time::Float64 = 0.0)
-    return problem.static ?
-        2 * viscosity(problem) * velocity(problem, x, y, 0.0) :
-        [0.0 0.0]
+    return problem.static ? 2 * viscosity(problem) * velocity(problem, x, y, 0.0) :
+           [0.0 0.0]
 end
 
 has_external_force(problem::TaylorGreenVortex) = problem.static

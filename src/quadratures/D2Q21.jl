@@ -6,7 +6,7 @@
 struct D2Q21{
     T <: Real,
     Abscissaes <: AbstractMatrix{<:Integer},
-    Weights <: AbstractVector{<:Real}
+    Weights <: AbstractVector{<:Real},
 } <: Quadrature
     abscissae::Abscissaes
     weights::Weights

@@ -4,7 +4,7 @@ struct DecayingShearFlow <: FluidFlowProblem
     ν::Float64
     NX::Int64
     NY::Int64
-    domain_size::Tuple{Float64,Float64}
+    domain_size::Tuple{Float64, Float64}
     static::Bool
     A::Float64
     B::Float64
@@ -103,11 +103,11 @@ function velocity_gradient(
     k_x = problem.k_x
 
     u_x = 0.0
-    u_y = - A * k_y * sin(k_y * (y - B * time))
-    v_x = - B * k_x * sin(k_x * (x - A * time))
+    u_y = -A * k_y * sin(k_y * (y - B * time))
+    v_x = -B * k_x * sin(k_x * (x - A * time))
     v_y = 0.0
 
-    if ! problem.static
+    if !problem.static
         u_y *= exp(-1.0 * k_y^2 * viscosity(problem) * time)
         v_x *= exp(-1.0 * k_x^2 * viscosity(problem) * time)
     end

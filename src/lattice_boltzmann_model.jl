@@ -1,4 +1,10 @@
-struct LatticeBoltzmannModel{Q<:Quadrature,T,CM<:CollisionModel,PM<:ProcessingMethod,BCs <: AbstractVector{<:BoundaryCondition}}
+struct LatticeBoltzmannModel{
+    Q <: Quadrature,
+    T,
+    CM <: CollisionModel,
+    PM <: ProcessingMethod,
+    BCs <: AbstractVector{<:BoundaryCondition},
+}
     f_stream::T
     f_collision::T
     quadrature::Q
@@ -11,7 +17,7 @@ function LatticeBoltzmannModel(
     quadrature;
     collision_model = SRT,
     initialization_strategy = InitializationStrategy(problem),
-    process_method
+    process_method,
 )
     f_stream = initialize(initialization_strategy, quadrature, problem, collision_model)
     f_collision = copy(f_stream)
@@ -52,7 +58,8 @@ function simulate(
     simulate(model, 0:n_steps)
 end
 function simulate(model::LatticeBoltzmannModel, time)
-    Δt = isdefined(model.processing_method, :problem) ? delta_t(model.processing_method.problem) : 0.0
+    Δt = isdefined(model.processing_method, :problem) ?
+        delta_t(model.processing_method.problem) : 0.0
 
     @inbounds for t in time
         collide!(model, time = t * Δt)

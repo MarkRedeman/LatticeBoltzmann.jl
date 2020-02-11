@@ -12,8 +12,7 @@
     f = Array{Float64}(undef, size(f_in, 3))
     u = zeros(dimension(q))
 
-
-    for x_idx in 2, y_idx = 1:size(f_in, 2)
+    for x_idx in 2, y_idx in 1:size(f_in, 2)
         f = f_in[x_idx, y_idx, :]
 
         ρ = LatticeBoltzmann.density(q, f)
@@ -25,10 +24,16 @@
     Δt = LatticeBoltzmann.delta_t(problem)
     o = size(f_in, 2)
     p = size(f_in, 2) - 1
-    LatticeBoltzmann.collide!(collision_operator, q, time = t * Δt, f_old = f_in, f_new = f_out)
+    LatticeBoltzmann.collide!(
+        collision_operator,
+        q,
+        time = t * Δt,
+        f_old = f_in,
+        f_new = f_out,
+    )
     LatticeBoltzmann.stream!(q, f_new = f_in, f_old = f_out)
 
-    for x_idx in 2, y_idx = 1:size(f_in, 2)
+    for x_idx in 2, y_idx in 1:size(f_in, 2)
         f = f_in[x_idx, y_idx, :]
 
         ρ = LatticeBoltzmann.density(q, f)
@@ -36,7 +41,7 @@
         T = temperature(q, f, ρ, u)
     end
 
-    for x_idx in 2, y_idx = 1:size(f_in, 2)
+    for x_idx in 2, y_idx in 1:size(f_in, 2)
         f = f_in[x_idx, y_idx, :]
 
         ρ = LatticeBoltzmann.density(q, f)

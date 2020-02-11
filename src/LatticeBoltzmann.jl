@@ -58,7 +58,6 @@ export Lattice,
     AnalyticalEquilibrium,
     AnalyticalVelocity,
     IterativeInitialization,
-    # Thermodynamics
     density,
     momentum,
     pressure,
@@ -67,13 +66,11 @@ export Lattice,
     internal_energy,
     temperature,
     dimension,
-    # Equilibria
     equilibrium,
     equilibrium!,
     hermite_equilibrium,
     hermite_first_nonequilibrium,
     hermite,
-    # Siumlation
     stream!,
     collide!,
     simulate
