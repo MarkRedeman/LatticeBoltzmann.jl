@@ -1,4 +1,11 @@
 abstract type ProcessingMethod end
+
+include("processing_methods/stopping_criteria/stopping_criteria.jl")
+include("processing_methods/stopping_criteria/density_convergence.jl")
+include("processing_methods/track_hydrodynamic_errors.jl")
+include("processing_methods/visualize.jl")
+include("processing_methods/take_snapshots.jl")
+
 ProcessingMethod(problem, should_process, n_steps, stop_criteria = StopCriteria(problem)) =
     CompareWithAnalyticalSolution(problem, should_process, n_steps, stop_criteria)
 ProcessingMethod(problem::TaylorGreenVortex, should_process, n_steps, stop_criteria = StopCriteria(problem)) =
@@ -10,9 +17,6 @@ ProcessingMethod(problem::TGV, should_process, n_steps, stop_criteria = StopCrit
 # ProcessingMethod(problem::TGV, should_process, n_steps) =
 #     TrackHydrodynamicErrors(problem, should_process, n_steps)
 
-include("processing_methods/track_hydrodynamic_errors.jl")
-include("processing_methods/visualize.jl")
-include("processing_methods/take_snapshots.jl")
 struct CompareWithAnalyticalSolution{T} <: ProcessingMethod
     problem::FluidFlowProblem
     should_process::Bool
