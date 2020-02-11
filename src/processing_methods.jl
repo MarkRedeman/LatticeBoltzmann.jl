@@ -5,6 +5,7 @@ include("processing_methods/stopping_criteria/density_convergence.jl")
 include("processing_methods/track_hydrodynamic_errors.jl")
 include("processing_methods/visualize.jl")
 include("processing_methods/take_snapshots.jl")
+include("processing_methods/process_iterative_initialization.jl")
 
 ProcessingMethod(problem, should_process, n_steps, stop_criteria = StopCriteria(problem)) =
     CompareWithAnalyticalSolution(problem, should_process, n_steps, stop_criteria)
