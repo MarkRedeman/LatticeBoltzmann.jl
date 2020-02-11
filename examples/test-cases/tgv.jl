@@ -12,7 +12,8 @@ using JLD2
 # using PGFPlotsX
 # pgfplots() # x?
 
-import LatticeBoltzmann: StopCriteria,
+import LatticeBoltzmann:
+    StopCriteria,
     CompareWithAnalyticalSolution,
     TrackHydrodynamicErrors,
     ZeroVelocityInitialCondition,
@@ -24,7 +25,14 @@ import LatticeBoltzmann: StopCriteria,
     next!,
     InitializationStrategy,
     ShowVelocityError,
-    D2Q4, D2Q5, D2Q9, D2Q13, D2Q17, D2Q21, D2Q37, Quadrature
+    D2Q4,
+    D2Q5,
+    D2Q9,
+    D2Q13,
+    D2Q17,
+    D2Q21,
+    D2Q37,
+    Quadrature
 
 # line_style(q::Quadrature) = (:line, :dot)
 
@@ -52,7 +60,7 @@ function tgv_velocity_profile(
     q = D2Q9(),
     initialization_strategy = AnalyticalEquilibrium(),
     τ = 1.0,
-    scale = 2
+    scale = 2,
 )
     ν = τ / (2.0 * q.speed_of_sound_squared)
     problem = TaylorGreenVortex(ν, scale, static = true)
@@ -79,7 +87,12 @@ function tgv_velocity_profile(
     )
 end
 
-function tgv_convergence_analysis(q = D2Q9(), initialization_strategy = AnalyticalEquilibrium(), τ = 1.0; scales = [1, 2, 4, 8])
+function tgv_convergence_analysis(
+    q = D2Q9(),
+    initialization_strategy = AnalyticalEquilibrium(),
+    τ = 1.0;
+    scales = [1, 2, 4, 8],
+)
     ν = τ / (2.0 * q.speed_of_sound_squared)
 
     t_end = 0.20
@@ -96,12 +109,8 @@ function tgv_convergence_analysis(q = D2Q9(), initialization_strategy = Analytic
         n_steps = round(Int, t_end / Δt)
 
         # CompareWithAnalyticalSolution
-        process_method = TrackHydrodynamicErrors(
-            problem,
-            false,
-            n_steps,
-            StopCriteria(problem)
-        )
+        process_method =
+                TrackHydrodynamicErrors(problem, false, n_steps, StopCriteria(problem))
         @show scale problem initialization_strategy n_steps
 
         @time res = simulate(
@@ -109,37 +118,69 @@ function tgv_convergence_analysis(q = D2Q9(), initialization_strategy = Analytic
             q,
             process_method = process_method,
             initialization_strategy = initialization_strategy,
-            t_end = t_end
+            t_end = t_end,
         )
 
         return res.processing_method.df[end]
     end
 
-    return (
-        quadrature = q,
-        scales = scales,
-        results = results
-    )
+    return (quadrature = q, scales = scales, results = results)
 
     @show results
 
     p = (
-        plot(map(scale -> 8*scale, scales), getfield.(results, :error_u), scale=:log10, title="u"),
-        plot(map(scale -> 8*scale, scales), getfield.(results, :error_σ_xx), scale=:log10, title="sigma xx"),
-        plot(map(scale -> 8*scale, scales), getfield.(results, :error_σ_xy), scale=:log10, title="sigma xy"),
-        plot(map(scale -> 8*scale, scales), getfield.(results, :error_p), scale=:log10, title="p"),
+        plot(
+            map(scale -> 8 * scale, scales),
+            getfield.(results, :error_u),
+            scale = :log10,
+            title = "u",
+        ),
+        plot(
+            map(scale -> 8 * scale, scales),
+            getfield.(results, :error_σ_xx),
+            scale = :log10,
+            title = "sigma xx",
+        ),
+        plot(
+            map(scale -> 8 * scale, scales),
+            getfield.(results, :error_σ_xy),
+            scale = :log10,
+            title = "sigma xy",
+        ),
+        plot(
+            map(scale -> 8 * scale, scales),
+            getfield.(results, :error_p),
+            scale = :log10,
+            title = "p",
+        ),
     )
 
-    p = plot(map(scale -> 8*scale, scales), getfield.(results, :error_u), scale=:log10, label="u")
+    p = plot(
+        map(scale -> 8 * scale, scales),
+        getfield.(results, :error_u),
+        scale = :log10,
+        label = "u",
+    )
     # plot!(p, map(scale -> 8*scale, scales), getfield.(results, :error_σ_xx), scale=:log10, title="sigma xx")
-    plot!(p, map(scale -> 8*scale, scales), getfield.(results, :error_σ_xy), scale=:log10, label="sigma xy")
-    plot!(p, map(scale -> 8*scale, scales), getfield.(results, :error_p), scale=:log10, label="p")
-    plot!(p, x -> 0.1 * x.^(-2), scale=:log10, label="x^-2")
-    plot!(p, x -> 0.1 * x.^(-4), scale=:log10, label="x^-4")
+    plot!(
+        p,
+        map(scale -> 8 * scale, scales),
+        getfield.(results, :error_σ_xy),
+        scale = :log10,
+        label = "sigma xy",
+    )
+    plot!(
+        p,
+        map(scale -> 8 * scale, scales),
+        getfield.(results, :error_p),
+        scale = :log10,
+        label = "p",
+    )
+    plot!(p, x -> 0.1 * x .^ (-2), scale = :log10, label = "x^-2")
+    plot!(p, x -> 0.1 * x .^ (-4), scale = :log10, label = "x^-4")
 
     return results, p
 end
-
 
 function plot_error_locations(results)
     p = plot()
@@ -159,7 +200,7 @@ function plot_error_locations(results)
         v_a = zeros(problem.NY)
         u = zeros(dimension(q))
         x_range, y_range = range(problem)
-        for y_idx = 1 : problem.NY
+        for y_idx in 1:(problem.NY)
             ρ = density(q, f[x_idx, y_idx, :])
             velocity!(q, f[x_idx, y_idx, :], ρ, u)
             u = dimensionless_velocity(problem, u)
@@ -177,13 +218,7 @@ function plot_error_locations(results)
         )
     end
 
-    plot!(
-        p,
-        legend=:bottomleft,
-        ylabel = L"\epsilon_u",
-        xlabel = "y",
-        yscale = :log10,
-    )
+    plot!(p, legend = :bottomleft, ylabel = L"\epsilon_u", xlabel = "y", yscale = :log10)
 
     p
 end
@@ -196,21 +231,15 @@ function plot_error_progresion(results)
         Δt = delta_t(problem)
         plot!(
             p,
-            Δt * (1 : length(result.processing_method.l2_norms)),
+            Δt * (1:length(result.processing_method.l2_norms)),
             result.processing_method.l2_norms,
             line = line_style(result.quadrature),
             # marker = marker_style(result.quadrature),
-            label=LaTeXString(string(q)),
+            label = LaTeXString(string(q)),
         )
     end
 
-    plot!(
-        p,
-        yscale = :log10,
-        ylabel = L"\epsilon_u",
-        xlabel = "t",
-        legend = :bottomleft,
-    )
+    plot!(p, yscale = :log10, ylabel = L"\epsilon_u", xlabel = "t", legend = :bottomleft)
 
     p
 end
@@ -223,7 +252,7 @@ function plot_convergence(results, s = :error_u)
             p,
             xs,
             getfield.(result.results, s),
-            label=string(result.quadrature),
+            label = string(result.quadrature),
             line = line_style(result.quadrature),
             # marker = marker_style(result.quadrature)
         )
@@ -236,17 +265,57 @@ function plot_convergence(results, s = :error_u)
         # plot!(p, xs, x -> 3E-1 * x.^(-1.5), label=L"\mathcal{O}(x^{-1.5})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
         # plot!(p, xs, x -> 1E-1 * x.^(-3), label=L"\mathcal{O}(x^{-3})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
 
-        plot!(p, xs, x -> 1E-1 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
-        plot!(p, xs, x -> 1E-1 * x.^(-1), label=L"\mathcal{O}(x^{-1})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
-        plot!(p, xs, x -> 1E-1 * x.^(-0), label=L"\mathcal{O}(x^{-0})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
+        plot!(
+            p,
+            xs,
+            x -> 1E-1 * x .^ (-2),
+            label = L"\mathcal{O}(x^{-2})",
+            linecolor = :gray,
+            linealpha = 0.2,
+            linestyle = :dash,
+        )
+        plot!(
+            p,
+            xs,
+            x -> 1E-1 * x .^ (-1),
+            label = L"\mathcal{O}(x^{-1})",
+            linecolor = :gray,
+            linealpha = 0.2,
+            linestyle = :dash,
+        )
+        plot!(
+            p,
+            xs,
+            x -> 1E-1 * x .^ (-0),
+            label = L"\mathcal{O}(x^{-0})",
+            linecolor = :gray,
+            linealpha = 0.2,
+            linestyle = :dash,
+        )
     end
 
     if s == :error_p
         # plot!(p, xs, x -> 5E-2 * x.^(-2.5), label=L"\mathcal{O}(x^{-2.5})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
         # plot!(p, xs, x -> 5E-4 * x.^(-5), label=L"\mathcal{O}(x^{-5})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
 
-        plot!(p, xs, x -> 1E-1 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
-        plot!(p, xs, x -> 1E-3 * x.^(-4), label=L"\mathcal{O}(x^{-4})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
+        plot!(
+            p,
+            xs,
+            x -> 1E-1 * x .^ (-2),
+            label = L"\mathcal{O}(x^{-2})",
+            linecolor = :gray,
+            linealpha = 0.2,
+            linestyle = :dash,
+        )
+        plot!(
+            p,
+            xs,
+            x -> 1E-3 * x .^ (-4),
+            label = L"\mathcal{O}(x^{-4})",
+            linecolor = :gray,
+            linealpha = 0.2,
+            linestyle = :dash,
+        )
     end
 
     plot!(
@@ -264,48 +333,23 @@ function main2()
 
     τ = 1.0
     scale = 2
-    quadratures = [
-        D2Q4(),
-        D2Q5(),
-        D2Q9(),
-        D2Q13(),
-        D2Q17(),
-        D2Q21(),
-        D2Q37(),
-    ]
+    quadratures = [D2Q4(), D2Q5(), D2Q9(), D2Q13(), D2Q17(), D2Q21(), D2Q37()]
 
     results = map(quadratures) do q
-        tgv_velocity_profile(
-            q,
-            AnalyticalEquilibrium(),
-            τ,
-            scale
-        )
-    end
-    plot_error_locations(results) |> display
-
-
-    results = map(quadratures) do q
-        tgv_velocity_profile(
-            q,
-            AnalyticalEquilibrium(),
-            τ,
-            2scale
-        )
+        tgv_velocity_profile(q, AnalyticalEquilibrium(), τ, scale)
     end
     plot_error_locations(results) |> display
 
     results = map(quadratures) do q
-        tgv_velocity_profile(
-            q,
-            AnalyticalEquilibrium(),
-            τ,
-            4scale
-        )
+        tgv_velocity_profile(q, AnalyticalEquilibrium(), τ, 2scale)
+    end
+    plot_error_locations(results) |> display
+
+    results = map(quadratures) do q
+        tgv_velocity_profile(q, AnalyticalEquilibrium(), τ, 4scale)
     end
     plot_error_locations(results) |> display
 end
-
 
 function main(τ = 1.0, scale = 2)
     quadratures = [
@@ -319,12 +363,7 @@ function main(τ = 1.0, scale = 2)
     ]
 
     results = map(quadratures) do q
-        tgv_velocity_profile(
-            q,
-            AnalyticalEquilibrium(),
-            τ,
-            scale
-        )
+        tgv_velocity_profile(q, AnalyticalEquilibrium(), τ, scale)
     end
 
     # scales = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
@@ -342,31 +381,16 @@ function main(τ = 1.0, scale = 2)
     ]
 
     convergence_results = map(quadratures) do q
-        tgv_convergence_analysis(
-            q,
-            iteration_strategies[1],
-            τ,
-            scales = scales
-        )
+        tgv_convergence_analysis(q, iteration_strategies[1], τ, scales = scales)
     end
 
     convergence_results_equilibrium = convergence_results
 
     convergence_results_iterative = map(quadratures) do q
-        tgv_convergence_analysis(
-            q,
-            iteration_strategies[2],
-            τ,
-            scales = scales
-        )
+        tgv_convergence_analysis(q, iteration_strategies[2], τ, scales = scales)
     end
     convergence_results_offequilibrium = map(quadratures) do q
-        tgv_convergence_analysis(
-            q,
-            iteration_strategies[3],
-            τ,
-            scales = scales
-        )
+        tgv_convergence_analysis(q, iteration_strategies[3], τ, scales = scales)
     end
     # convergence_results_offequilibrium = map(quadratures) do q
     #     tgv_convergence_analysis(
@@ -401,19 +425,17 @@ function plot_main(main = main())
     display(convergence_equilibrium)
     display(convergence_offequilibrium)
 
-
     return (
         results = main.results,
         convergence_results = main.convergence_results,
         convergence_results_iterative = main.convergence_results_iterative,
         convergence_results_equilibrium = main.convergence_results_equilibrium,
         convergence_results_offequilibrium = main.convergence_results_offequilibrium,
-
         plots = (
             error_location = error_location,
             error_progression = error_progression,
             convergence = convergence,
-        )
+        ),
     )
 end
 
@@ -428,7 +450,6 @@ function kruger_analysis()
     Nx = 16
     Ny = 16
 
-
     Nx = 31
     Ny = 17
     τs = [0.51, 0.6, 0.8, 1.0]
@@ -440,9 +461,7 @@ function kruger_analysis()
     τ_results = map(τs) do τ
         results = map(scales) do scale
             u_0 = sqrt(0.01)
-            problem = LatticeBoltzmann.TGV(
-                q, τ, scale, Nx * scale, Ny * scale, u_0 / scale
-            )
+            problem = LatticeBoltzmann.TGV(q, τ, scale, Nx * scale, Ny * scale, u_0 / scale)
 
             t_end = round(Int, LatticeBoltzmann.decay_time(problem))
 
@@ -452,7 +471,7 @@ function kruger_analysis()
                 problem,
                 q,
                 initialization_strategy = initialization,
-                process_method = LatticeBoltzmann.ProcessingMethod(problem, false, t_end)
+                process_method = LatticeBoltzmann.ProcessingMethod(problem, false, t_end),
             )
 
             @time solution = simulate(model, 1:t_end)
@@ -476,10 +495,30 @@ function kruger_analysis()
 
         # Show a plot while waiting for the results
         p = plot()
-        plot!(p, getfield.(convergence, :NX), getfield.(convergence, :error_u), label = L"\epsilon_u")
-        plot!(p, getfield.(convergence, :NX), getfield.(convergence, :error_p), label = L"\epsilon_p")
-        plot!(p, getfield.(convergence, :NX), getfield.(convergence, :error_σ_xx), label = L"\epsilon_{\sigma_{xx}}")
-        plot!(p, getfield.(convergence, :NX), getfield.(convergence, :error_σ_xy), label = L"\epsilon_{\sigma_{xx}}")
+        plot!(
+            p,
+            getfield.(convergence, :NX),
+            getfield.(convergence, :error_u),
+            label = L"\epsilon_u",
+        )
+        plot!(
+            p,
+            getfield.(convergence, :NX),
+            getfield.(convergence, :error_p),
+            label = L"\epsilon_p",
+        )
+        plot!(
+            p,
+            getfield.(convergence, :NX),
+            getfield.(convergence, :error_σ_xx),
+            label = L"\epsilon_{\sigma_{xx}}",
+        )
+        plot!(
+            p,
+            getfield.(convergence, :NX),
+            getfield.(convergence, :error_σ_xy),
+            label = L"\epsilon_{\sigma_{xx}}",
+        )
         plot!(p, x -> 1E1 * x^(-2), label = L"x^{-2}")
         plot!(p, scale = :log10)
         plot!(p, title = latexstring("\tau = ", τ))
@@ -487,7 +526,6 @@ function kruger_analysis()
 
         return results
     end
-
 
     convergence = map(τ_results) do τ_result
         map(τ_result) do result
@@ -507,25 +545,55 @@ function kruger_analysis()
         end
     end
 
-    p_u = plot(legend = nothing, scale=:log10, xlabel=L"N", ylabel = L"\epsilon_u");
-    p_p = plot(legend = nothing, scale=:log10, xlabel=L"N", ylabel = L"\epsilon_p");
-    p_σ_xx = plot(legend = nothing, scale=:log10, xlabel=L"N", ylabel = L"\epsilon_{\sigma_{xx}}");
-    p_σ_xy = plot(legend=:topright, scale = :log10, xlabel=L"N", ylabel = L"\epsilon_{\sigma_{xy}}");
+    p_u = plot(legend = nothing, scale = :log10, xlabel = L"N", ylabel = L"\epsilon_u")
+    p_p = plot(legend = nothing, scale = :log10, xlabel = L"N", ylabel = L"\epsilon_p")
+    p_σ_xx = plot(
+        legend = nothing,
+        scale = :log10,
+        xlabel = L"N",
+        ylabel = L"\epsilon_{\sigma_{xx}}",
+    )
+    p_σ_xy = plot(
+        legend = :topright,
+        scale = :log10,
+        xlabel = L"N",
+        ylabel = L"\epsilon_{\sigma_{xy}}",
+    )
     for τ_convergence in convergence
         label = latexstring("\\tau = ", τ_convergence[1].τ)
 
-        scatter!(p_u, getfield.(τ_convergence, :NX), getfield.(τ_convergence, :error_u), label = label)
-        scatter!(p_p, getfield.(τ_convergence, :NX), getfield.(τ_convergence, :error_p), label = label)
-        scatter!(p_σ_xx, getfield.(τ_convergence, :NX), getfield.(τ_convergence, :error_σ_xx), label = label)
-        scatter!(p_σ_xy, getfield.(τ_convergence, :NX), getfield.(τ_convergence, :error_σ_xy), label = label)
+        scatter!(
+            p_u,
+            getfield.(τ_convergence, :NX),
+            getfield.(τ_convergence, :error_u),
+            label = label,
+        )
+        scatter!(
+            p_p,
+            getfield.(τ_convergence, :NX),
+            getfield.(τ_convergence, :error_p),
+            label = label,
+        )
+        scatter!(
+            p_σ_xx,
+            getfield.(τ_convergence, :NX),
+            getfield.(τ_convergence, :error_σ_xx),
+            label = label,
+        )
+        scatter!(
+            p_σ_xy,
+            getfield.(τ_convergence, :NX),
+            getfield.(τ_convergence, :error_σ_xy),
+            label = label,
+        )
     end
 
-    plot!(p_u,  x -> 1E0 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :gray);
-    plot!(p_p,  x -> 1E-1 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :gray);
-    plot!(p_σ_xx,  x -> 1E0 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :gray);
-    plot!(p_σ_xy,  x -> 1E0 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :grah);
+    plot!(p_u, x -> 1E0 * x .^ (-2), label = L"\mathcal{O}(x^{-2})", linecolor = :gray)
+    plot!(p_p, x -> 1E-1 * x .^ (-2), label = L"\mathcal{O}(x^{-2})", linecolor = :gray)
+    plot!(p_σ_xx, x -> 1E0 * x .^ (-2), label = L"\mathcal{O}(x^{-2})", linecolor = :gray)
+    plot!(p_σ_xy, x -> 1E0 * x .^ (-2), label = L"\mathcal{O}(x^{-2})", linecolor = :grah)
 
-    plot(p_u, p_p, p_σ_xx, p_σ_xy, size=(900, 600))
+    plot(p_u, p_p, p_σ_xx, p_σ_xy, size = (900, 600))
     return τ_results
 
 end
@@ -590,9 +658,7 @@ function initial_conditions_analysis()
         # ν = 0.002
         # τ = q.speed_of_sound_squared * ν + 0.5
 
-        problem = LatticeBoltzmann.TGV(
-            q, τ, scale, Nx, Ny, u_0
-        )
+        problem = LatticeBoltzmann.TGV(q, τ, scale, Nx, Ny, u_0)
         t_end = round(Int, LatticeBoltzmann.decay_time(problem))
         @show t_end
 
@@ -600,7 +666,7 @@ function initial_conditions_analysis()
             problem,
             q,
             initialization_strategy = initialization,
-            process_method = LatticeBoltzmann.ProcessingMethod(problem, true, t_end)
+            process_method = LatticeBoltzmann.ProcessingMethod(problem, true, t_end),
         )
 
         @time solution = simulate(model, 1:t_end)
@@ -616,24 +682,37 @@ function initial_conditions_analysis()
             error_p = getfield.(errors, :error_p),
             error_σ_xx = getfield.(errors, :error_σ_xx),
             error_σ_xy = getfield.(errors, :error_σ_xy),
-
             mass = getfield.(errors, :mass),
             momentum = getfield.(errors, :momentum),
             energy = getfield.(errors, :energy),
         )
     end
 
-    p_u = plot(legend = nothing, scale=:log10, xlabel=L"t", ylabel = L"\epsilon_u");
-    p_p = plot(legend = nothing, scale=:log10, xlabel=L"t", ylabel = L"\epsilon_p");
-    p_σ_xx = plot(legend = nothing, scale=:log10, xlabel=L"t", ylabel = L"\epsilon_{\sigma_{xx}}");
-    p_σ_xy = plot(scale = :log10, xlabel=L"t", ylabel = L"\epsilon_{\sigma_{xy}}");
+    p_u = plot(legend = nothing, scale = :log10, xlabel = L"t", ylabel = L"\epsilon_u")
+    p_p = plot(legend = nothing, scale = :log10, xlabel = L"t", ylabel = L"\epsilon_p")
+    p_σ_xx = plot(
+        legend = nothing,
+        scale = :log10,
+        xlabel = L"t",
+        ylabel = L"\epsilon_{\sigma_{xx}}",
+    )
+    p_σ_xy = plot(scale = :log10, xlabel = L"t", ylabel = L"\epsilon_{\sigma_{xy}}")
 
+    p_mass = plot(legend = nothing, xlabel = L"t", ylabel = L"Mass")
+    p_momentum = plot(legend = nothing, xlabel = L"t", ylabel = L"Momentum")
+    p_energy = plot(legend = nothing, xlabel = L"t", ylabel = L"Energy")
 
-    p_mass = plot(legend = nothing, xlabel=L"t", ylabel = L"Mass");
-    p_momentum = plot(legend = nothing, xlabel=L"t", ylabel = L"Momentum");
-    p_energy = plot(legend = nothing, xlabel=L"t", ylabel = L"Energy");
-
-    for (errors, init) in zip(init_errors, ["Velocity", "Velocity + stress", "Velocity + pressure", "All", "iterative", L"iterative, \tau = 1.0"])
+    for (errors, init) in zip(
+        init_errors,
+        [
+            "Velocity",
+            "Velocity + stress",
+            "Velocity + pressure",
+            "All",
+            "iterative",
+            L"iterative, \tau = 1.0",
+        ],
+    )
         plot!(p_u, errors.error_u, label = init)
         plot!(p_p, errors.error_p, label = init)
         plot!(p_σ_xx, errors.error_σ_xx, label = init)
@@ -643,14 +722,13 @@ function initial_conditions_analysis()
         plot!(p_momentum, errors.momentum, label = init)
         plot!(p_energy, errors.energy, label = init)
     end
-    plot(p_u, p_p, p_σ_xx, p_σ_xy,) |> display
+    plot(p_u, p_p, p_σ_xx, p_σ_xy) |> display
     plot(p_mass, p_momentum, p_energy) |> display
     return init_res
 end
 
 end
 end
-
 
 # plot(
 #     plot(

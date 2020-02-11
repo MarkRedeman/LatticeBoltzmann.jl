@@ -2,8 +2,10 @@ using LatticeBoltzmann, Plots, DataFrames
 using LatticeBoltzmann, Plots, DataFrames
 using LaTeXStrings
 using JLD2
-import LatticeBoltzmann: StopCriteria, CompareWithAnalyticalSolution, TrackHydrodynamicErrors
-import LatticeBoltzmann: StopCriteria,
+import LatticeBoltzmann:
+    StopCriteria, CompareWithAnalyticalSolution, TrackHydrodynamicErrors
+import LatticeBoltzmann:
+    StopCriteria,
     CompareWithAnalyticalSolution,
     TrackHydrodynamicErrors,
     ZeroVelocityInitialCondition,
@@ -54,7 +56,7 @@ function plot_error_locations(results)
         v_a = zeros(problem.NX)
         u = zeros(dimension(q))
         x_range, y_range = range(problem)
-        for x_idx = 1 : problem.NX
+        for x_idx in 1:(problem.NX)
             ρ = density(q, f[x_idx, y_idx, :])
             velocity!(q, f[x_idx, y_idx, :], ρ, u)
             u = dimensionless_velocity(problem, u)
@@ -72,13 +74,7 @@ function plot_error_locations(results)
         )
     end
 
-    plot!(
-        p,
-        legend=:bottomleft,
-        ylabel = L"\epsilon_u",
-        xlabel = "y",
-        yscale = :log10,
-    )
+    plot!(p, legend = :bottomleft, ylabel = L"\epsilon_u", xlabel = "y", yscale = :log10)
 
     p
 end
@@ -91,21 +87,15 @@ function plot_error_progresion(results)
         Δt = delta_t(problem)
         plot!(
             p,
-            Δt * (1 : length(getfield.(result.processing_method.df, :error_u))),
+            Δt * (1:length(getfield.(result.processing_method.df, :error_u))),
             getfield.(result.processing_method.df, :error_u),
             line = line_style(result.quadrature),
             # marker = marker_style(result.quadrature),
-            label=LaTeXString(string(q)),
+            label = LaTeXString(string(q)),
         )
     end
 
-    plot!(
-        p,
-        yscale = :log10,
-        ylabel = L"\epsilon_u",
-        xlabel = "t",
-        legend = :bottomleft,
-    )
+    plot!(p, yscale = :log10, ylabel = L"\epsilon_u", xlabel = "t", legend = :bottomleft)
 
     p
 end
@@ -118,7 +108,7 @@ function plot_convergence(results, s = :error_u, N_0 = 5)
             p,
             xs,
             getfield.(result.results, s),
-            label=string(result.quadrature),
+            label = string(result.quadrature),
             line = line_style(result.quadrature),
             # marker = marker_style(result.quadrature)
         )
@@ -131,18 +121,66 @@ function plot_convergence(results, s = :error_u, N_0 = 5)
     # plot!(p, xs, x -> 5E-4 * x.^(-3), label=L"\mathcal{O}(x^{-3})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
 
     if s == :error_u
-        plot!(p, xs, x -> 5E-1 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :blue, linealpha = 0.2, linestyle = :dash)
-        plot!(p, xs, x -> 3E-1 * x.^(-0), label=L"\mathcal{O}(x^{-0})", linecolor = :orange, linealpha = 0.2, linestyle = :dash)
+        plot!(
+            p,
+            xs,
+            x -> 5E-1 * x .^ (-2),
+            label = L"\mathcal{O}(x^{-2})",
+            linecolor = :blue,
+            linealpha = 0.2,
+            linestyle = :dash,
+        )
+        plot!(
+            p,
+            xs,
+            x -> 3E-1 * x .^ (-0),
+            label = L"\mathcal{O}(x^{-0})",
+            linecolor = :orange,
+            linealpha = 0.2,
+            linestyle = :dash,
+        )
     end
 
     if s == :error_σ_xx
-        plot!(p, xs, x -> 5E-1 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :blue, linealpha = 0.2, linestyle = :dash)
-        plot!(p, xs, x -> 3E-1 * x.^(-0), label=L"\mathcal{O}(x^{-0})", linecolor = :orange, linealpha = 0.2, linestyle = :dash)
+        plot!(
+            p,
+            xs,
+            x -> 5E-1 * x .^ (-2),
+            label = L"\mathcal{O}(x^{-2})",
+            linecolor = :blue,
+            linealpha = 0.2,
+            linestyle = :dash,
+        )
+        plot!(
+            p,
+            xs,
+            x -> 3E-1 * x .^ (-0),
+            label = L"\mathcal{O}(x^{-0})",
+            linecolor = :orange,
+            linealpha = 0.2,
+            linestyle = :dash,
+        )
     end
 
     if s == :error_p
-        plot!(p, xs, x -> 1E-2 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
-        plot!(p, xs, x -> 1E-3 * x.^(-4), label=L"\mathcal{O}(x^{-4})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
+        plot!(
+            p,
+            xs,
+            x -> 1E-2 * x .^ (-2),
+            label = L"\mathcal{O}(x^{-2})",
+            linecolor = :gray,
+            linealpha = 0.2,
+            linestyle = :dash,
+        )
+        plot!(
+            p,
+            xs,
+            x -> 1E-3 * x .^ (-4),
+            label = L"\mathcal{O}(x^{-4})",
+            linecolor = :gray,
+            linealpha = 0.2,
+            linestyle = :dash,
+        )
     end
 
     plot!(
@@ -157,22 +195,21 @@ function plot_convergence(results, s = :error_u, N_0 = 5)
     p
 end
 
-
 function plot_convergence_of_results(results, s = :error_u, N_0 = 5)
     p = plot()
 
     for result in results
-    for s in [:error_u, :error_p, :error_σ_xy]
-        xs = N_0 * result.scales
-        plot!(
-            p,
-            xs,
-            getfield.(result.results, s),
-            label=string(result.quadrature),
-            line = line_style(result.quadrature),
-            # marker = marker_style(result.quadrature)
-        )
-    end
+        for s in [:error_u, :error_p, :error_σ_xy]
+            xs = N_0 * result.scales
+            plot!(
+                p,
+                xs,
+                getfield.(result.results, s),
+                label = string(result.quadrature),
+                line = line_style(result.quadrature),
+                # marker = marker_style(result.quadrature)
+            )
+        end
     end
 
     xs = N_0 * results[1].scales
@@ -182,8 +219,24 @@ function plot_convergence_of_results(results, s = :error_u, N_0 = 5)
     # plot!(p, xs, x -> 5E-4 * x.^(-3), label=L"\mathcal{O}(x^{-3})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
 
     # if s == :error_u
-        plot!(p, xs, x -> 5E-1 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :blue, linealpha = 0.2, linestyle = :dash)
-        plot!(p, xs, x -> 3E-1 * x.^(-0), label=L"\mathcal{O}(x^{-0})", linecolor = :orange, linealpha = 0.2, linestyle = :dash)
+    plot!(
+        p,
+        xs,
+        x -> 5E-1 * x .^ (-2),
+        label = L"\mathcal{O}(x^{-2})",
+        linecolor = :blue,
+        linealpha = 0.2,
+        linestyle = :dash,
+    )
+    plot!(
+        p,
+        xs,
+        x -> 3E-1 * x .^ (-0),
+        label = L"\mathcal{O}(x^{-0})",
+        linecolor = :orange,
+        linealpha = 0.2,
+        linestyle = :dash,
+    )
     # end
 
     # if s == :error_σ_xx
@@ -211,31 +264,31 @@ end
 function plot_convergence_of_result(result, s = :error_u, N_0 = 5, q = D2Q9())
     p = plot()
 
-        xs = N_0 * result.scales
-        plot!(
-            p,
-            xs,
-            getfield.(result.results, :error_u),
-            line = line_style(q),
-            label = L"\epsilon_u"
-            # marker = marker_style(result.quadrature)
-        )
-        plot!(
-            p,
-            xs,
-            getfield.(result.results, :error_p),
-            line = line_style(q),
-            label = L"\epsilon_p"
-            # marker = marker_style(result.quadrature)
-        )
-        plot!(
-            p,
-            xs,
-            getfield.(result.results, :error_σ_xy),
-            line = line_style(q),
-            label = L"\epsilon_{\sigma_{xy}}"
-            # marker = marker_style(result.quadrature)
-        )
+    xs = N_0 * result.scales
+    plot!(
+        p,
+        xs,
+        getfield.(result.results, :error_u),
+        line = line_style(q),
+        label = L"\epsilon_u",
+        # marker = marker_style(result.quadrature)
+    )
+    plot!(
+        p,
+        xs,
+        getfield.(result.results, :error_p),
+        line = line_style(q),
+        label = L"\epsilon_p",
+        # marker = marker_style(result.quadrature)
+    )
+    plot!(
+        p,
+        xs,
+        getfield.(result.results, :error_σ_xy),
+        line = line_style(q),
+        label = L"\epsilon_{\sigma_{xy}}",
+        # marker = marker_style(result.quadrature)
+    )
 
     xs = N_0 * result.scales
     # plot!(p, 1:results[1].scales[end], x -> 1E-2 * x.^(-1), label=L"\mathcal{O}(x^{-1})", linecolor = :gray)
@@ -244,7 +297,15 @@ function plot_convergence_of_result(result, s = :error_u, N_0 = 5, q = D2Q9())
     # plot!(p, xs, x -> 5E-4 * x.^(-3), label=L"\mathcal{O}(x^{-3})", linecolor = :gray, linealpha = 0.2, linestyle = :dash)
 
     # if s == :error_u
-        plot!(p, xs, x -> 5E-1 * x.^(-2), label=L"\mathcal{O}(x^{-2})", linecolor = :blue, linealpha = 0.2, linestyle = :dash)
+    plot!(
+        p,
+        xs,
+        x -> 5E-1 * x .^ (-2),
+        label = L"\mathcal{O}(x^{-2})",
+        linecolor = :blue,
+        linealpha = 0.2,
+        linestyle = :dash,
+    )
     # end
 
     # if s == :error_σ_xx

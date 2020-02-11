@@ -26,20 +26,40 @@ end
 scales = 1:8
 x = map(
     scale -> begin
-    result = LatticeBoltzmann.simulate(
-        DecayingShearFlow(τ, scale, static = true),
-        D2Q9(),
-        t_end = .5,
-        should_process=false
-    );
-    return result.processing_method.df[end]
+        result = LatticeBoltzmann.simulate(
+            DecayingShearFlow(τ, scale, static = true),
+            D2Q9(),
+            t_end = 0.5,
+            should_process = false,
+        )
+        return result.processing_method.df[end]
     end,
-    scales
+    scales,
 )
 
 plot(
-plot(map(scale -> 16*scale, scales), getfield.(x, :error_u), scale=:log10, title="u"),
-plot(map(scale -> 16*scale, scales), getfield.(x, :error_σ_xx), scale=:log10, title="sigma xx"),
-plot(map(scale -> 16*scale, scales), getfield.(x, :error_σ_xy), scale=:log10, title="sigma xy"),
-plot(map(scale -> 16*scale, scales), getfield.(x, :error_p), scale=:log10, title="p"),
+    plot(
+        map(scale -> 16 * scale, scales),
+        getfield.(x, :error_u),
+        scale = :log10,
+        title = "u",
+    ),
+    plot(
+        map(scale -> 16 * scale, scales),
+        getfield.(x, :error_σ_xx),
+        scale = :log10,
+        title = "sigma xx",
+    ),
+    plot(
+        map(scale -> 16 * scale, scales),
+        getfield.(x, :error_σ_xy),
+        scale = :log10,
+        title = "sigma xy",
+    ),
+    plot(
+        map(scale -> 16 * scale, scales),
+        getfield.(x, :error_p),
+        scale = :log10,
+        title = "p",
+    ),
 )

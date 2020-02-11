@@ -3,10 +3,10 @@ using LatticeBoltzmann, Plots, DataFrames
 function main()
     q = D2Q9()
     τ = 1.0
-    problem = LatticeBoltzmann.TGV(q, τ, 1//2, 2 * 8, 2 * 16)
+    problem = LatticeBoltzmann.TGV(q, τ, 1 // 2, 2 * 8, 2 * 16)
 
     τ = 0.8
-    problem = LatticeBoltzmann.TGV(q, τ, 1//2, 2 * 16, 2 * 16)
+    problem = LatticeBoltzmann.TGV(q, τ, 1 // 2, 2 * 16, 2 * 16)
 
     # There still seems to be an scaling issue
     # problem2 = TaylorGreenVortex(1.0 / 6.0, 1//2, static = false, a = 2);
@@ -31,7 +31,8 @@ function main()
         LatticeBoltzmann.IterativeInitializationMeiEtAl(τ, 1E-10),
     ]
 
-    result = LatticeBoltzmann.simulate(problem, q, t_end = 100, initialization_strategy = iss[1])
+    result =
+        LatticeBoltzmann.simulate(problem, q, t_end = 100, initialization_strategy = iss[1])
 end
 
 function initialization_problem()
@@ -39,16 +40,15 @@ function initialization_problem()
     (Nx, Ny) = (96, 72)
     Δt = 1.0
     Δx = 2pi / Nx
-    τ = 0.8 Δt
+    τ = 0.8Δt
 
     # ν = (τ - 0.5) / cs = 0.3 Δt / cs = 0.1 Δt
-    ν = 0.1 Δx^2 / Δt
+    ν = 0.1 * Δx^2 / Δt
 
-    û₀ = 0.03 Δx / Δt
+    û₀ = 0.03Δx / Δt
     ρ̄ = 1.0
     p₀ = 0.0
-    t_d = 840 Δt
-
+    t_d = 840Δt
 
     problem = LatticeBoltzmann.TGV(q, τ, 2, Nx, Ny, û₀)
 end
@@ -77,21 +77,21 @@ function main_book()
     (Nx, Ny) = (96, 72)
     Δt = 1.0
     Δx = 2pi / Nx
-    τ = 0.8 Δt
+    τ = 0.8Δt
 
     # ν = (τ - 0.5) / cs = 0.3 Δt / cs = 0.1 Δt
-    ν = 0.1 Δx^2 / Δt
+    ν = 0.1 * Δx^2 / Δt
 
-    û₀ = 0.03 Δx / Δt
+    û₀ = 0.03Δx / Δt
     ρ̄ = 1.0
     p₀ = 0.0
-    t_d = 840 Δt
-
+    t_d = 840Δt
 
     problem = LatticeBoltzmann.TGV(q, τ, 2, Nx, Ny, û₀)
 
     Δt = delta_t(problem)
     t_end = 840 * Δt
 
-    result = LatticeBoltzmann.simulate(problem, q, t_end = t_d, initialization_strategy = iss[1])
+    result =
+        LatticeBoltzmann.simulate(problem, q, t_end = t_d, initialization_strategy = iss[1])
 end

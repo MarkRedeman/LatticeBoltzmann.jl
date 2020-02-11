@@ -2,7 +2,8 @@ module TRT_MAGIC_EXAMPLE
 
 using LatticeBoltzmann, Plots, LaTeXStrings, DataFrames, JLD2
 using Logging, TerminalLoggers, ProgressMeter
-import LatticeBoltzmann: StopCriteria,
+import LatticeBoltzmann:
+    StopCriteria,
     CompareWithAnalyticalSolution,
     TrackHydrodynamicErrors,
     ZeroVelocityInitialCondition,
@@ -29,13 +30,13 @@ function solve(problem, q, τ_s, τ_a)
         problem,
         false,
         n_steps,
-        LatticeBoltzmann.VelocityConvergenceStoppingCriteria(1E-7, problem)
+        LatticeBoltzmann.VelocityConvergenceStoppingCriteria(1E-7, problem),
     )
 
     collision_model = LatticeBoltzmann.TRT(
         τ_s,
         τ_a,
-        (x_idx, y_idx, t) -> LatticeBoltzmann.lattice_force(problem, x_idx, y_idx, t)
+        (x_idx, y_idx, t) -> LatticeBoltzmann.lattice_force(problem, x_idx, y_idx, t),
     )
 
     result = LatticeBoltzmann.simulate(
@@ -51,11 +52,17 @@ function solve(problem, q, τ_s, τ_a)
     return result
 end
 
-function main(quadratures = [D2Q9()], scale = 2, τ_s_range = range(0.51, stop = 1.0, step = 0.1), τ_a_range = τ_s_range)
+function main(
+    quadratures = [D2Q9()],
+    scale = 2,
+    τ_s_range = range(0.51, stop = 1.0, step = 0.1),
+    τ_a_range = τ_s_range,
+)
     with_logger(TerminalLogger(stderr, Logging.Warn)) do
         s = []
         for q in quadratures
-            @showprogress "Computing optimal relaxation times..." for τ_s in τ_s_range, τ_a in τ_a_range
+            @showprogress "Computing optimal relaxation times..." for τ_s in τ_s_range,
+                τ_a in τ_a_range
 
                 ν = (τ_s - 0.5) / q.speed_of_sound_squared
                 problem = PoiseuilleFlow(ν, scale)
@@ -63,15 +70,18 @@ function main(quadratures = [D2Q9()], scale = 2, τ_s_range = range(0.51, stop =
                 result = solve(problem, q, τ_s, τ_a)
                 errors = result.processing_method.df[end]
 
-                push!(s, (
-                    τ_s = τ_s,
-                    τ_a = τ_a,
-                    quadrature = q,
-                    error_u = errors.error_u,
-                    error_p = errors.error_p,
-                    error_σ_xx = errors.error_σ_xx,
-                    error_σ_xy = errors.error_σ_xy
-                ))
+                push!(
+                    s,
+                    (
+                        τ_s = τ_s,
+                        τ_a = τ_a,
+                        quadrature = q,
+                        error_u = errors.error_u,
+                        error_p = errors.error_p,
+                        error_σ_xx = errors.error_σ_xx,
+                        error_σ_xy = errors.error_σ_xy,
+                    ),
+                )
             end
         end
         return s
@@ -84,26 +94,26 @@ function plot_results(x)
         τ_ss,
         τ_as,
         (s, a) -> x[findfirst(d -> d.τ_s == s && d.τ_a == a, x)].error_u,
-        xlabel=L"\tau_s",
-        ylabel=L"\tau_a",
-        fill=true
+        xlabel = L"\tau_s",
+        ylabel = L"\tau_a",
+        fill = true,
     )
     return p
 
-# @pgf Axis(
-#     {
-#         view = (0, 90),
-#         colorbar,
-#         "colormap/jet"
-#     },
-#     Plot3(
-#         {
-#             surf,
-#             shader = "flat",
+    # @pgf Axis(
+    #     {
+    #         view = (0, 90),
+    #         colorbar,
+    #         "colormap/jet"
+    #     },
+    #     Plot3(
+    #         {
+    #             surf,
+    #             shader = "flat",
 
-#         },
-#         Table(getfield.(x, :τ_s), getfield.(x, :τ_a), getfield.(x, :error_u)))
-# )
+    #         },
+    #         Table(getfield.(x, :τ_s), getfield.(x, :τ_a), getfield.(x, :error_u)))
+    # )
 end
 
 end
