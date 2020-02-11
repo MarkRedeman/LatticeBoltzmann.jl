@@ -11,10 +11,12 @@ include("quadratures.jl")
 
 # Equilibria
 include("hermite_polynomials/hermite.jl")
-include("equilibria/moments.jl")
-include("equilibria/maxwell_boltzmann.jl")
-include("equilibria/hermite.jl")
-include("equilibria/quadratures.jl")
+
+# Velocity Distribution Function related methods
+include("velocity_distribution_function/moments.jl")
+include("velocity_distribution_function/maxwell_boltzmann.jl")
+include("velocity_distribution_function/hermite.jl")
+include("velocity_distribution_function/quadratures.jl")
 
 include("boundary_conditions.jl")
 include("problems/problems.jl")
