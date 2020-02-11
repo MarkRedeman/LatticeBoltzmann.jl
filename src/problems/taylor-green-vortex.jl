@@ -22,11 +22,8 @@ function TaylorGreenVortex(
 )
     u_max = 0.01 / scale
     Re = NX * u_max / ν
-    @show Re
 
     p = TaylorGreenVortex(1.0, u_max, ν, NX, NY, domain_size, static, A, B, a, b)
-    @show p
-
     if (p.u_max > sqrt(2 / 3) * delta_x(p) / delta_t(p))
         @warn p.u_max, sqrt(2 / 3) * delta_x(p) / delta_t(p)
     end

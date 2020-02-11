@@ -112,8 +112,6 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
     total_expected_σ_yx_squared = 0.0
     total_expected_p_squared = 0.0
 
-    # @show problem.ν * delta_x(problem)^2 / delta_t(problem)
-
     total_mass = 0.0
     total_momentum = 0.0
     total_energy = 0.0
@@ -210,15 +208,6 @@ function next!(process_method::TrackHydrodynamicErrors, q, f_in, t::Int64)
         total_energy += ρ * sum(u.^2)
     end
 
-#     @show error_σ_xx
-#     @show error_σ_xy
-#     @show error_σ_yx
-#     @show error_σ_yy
-#     @show total_expected_σ_xx_squared
-#     @show total_expected_σ_yy_squared
-# @show total_expected_σ_yx_squared
-# @show total_expected_σ_xy_squared
-# total_expected_u_squared = 1.0
     push!(
         process_method.df,
         (

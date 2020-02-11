@@ -97,7 +97,6 @@ function should_stop!(stop_criteria::VelocityConvergenceStoppingCriteria{T}, q, 
     end
 
     converged = sqrt(error) / old_velocity_norm
-    # @show converged
 
     if (converged < stop_criteria.tolerance)
         @info "Stopping due to convergence"

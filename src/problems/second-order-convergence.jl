@@ -21,7 +21,6 @@ function TGV(
 )
     ν = (τ - 0.5) / (q.speed_of_sound_squared)
     Re = NX * u_max / ν
-    @show Re
 
     TGV(q, 1.0, 1.0, u_max, τ, ν, NX, NY, false, (1.0, 1.0))
 end

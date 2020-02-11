@@ -204,8 +204,6 @@ function process!(
         expected_v = LatticeBoltzmann.velocity(problem, x, y, time)
         expected_T = expected_p / expected_ρ
 
-        # @show u[1], expected_v[1]
-
         expected_kinetic_energy = (expected_v[1]^2 + expected_v[2]^2)
         expected_internal_energy = expected_T
 

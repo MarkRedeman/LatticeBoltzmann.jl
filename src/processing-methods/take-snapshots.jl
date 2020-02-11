@@ -94,7 +94,6 @@ function visualize(pm::TakeSnapshots, q::Quadrature)
 
         exact_range = range(0.0, length = 1000, stop = problem.domain_size[1])
 
-        @show x_pos problem.NX, problem.NY
 
         plot!(velocity_profile_x, domain, u[:, y_pos, 2], label = latexstring("t = ", time), linecolor = :gray)
         y_exact = map(exact_range) do y

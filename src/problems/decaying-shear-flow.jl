@@ -25,7 +25,6 @@ function DecayingShearFlow(
 )
     u_max = 0.02 / scale
     Re = NX * u_max / ν_lb
-    @show Re
 
     if (k_y == 0.0)
         NY = 3
