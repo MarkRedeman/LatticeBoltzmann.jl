@@ -10,7 +10,7 @@ using Plots
 include("quadratures.jl")
 
 # Equilibria
-include("hermite_polynomials/hermite.jl")
+include("hermite_polynomials.jl")
 
 # Velocity Distribution Function related methods
 include("velocity_distribution_function/moments.jl")
