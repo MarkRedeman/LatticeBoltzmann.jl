@@ -10,9 +10,9 @@ ProcessingMethod(problem::TGV, should_process, n_steps, stop_criteria = StopCrit
 # ProcessingMethod(problem::TGV, should_process, n_steps) =
 #     TrackHydrodynamicErrors(problem, should_process, n_steps)
 
-include("processing-methods/track-hydrodynamic-errors.jl")
-include("processing-methods/visualize.jl")
-include("processing-methods/take-snapshots.jl")
+include("processing_methods/track_hydrodynamic_errors.jl")
+include("processing_methods/visualize.jl")
+include("processing_methods/take_snapshots.jl")
 struct CompareWithAnalyticalSolution{T} <: ProcessingMethod
     problem::FluidFlowProblem
     should_process::Bool
