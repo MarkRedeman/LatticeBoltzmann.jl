@@ -24,11 +24,10 @@ include("initial_conditions.jl")
 include("stream.jl")
 include("collision_models.jl")
 include("analysis/stopping_criteria.jl")
-include("analysis/convergence.jl")
+include("analysis/density_convergence.jl")
 include("process.jl")
 include("initial_conditions/mei_et_al.jl")
 include("collision_models/iterative_initialization.jl")
-include("analysis/density_convergence.jl")
 
 include("lattice_boltzmann_model.jl")
 
