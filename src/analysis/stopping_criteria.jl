@@ -41,7 +41,6 @@ function should_stop!(stop_criteria::MeanVelocityStoppingCriteria{T}, q, f_in) w
     converged = abs(u_mean / stop_criteria.old_mean_velocity - 1)
 
     if (converged < stop_criteria.tolerance)
-        @info "Stopping due to convergence"
         return true
     end
 
@@ -99,7 +98,6 @@ function should_stop!(stop_criteria::VelocityConvergenceStoppingCriteria{T}, q, 
     converged = sqrt(error) / old_velocity_norm
 
     if (converged < stop_criteria.tolerance)
-        @info "Stopping due to convergence"
         return true
     end
 

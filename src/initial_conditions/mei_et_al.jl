@@ -62,7 +62,6 @@ function next!(process_method::ProcessIterativeInitialization3{T}, q, f_in, t) w
     end
 
     if (should_stop!(process_method.stop_criteria, q, f_in))
-        @info "Stopping due to convergence"
         return true
     end
 

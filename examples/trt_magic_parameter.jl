@@ -1,16 +1,13 @@
 module TRT_MAGIC_EXAMPLE
 
-using LaTeXStrings
-using DataFrames
-using LatticeBoltzmann
-using Plots
-using JLD2
-
+using LatticeBoltzmann, Plots, LaTeXStrings, DataFrames, JLD2
+using Logging, TerminalLoggers, ProgressMeter
 import LatticeBoltzmann: StopCriteria,
     CompareWithAnalyticalSolution,
     TrackHydrodynamicErrors,
     ZeroVelocityInitialCondition,
     IterativeInitializationMeiEtAl,
+    ConstantDensity,
     density,
     velocity!,
     dimensionless_velocity,
@@ -37,11 +34,11 @@ function solve(problem, q, τ_s, τ_a)
 
     collision_model = LatticeBoltzmann.TRT(
         τ_s,
-        τ_a,f
+        τ_a,
         (x_idx, y_idx, t) -> LatticeBoltzmann.lattice_force(problem, x_idx, y_idx, t)
     )
 
-    @time result = LatticeBoltzmann.simulate(
+    result = LatticeBoltzmann.simulate(
         problem,
         q,
         t_end = t_end,
@@ -54,32 +51,32 @@ function solve(problem, q, τ_s, τ_a)
     return result
 end
 
-function plot_main(result; Quadratures = [D2Q9()], scale = 2)
-    s = []
-    for q in Quadratures
-        for τ_s in range(0.51, stop = 10.0, step = 0.05),
-            τ_a in range(0.51, stop = 10.0, step = 0.05)
+function main(quadratures = [D2Q9()], scale = 2, τ_s_range = range(0.51, stop = 1.0, step = 0.1), τ_a_range = τ_s_range)
+    with_logger(TerminalLogger(stderr, Logging.Warn)) do
+        s = []
+        for q in quadratures
+            @showprogress "Computing optimal relaxation times..." for τ_s in τ_s_range, τ_a in τ_a_range
 
-            ν = (τ_s - 0.5) / q.speed_of_sound_squared
-            problem = PoiseuilleFlow(ν, scale)
+                ν = (τ_s - 0.5) / q.speed_of_sound_squared
+                problem = PoiseuilleFlow(ν, scale)
 
-            result = solve(problem, q, τ_s, τ_a)
-            errors = result.processing_method.df[end]
+                result = solve(problem, q, τ_s, τ_a)
+                errors = result.processing_method.df[end]
 
-            push!(s, (
-                τ_s = τ_s,
-                τ_a = τ_a,
-                quadrature = q,
-                error_u = errors.error_u,
-                error_p = errors.error_p,
-                error_σ_xx = errors.error_σ_xx,
-                error_σ_xy = errors.error_σ_xy
-            ))
+                push!(s, (
+                    τ_s = τ_s,
+                    τ_a = τ_a,
+                    quadrature = q,
+                    error_u = errors.error_u,
+                    error_p = errors.error_p,
+                    error_σ_xx = errors.error_σ_xx,
+                    error_σ_xy = errors.error_σ_xy
+                ))
+            end
         end
+        return s
     end
-    return s
 end
-
 function plot_results(x)
     τ_as = map(d -> d.τ_a, x) |> unique
     τ_ss = map(d -> d.τ_s, x) |> unique
@@ -92,6 +89,21 @@ function plot_results(x)
         fill=true
     )
     return p
+
+# @pgf Axis(
+#     {
+#         view = (0, 90),
+#         colorbar,
+#         "colormap/jet"
+#     },
+#     Plot3(
+#         {
+#             surf,
+#             shader = "flat",
+
+#         },
+#         Table(getfield.(x, :τ_s), getfield.(x, :τ_a), getfield.(x, :error_u)))
+# )
 end
 
 end
