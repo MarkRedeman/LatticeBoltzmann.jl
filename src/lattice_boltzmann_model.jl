@@ -59,12 +59,12 @@ function simulate(model::LatticeBoltzmannModel, time)
         stream!(model)
         apply_boundary_conditions!(model, time = t * Δt)
 
-        if process_step!(model, t + 1)
+        if next!(model, t + 1)
             return model
         end
     end
 
-    process_step!(model, last(time) + 1)
+    next!(model, last(time) + 1)
 
     model
 end
@@ -98,6 +98,6 @@ function apply_boundary_conditions!(model::LatticeBoltzmannModel; time = 0.0)
     )
 end
 
-function process_step!(model::LatticeBoltzmannModel, t::Int64)
+function next!(model::LatticeBoltzmannModel, t::Int64)
     next!(model.processing_method, model.quadrature, model.f_stream, t)
 end
