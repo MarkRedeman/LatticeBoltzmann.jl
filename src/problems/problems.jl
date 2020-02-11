@@ -121,12 +121,12 @@ function equilibrium(q::Quadrature, problem::FluidFlowProblem, x::T, y::T) where
     )
 end
 
-include("taylor-green-vortex.jl")
-include("decaying-shear-flow.jl")
+include("taylor_green_vortex.jl")
+include("decaying_shear_flow.jl")
 include("poiseuille.jl")
-include("couette-flow.jl")
-include("lid-driven-cavity.jl")
-include("linear-hydrodynamics-modes.jl")
-include("second-order-convergence.jl")
+include("couette_flow.jl")
+include("lid_driven_cavity.jl")
+include("linear_hydrodynamics_modes.jl")
+include("second_order_convergence.jl")
 
 # error(::Val{:density}, node, solution) = density(node) - density(solution)
