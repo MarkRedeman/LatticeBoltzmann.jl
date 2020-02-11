@@ -32,14 +32,3 @@ end
 
 Base.show(io::IO, q::D2Q4) = show(io, "D2Q4")
 Base.string(q::D2Q4) = "D2Q4"
-
-# The D2Q4 lattice is unable to include temperature
-pressure(q::D2Q4, f::VT, ρ::T, u::VT) where { T <: Real, VT <: AbstractVector{T}} = 1.0
-
-function _equilibrium(q::D2Q4, ρ::T, weight::T, u_dot_xi::T, u_squared::T, temperature::T, xi_squared) where { T <: Real }
-    cs = q.speed_of_sound_squared
-    a_H_0 = one(T)
-    a_H_1 = cs * u_dot_xi
-
-    return ρ .* weight .* (a_H_0 .+ a_H_1)
-end

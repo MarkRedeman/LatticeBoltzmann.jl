@@ -46,11 +46,3 @@ Base.string(q::D2Q5) = "D2Q5"
 
 # The D2Q5 lattice is unable to include temperature
 pressure(q::D2Q5, f::VT, ρ::T, u::VT) where { T <: Real, VT <: AbstractVector{T}} = one(T)
-
-function _equilibrium(q::D2Q5, ρ::T, weight::T, u_dot_xi::T, u_squared::T, temperature::T, xi_squared) where { T <: Real }
-    cs = q.speed_of_sound_squared
-    a_H_0 = one(T)
-    a_H_1 = cs * u_dot_xi
-
-    return ρ .* weight .* (a_H_0 .+ a_H_1)
-end

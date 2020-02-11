@@ -14,6 +14,7 @@ include("hermite_polynomials/hermite.jl")
 include("equilibria/moments.jl")
 include("equilibria/maxwell_boltzmann.jl")
 include("equilibria/hermite.jl")
+include("equilibria/quadratures.jl")
 
 include("boundary_conditions.jl")
 include("problems/problems.jl")
