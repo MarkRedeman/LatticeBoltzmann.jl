@@ -29,7 +29,7 @@ function initialize(
         copy(f),
         copy(f),
         q,
-        ItirativeInitializationCollisionModel(q, strategy.τ, problem),
+        IterativeInitializationCollisionModel(q, strategy.τ, problem),
         boundary_conditions(problem),
         ProcessIterativeInitialization(strategy.ϵ, problem, process_method)
     )

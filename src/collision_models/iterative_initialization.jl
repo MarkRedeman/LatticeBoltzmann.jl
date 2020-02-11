@@ -1,4 +1,4 @@
-struct ItirativeInitializationCollisionModel{ T <: Real, UT <: AbstractArray{T, 3}} <: CollisionModel
+struct IterativeInitializationCollisionModel{ T <: Real, UT <: AbstractArray{T, 3}} <: CollisionModel
     τ::T
 
     # The incompressible equilibrium funciton can be split in a linear and a nonlinear component
@@ -8,7 +8,7 @@ struct ItirativeInitializationCollisionModel{ T <: Real, UT <: AbstractArray{T, 
     # precompute the nonlinear term for some performance improvements
     nonlinear_term::UT
 end
-function ItirativeInitializationCollisionModel(q::Quadrature, τ::T,  problem) where { T <: Real }
+function IterativeInitializationCollisionModel(q::Quadrature, τ::T,  problem) where { T <: Real }
     nx, ny, nf = problem.NX, problem.NY, length(q.weights)
     nonlinear_term = Array{T}(undef, nx, ny, nf)
     ρ_0 = one(T)
@@ -30,10 +30,10 @@ function ItirativeInitializationCollisionModel(q::Quadrature, τ::T,  problem) w
         end
     end
 
-    return ItirativeInitializationCollisionModel(τ, nonlinear_term)
+    return IterativeInitializationCollisionModel(τ, nonlinear_term)
 end
 function collide!(
-    collision_model::ItirativeInitializationCollisionModel,
+    collision_model::IterativeInitializationCollisionModel,
     q::Quadrature,
     f_in,
     f_out;
