@@ -1,5 +1,6 @@
 using LatticeBoltzmann, Plots, LaTeXStrings, DataFrames, JLD2
-import LatticeBoltzmann: StopCriteria,
+import LatticeBoltzmann:
+    StopCriteria,
     CompareWithAnalyticalSolution,
     TrackHydrodynamicErrors,
     ZeroVelocityInitialCondition,
@@ -12,7 +13,6 @@ import LatticeBoltzmann: StopCriteria,
     next!,
     InitializationStrategy,
     ShowVelocityError
-
 
 line_style(q::D2Q4) = (:line)
 line_style(q::D2Q5) = (:line, :dash, 1.0, 3.0)
