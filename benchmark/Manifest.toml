@@ -7,10 +7,9 @@ uuid = "621f4979-c628-5d54-868e-fcf4e3e8185c"
 version = "0.5.0"
 
 [[ArgCheck]]
-deps = ["Random"]
-git-tree-sha1 = "dab25d711a1dedb707a55dbc1eb9fd578f76ff32"
+git-tree-sha1 = "e14de95bcfacd85e00f5369958a38bb72827bce2"
 uuid = "dce04be8-c92d-5529-be00-80e4d2c0e197"
-version = "1.0.1"
+version = "1.1.0"
 
 [[AxisAlgorithms]]
 deps = ["LinearAlgebra", "Random", "SparseArrays", "WoodburyMatrices"]
@@ -121,10 +120,10 @@ uuid = "9a962f9c-6df0-11e9-0e5d-c546b8b5ee8a"
 version = "1.1.0"
 
 [[DataFrames]]
-deps = ["CategoricalArrays", "Compat", "DataAPI", "Future", "InvertedIndices", "IteratorInterfaceExtensions", "Missings", "PooledArrays", "Printf", "REPL", "Reexport", "SortingAlgorithms", "Statistics", "TableTraits", "Tables", "Unicode"]
-git-tree-sha1 = "00136fcd39d503e66ab1b2eab800c47deaf7ca04"
+deps = ["CategoricalArrays", "Compat", "DataAPI", "InvertedIndices", "IteratorInterfaceExtensions", "Missings", "PooledArrays", "Printf", "REPL", "Reexport", "SortingAlgorithms", "Statistics", "TableTraits", "Tables", "Unicode"]
+git-tree-sha1 = "271528230c65a4517522e2968c3deed76b92b998"
 uuid = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
-version = "0.20.0"
+version = "0.19.4"
 
 [[DataStructures]]
 deps = ["InteractiveUtils", "OrderedCollections"]
@@ -148,10 +147,10 @@ deps = ["Printf"]
 uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
 
 [[DefaultApplication]]
-deps = ["Test"]
-git-tree-sha1 = "a51d16b075dc52e22cde13b4a6e0ba4ba86649ee"
+deps = ["InteractiveUtils"]
+git-tree-sha1 = "fc2b7122761b22c87fec8bf2ea4dc4563d9f8c24"
 uuid = "3f0dd361-4fe0-5fc6-8523-80b14ec94d85"
-version = "0.1.3"
+version = "1.0.0"
 
 [[DelimitedFiles]]
 deps = ["Mmap"]
@@ -273,9 +272,9 @@ version = "0.3.1"
 
 [[ImageAxes]]
 deps = ["AxisArrays", "ImageCore", "MappedArrays", "Reexport", "SimpleTraits"]
-git-tree-sha1 = "26163e074948735a6548cc59e750bb569a089a23"
+git-tree-sha1 = "c0aca8db7e9fddda18c9cebff5d147b0e799d676"
 uuid = "2803e5a7-5153-5ecf-9a86-9b4c37f5f5ac"
-version = "0.6.3"
+version = "0.6.4"
 
 [[ImageContrastAdjustment]]
 deps = ["ColorVectorSpace", "Compat", "ImageCore", "ImageTransformations", "MappedArrays", "Parameters"]
@@ -502,9 +501,9 @@ version = "3.2.0"
 
 [[PGFPlotsX]]
 deps = ["ArgCheck", "DataStructures", "Dates", "DefaultApplication", "DocStringExtensions", "MacroTools", "Parameters", "Requires", "StatsBase"]
-git-tree-sha1 = "f840483da6f497c3a75975230fa168adc4c1ed92"
+git-tree-sha1 = "22eeb8209b3d240d22b9c52b0f077aaa4f2f6b19"
 uuid = "8314cec4-20b6-5062-9cdb-752b83310925"
-version = "1.2.1"
+version = "1.2.3"
 
 [[PaddedViews]]
 deps = ["OffsetArrays"]
@@ -680,9 +679,9 @@ version = "1.0.0"
 
 [[Tables]]
 deps = ["DataAPI", "DataValueInterfaces", "IteratorInterfaceExtensions", "LinearAlgebra", "TableTraits", "Test"]
-git-tree-sha1 = "aaed7b3b00248ff6a794375ad6adf30f30ca5591"
+git-tree-sha1 = "f2a8dae52736dd30921b2aea384551a2f982bce2"
 uuid = "bd369af6-aec1-5ad0-b16a-f7cc5008161c"
-version = "0.2.11"
+version = "1.0.0"
 
 [[Test]]
 deps = ["Distributed", "InteractiveUtils", "Logging", "Random"]
