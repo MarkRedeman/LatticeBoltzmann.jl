@@ -6,7 +6,11 @@ using StaticArrays
 
 import LatticeBoltzmann:
     density,
-    velocity!
+    velocity!,
+    temperature,
+    pressure,
+    momentum_flux,
+    deviatoric_tensor
 
 suite = BenchmarkGroup()
 
@@ -20,7 +24,7 @@ function initialize_benchmark(q = D2Q9(), τ = 1.0, scale = 2)
     )
 end
 
-for q = [D2Q9(), D2Q13(), D2Q17(), D2Q21(), D2Q37()]
+for q = LatticeBoltzmann.Quadratures
     suite[string(q)] = BenchmarkGroup([string(q), "moments"])
 
     suite[string(q)]["density"] =
@@ -39,6 +43,50 @@ for q = [D2Q9(), D2Q13(), D2Q17(), D2Q21(), D2Q37()]
             )
         )
 
+    suite[string(q)]["pressure"] =
+        @benchmarkable(
+            pressure($q, f, ρ, u),
+            setup = (
+                f = copy($q.weights);
+                ρ = density($q, f);
+                u = zeros(eltype(f), dimension($q));
+                velocity!($q, f, ρ, u)
+            )
+        )
+
+    suite[string(q)]["temperature"] =
+        @benchmarkable(
+            pressure($q, f, ρ, u),
+            setup = (
+                f = copy($q.weights);
+                ρ = density($q, f);
+                u = zeros(eltype(f), dimension($q));
+                velocity!($q, f, ρ, u)
+            )
+        )
+
+    suite[string(q)]["momentum_flux"] =
+        @benchmarkable(
+            momentum_flux($q, f, ρ, u),
+            setup = (
+                f = copy($q.weights);
+                ρ = density($q, f);
+                u = zeros(eltype(f), dimension($q));
+                velocity!($q, f, ρ, u)
+            )
+        )
+
+    suite[string(q)]["deviatoric_tensor"] =
+        @benchmarkable(
+            deviatoric_tensor($q, τ, f, ρ, u),
+            setup = (
+                τ = 1.0;
+                f = copy($q.weights);
+                ρ = density($q, f);
+                u = zeros(eltype(f), dimension($q));
+                velocity!($q, f, ρ, u)
+            )
+        )
 
     suite[string(q)]["density", "static"] =
         @benchmarkable(
