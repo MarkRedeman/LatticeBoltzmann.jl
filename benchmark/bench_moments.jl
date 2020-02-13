@@ -14,16 +14,6 @@ import LatticeBoltzmann:
 
 suite = BenchmarkGroup()
 
-function initialize_benchmark(q = D2Q9(), τ = 1.0, scale = 2)
-    benchmark_problem = LatticeBoltzmann.TGV(q, τ, scale)
-
-    LatticeBoltzmann.initialize(
-        LatticeBoltzmann.ZeroVelocityInitialCondition(),
-        q,
-        benchmark_problem
-    )
-end
-
 for q = LatticeBoltzmann.Quadratures
     suite[string(q)] = BenchmarkGroup([string(q), "moments"])
 
