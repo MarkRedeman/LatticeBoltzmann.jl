@@ -56,6 +56,29 @@ for q = [D2Q9(), D2Q13(), D2Q17(), D2Q21(), D2Q37()]
             collide!(cm, $q, f_in, f_out),
             setup = (cm = $mrt_equilibrium; f_in = copy($f); f_out = copy($f))
         )
+
+    scale = 2
+    benchmark_problem = LatticeBoltzmann.DecayingShearFlow(1.0 / (2 * q.speed_of_sound_squared), scale, static = true)
+    f_force = LatticeBoltzmann.initialize(LatticeBoltzmann.ZeroVelocityInitialCondition(), q, benchmark_problem)
+    suite[string(q)]["srt", "force"] =
+        @benchmarkable(
+            collide!(cm, $q, f_in, f_out),
+            setup = (
+                cm = CollisionModel(SRT, $q, $benchmark_problem);
+                f_in = copy($f_force);
+                f_out = copy($f_force)
+            )
+        )
+
+    suite[string(q)]["trt", "force"] =
+        @benchmarkable(
+            collide!(cm, $q, f_in, f_out),
+            setup = (
+                cm = CollisionModel(TRT, $q, $benchmark_problem);
+                f_in = copy($f_force);
+                f_out = copy($f_force)
+            )
+        )
 end
 
 end  # module
