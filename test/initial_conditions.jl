@@ -86,7 +86,7 @@ function LatticeBoltzmann.deviatoric_tensor(
     return σ * (problem.NX)
 end
 
-@testset "Initialization strategies with $q" for q in [D2Q9(), D2Q13(), D2Q17(), D2Q21()]
+@testset "Initialization strategies with $q" for q in [D2Q9(), D2Q13(), D2Q17(), D2Q21(), D2Q37()]
     ν = 1.0 / q.speed_of_sound_squared
     problem = InitializationTestProblem(1 * 8, ν)
     τ = 1.0
