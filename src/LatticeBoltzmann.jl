@@ -14,7 +14,7 @@ include("hermite_polynomials.jl")
 
 # Velocity Distribution Function related methods
 include("velocity_distribution_function/moments.jl")
-include("velocity_distribution_function/maxwell_boltzmann.jl")
+include("velocity_distribution_function/maxwell_boltzmann_equilibrium.jl")
 include("velocity_distribution_function/hermite.jl")
 include("velocity_distribution_function/quadratures.jl")
 
