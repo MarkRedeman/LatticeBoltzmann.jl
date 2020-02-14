@@ -1,13 +1,8 @@
 # LatticeBoltzmann.jl
 
-![Lifecycle](https://img.shields.io/badge/lifecycle-experimental-orange.svg)<!--
-![Lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)
-![Lifecycle](https://img.shields.io/badge/lifecycle-stable-green.svg)
-![Lifecycle](https://img.shields.io/badge/lifecycle-retired-orange.svg)
-![Lifecycle](https://img.shields.io/badge/lifecycle-archived-red.svg)
-![Lifecycle](https://img.shields.io/badge/lifecycle-dormant-blue.svg) -->
-![CI](https://github.com/MarkRedeman/LatticeBoltzmann.jl/workflows/CI/badge.svg)
-[![codecov.io](http://codecov.io/github/MarkRedeman/LatticeBoltzmann.jl/coverage.svg?branch=master)](http://codecov.io/github/MarkRedeman/LatticeBoltzmann.jl?branch=master)
+| **Build Status**                                                                                            | **Documentation**                 |
+|:------------------------------------------------------------------------------------------------------------|:----------------------------------|
+| ![Lifecycle][lifecycle-img] [![CI][ci-status-img]][ci-status-url] [![codecov.io][codecov-img]][codecov-url] | [![][docs-dev-img]][docs-dev-url] |
 
 ## Quadratures
 - D2Q4 
@@ -70,3 +65,23 @@ bounce back boundary conditions.
 - Refactor to use [StaticArrays](https://github.com/JuliaArrays/StaticArrays.jl/)
 - Refactor collision models to use kernel methods (will make it easier to allow distributed computing)
 - Add instructions for Docker and Singularity
+
+ 
+<!-- References and urls -->
+[docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
+[docs-dev-url]: https://markredeman.github.io/LatticeBoltzmann.jl/
+
+[ci-status-url]: https://github.com/MarkRedeman/LatticeBoltzmann.jl/actions?query=workflow%3ACI
+[ci-status-img]: https://github.com/MarkRedeman/LatticeBoltzmann.jl/workflows/CI/badge.svg
+
+[codecov-img]: http://codecov.io/github/MarkRedeman/LatticeBoltzmann.jl/coverage.svg?branch=master
+[codecov-url]: http://codecov.io/github/MarkRedeman/LatticeBoltzmann.jl?branch=master
+
+[lifecycle-img]: https://img.shields.io/badge/lifecycle-experimental-orange.svg
+
+<!--
+![Lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)
+![Lifecycle](https://img.shields.io/badge/lifecycle-stable-green.svg)
+![Lifecycle](https://img.shields.io/badge/lifecycle-retired-orange.svg)
+![Lifecycle](https://img.shields.io/badge/lifecycle-archived-red.svg)
+![Lifecycle](https://img.shields.io/badge/lifecycle-dormant-blue.svg) -->
