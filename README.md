@@ -49,11 +49,21 @@
 - Try [mutation testing](https://github.com/MikeInnes/Vimes.jl)
 
 ### Features
+- Add abstraction for simulation parameters (Δx, Δy, Re)
 - Double Distribution Functions for temperature
 - Double Distribution Functions for multicomponent and multiphase flows
 - Improve plotting and process managers (the ugly code)
 - Allow using different equilibrium functions
 - Implement 1D and 3D features
+
+#### Boundary conditions
+Boundary conditions should be rewritten so that they can be applied to a node at
+a location not necessarily at the boundary, so that we can have second order
+bounce back boundary conditions.
+
+- Pressure difference
+- Temperature
+- Multispeed boundary conditions
 
 ### Performance / infrastructure
 - Improve benchmarks
