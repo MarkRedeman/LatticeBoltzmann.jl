@@ -413,7 +413,7 @@ version = "1.0.3"
 deps = ["Contour", "ElectronDisplay", "JLD2", "LaTeXStrings", "LinearAlgebra", "PGFPlots", "PGFPlotsX", "Plots", "StaticArrays", "UnicodePlots"]
 git-tree-sha1 = "80f673faa830e8fc2923c7cdeb7b8244fc0870a1"
 repo-rev = "master"
-repo-url = "git@github.com:MarkRedeman/LatticeBotlzmann.jl.git"
+repo-url = "https://github.com/MarkRedeman/LatticeBoltzmann.jl.git"
 uuid = "526e4760-eb3d-5248-b1e2-01577cc532b6"
 version = "0.1.0"
 
