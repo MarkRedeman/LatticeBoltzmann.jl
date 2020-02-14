@@ -94,3 +94,22 @@ function deviatoric_tensor(
     σ = (a_bar_2 - a_eq_2) / (1 + 1 / (2 * τ))
     return σ - I * tr(σ) / D
 end
+
+"""
+Compute the temperature from hermite coefficients
+"""
+function temperature(
+    q::Q,
+    f::VT,
+    a_0::VT,
+    a_1::VT,
+    a_2::MT,
+) where {Q <: Quadrature, T <: Real, VT <: AbstractVector{T}, MT <: AbstractMatrix{T}}
+    D = dimension(q)
+    P = Array{T}(undef, D, D)
+    ρ = a_0
+    u = a_1 / ρ
+    P = q.speed_of_sound_squared * a_2 - ρ * (u * u' - I(2))
+
+    return tr(P) / (D * ρ)
+end

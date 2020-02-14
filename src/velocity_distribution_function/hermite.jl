@@ -75,22 +75,3 @@ function equilibrium_coefficient(::Type{Val{4}}, q::Quadrature, ρ, u, T)
         for a in 1:D, b in 1:D, c in 1:D, d in 1:D
     ]
 end
-
-"""
-Compute the temperature from hermite coefficients
-"""
-function temperature(
-    q::Q,
-    f::VT,
-    a_0::VT,
-    a_1::VT,
-    a_2::MT,
-) where {Q <: Quadrature, T <: Real, VT <: AbstractVector{T}, MT <: AbstractMatrix{T}}
-    D = dimension(q)
-    P = Array{T}(undef, D, D)
-    ρ = a_0
-    u = a_1 / ρ
-    P = q.speed_of_sound_squared * a_2 - ρ * (u * u' - I(2))
-
-    return tr(P) / (D * ρ)
-end
