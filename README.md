@@ -9,6 +9,37 @@
 [![Build Status](https://travis-ci.com/MarkRedeman/LatticeBoltzmann.jl.svg?branch=master)](https://travis-ci.com/MarkRedeman/LatticeBoltzmann.jl)
 [![codecov.io](http://codecov.io/github/MarkRedeman/LatticeBoltzmann.jl/coverage.svg?branch=master)](http://codecov.io/github/MarkRedeman/LatticeBoltzmann.jl?branch=master)
 
+## Quadratures
+- D2Q4 
+- D2Q5 
+- D2Q9 
+- D2Q13
+- D2Q17
+- D2Q21
+- D2Q37
+
+## Collision models
+- SRT (+ Force)
+- TRT (+ Force)
+- Regularized (projected) MRT (slow) (+ Force)
+
+## Initial conditions
+- Velocity (equilibrium w. constant density)
+- Velocity + stress (offequilibrium)
+- Velocity + pressure (analytical equilibrium)
+- Velocity + pressure + stress (analytical equilibrium + offequilibrium)
+- Iterative (Mei et al)
+
+## Boundary conditions
+- Periodic (default)
+- Bounce back
+- Moving wall
+
+## Test problems
+- Shear wave (decay / steady state)
+- Taylor Green Vortex (decay / steady state)
+- Couette
+- Poiseuille
 
 ## TODO
 
