@@ -12,6 +12,7 @@ struct MRT{
     Hs::HST
     # Keep higher order coefficients allocated
     As::AST
+    a_collision::AST
 
     force::Force
 end
@@ -33,7 +34,7 @@ function MRT(q::Quadrature, τs::VT, force = nothing) where {VT <: AbstractVecto
     D = dimension(q)
     As = [zeros(ntuple(x -> D, n)) for n = 1 : N]
 
-    MRT(τs, 1.0, Hs, As, force)
+    MRT(τs, 1.0, Hs, As, similar(As), force)
 end
 
 function CollisionModel(cm::Type{<:MRT}, q::Quadrature, problem::FluidFlowProblem)
@@ -101,12 +102,12 @@ function collide_mrt!(
         # to a_f[0] and a_f[1]
         for n = 1 : N
             equilibrium_coefficient!(Val{n}, q, ρ, u, temperature, collision_model.As[n])
+
+            # NOTE: we could optimize this by only computing upto n = 2 when τ = 1.0
+            a_f = sum([f[idx] * Hs[n][idx] for idx in 1:length(q.weights)])
+
+            collision_model.a_collision[n] .= (1 - 1 / τs[n]) .* a_f[n] .+ (1 / τs[n]) .* collision_model.As[n]
         end
-
-        # NOTE: we could optimize this by only computing upto n = 2 when τ = 1.0
-        a_f = [sum([f[idx] * Hs[n][idx] for idx in 1:length(q.weights)]) for n in 1:N]
-
-        a_coll = [(1 - 1 / τs[n]) .* a_f[n] .+ (1 / τs[n]) .* collision_model.As[n] for n in 1:N]
 
         @inbounds for f_idx in 1:nf
             f_out[x_idx, y_idx, f_idx] =
@@ -114,7 +115,7 @@ function collide_mrt!(
                     ρ +
                     cs * ρ * sum(u .* Hs[1][f_idx]) +
                     sum([
-                        cs^n * dot(a_coll[n], Hs[n][f_idx]) / (factorial(n)) for n in 2:N
+                        cs^n * dot(collision_model.a_collision[n], Hs[n][f_idx]) / (factorial(n)) for n in 2:N
                     ])
                 )
         end
