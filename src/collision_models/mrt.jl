@@ -30,7 +30,10 @@ function MRT(q::Quadrature, τs::VT, force = nothing) where {VT <: AbstractVecto
     N = round(Int, order(q) / 2)
     Hs = [[hermite(Val{n}, q.abscissae[:, i], q) for i in 1:length(q.weights)] for n in 1:N]
 
-    MRT(τs, 1.0, Hs, copy(Hs), force)
+    D = dimension(q)
+    As = [zeros(ntuple(x -> D, n)) for n = 1 : N]
+
+    MRT(τs, 1.0, Hs, As, force)
 end
 
 function CollisionModel(cm::Type{<:MRT}, q::Quadrature, problem::FluidFlowProblem)
@@ -96,12 +99,14 @@ function collide_mrt!(
 
         # NOTE: we don't need to compute the 0th and 1st coefficient as these are equal
         # to a_f[0] and a_f[1]
-        a_eq = [equilibrium_coefficient(Val{n}, q, ρ, u, temperature) for n in 1:N]
+        for n = 1 : N
+            equilibrium_coefficient!(Val{n}, q, ρ, u, temperature, collision_model.As[n])
+        end
 
         # NOTE: we could optimize this by only computing upto n = 2 when τ = 1.0
         a_f = [sum([f[idx] * Hs[n][idx] for idx in 1:length(q.weights)]) for n in 1:N]
 
-        a_coll = [(1 - 1 / τs[n]) .* a_f[n] .+ (1 / τs[n]) .* a_eq[n] for n in 1:N]
+        a_coll = [(1 - 1 / τs[n]) .* a_f[n] .+ (1 / τs[n]) .* collision_model.As[n] for n in 1:N]
 
         @inbounds for f_idx in 1:nf
             f_out[x_idx, y_idx, f_idx] =
