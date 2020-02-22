@@ -4,6 +4,16 @@
 |:------------------------------------------------------------------------------------------------------------|:----------------------------------|
 | ![Lifecycle][lifecycle-img] [![CI][ci-status-img]][ci-status-url] [![codecov.io][codecov-img]][codecov-url] | [![][docs-dev-img]][docs-dev-url] |
 
+This package was developed for my thesis *A Theoretical & Practical Framework for Lattice Boltzmann Models*. Currently the documentation is a work in progress.
+
+The [**notebooks**](https://github.com/MarkRedeman/LatticeBoltzmann.jl/tree/master/examples/notebooks) contain reproducible examples of results that I've used in my thesis.
+I've focused on four problems:
+- [**Shear wave decay**](https://github.com/MarkRedeman/LatticeBoltzmann.jl/blob/master/examples/notebooks/shear_wave.ipynb): shows we solve initial value problems and can obtain steady state solutions with quadratic convergence.
+- [**Taylor Green Vortex**](https://github.com/MarkRedeman/LatticeBoltzmann.jl/blob/master/examples/notebooks/taylor_green_vortex.ipynb): Shows we can obtain quadratic convergence for the velocity and stress components. It also shows the effect the initialization strategy of a Lattice Boltzmann Method can have on its accuracy (in particular it shows that having an inconsistent pressure can lead to larger errors).
+- [**Couette flow**](https://github.com/MarkRedeman/LatticeBoltzmann.jl/blob/master/examples/notebooks/couette.ipynb): Shows that the D2Q9 quadrature can find an exact solution of the Couette flow. The other quadratures are only second or first order accurate due to an inexact boundary condition.
+- [**Poiseuille**](https://github.com/MarkRedeman/LatticeBoltzmann.jl/blob/master/examples/notebooks/poiseuille.ipynb): shows how we can find a solution to the 2D poiseuille flow and how its accuracy depends on the relaxation time. 
+
+
 ## Quadratures
 - D2Q4 
 - D2Q5 
